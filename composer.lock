@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "58ef2ea20b79cb2ba4320465faeb8732",
+    "content-hash": "a478d4547d7735bc5fb31237cffa6d0a",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -2967,21 +2967,21 @@
         },
         {
             "name": "particle-academy/prism",
-            "version": "v0.101.0",
+            "version": "v0.102.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Particle-Academy/prism.git",
-                "reference": "6f7f189928267d5cfc29b041f1897bf2536a97fe"
+                "reference": "8d4046e0f60370cd3a6146547009a75d42c99549"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Particle-Academy/prism/zipball/6f7f189928267d5cfc29b041f1897bf2536a97fe",
-                "reference": "6f7f189928267d5cfc29b041f1897bf2536a97fe",
+                "url": "https://api.github.com/repos/Particle-Academy/prism/zipball/8d4046e0f60370cd3a6146547009a75d42c99549",
+                "reference": "8d4046e0f60370cd3a6146547009a75d42c99549",
                 "shasum": ""
             },
             "require": {
                 "ext-fileinfo": "*",
-                "laravel/framework": "^11.0|^12.0|^13.0",
+                "laravel/framework": "^12.61.1|^13.12.0",
                 "php": "^8.2"
             },
             "require-dev": {
@@ -2989,7 +2989,7 @@
                 "laravel/mcp": "^0.6.0",
                 "laravel/pint": "^1.14",
                 "mockery/mockery": "^1.6",
-                "orchestra/testbench": "^9|^10|^11",
+                "orchestra/testbench": "^10|^11",
                 "pestphp/pest": "^3.0|^4.0",
                 "pestphp/pest-plugin-arch": "^3.0|^4.0",
                 "pestphp/pest-plugin-laravel": "^3.0|^4.0",
@@ -3033,7 +3033,8 @@
             ],
             "description": "A powerful Laravel package for integrating Large Language Models (LLMs) into your applications. Actively maintained fork of prism-php/prism.",
             "support": {
-                "source": "https://github.com/Particle-Academy/prism/tree/v0.101.0"
+                "issues": "https://github.com/Particle-Academy/prism/issues",
+                "source": "https://github.com/Particle-Academy/prism/tree/v0.102.0"
             },
             "funding": [
                 {
@@ -3041,7 +3042,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-07-06T02:52:13+00:00"
+            "time": "2026-07-06T03:02:20+00:00"
         },
         {
             "name": "phpdocumentor/reflection-common",
