@@ -1,0 +1,18 @@
+@import 'tailwindcss';
+
+/* Class-based dark mode — the theme script in app.blade.php toggles `.dark`
+   on <html>, and react-fancy's dark: utilities key off it. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Tailwind v4 skips node_modules by default — point it at the app pages AND
+   the Fancy package dist so their utility classes are generated. */
+@source '../js/**/*.{ts,tsx}';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../../node_modules/@particle-academy/react-fancy/dist/**/*.{js,cjs,mjs}';
+@source '../../node_modules/@particle-academy/fancy-inertia/dist/**/*.{js,cjs,mjs}';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
