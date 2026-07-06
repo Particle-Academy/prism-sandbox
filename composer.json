@@ -12,22 +12,13 @@
         "starter-kit"
     ],
     "license": "MIT",
-    "repositories": [
-        {
-            "type": "path",
-            "url": "../prism",
-            "options": {
-                "symlink": true
-            }
-        }
-    ],
     "require": {
         "php": "^8.3",
         "inertiajs/inertia-laravel": "^3.1",
         "laravel/fortify": "^1.36",
         "laravel/framework": "^13.8",
         "laravel/tinker": "^3.0",
-        "prism-php/prism": "@dev"
+        "particle-academy/prism": "^0.101"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
