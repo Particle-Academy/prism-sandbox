@@ -15,10 +15,11 @@
     "require": {
         "php": "^8.3",
         "inertiajs/inertia-laravel": "^3.1",
-        "laravel/fortify": "^1.36",
         "laravel/framework": "^13.8",
         "laravel/tinker": "^3.0",
-        "particle-academy/prism": ">=0.102"
+        "league/commonmark": "^2.8",
+        "particle-academy/prism": ">=0.102",
+        "tempest/highlight": "^2.27"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
