@@ -19,7 +19,6 @@
         "laravel/tinker": "^3.0",
         "league/commonmark": "^2.8",
         "particle-academy/prism": ">=0.102",
-        "pusher/pusher-php-server": "^7.2",
         "tempest/highlight": "^2.27"
     },
     "require-dev": {
