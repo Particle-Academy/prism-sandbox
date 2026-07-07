@@ -8,7 +8,7 @@ const PROVIDERS = [
     'OPENROUTER', 'DEEPSEEK', 'XAI', 'QWEN', 'REPLICATE', 'REQUESTY', 'VOYAGE AI', 'Z.AI',
 ];
 
-const FEATURES = [
+const FEATURES: { title: string; blurb: string; href?: string; badge?: string }[] = [
     {
         title: 'One API, every provider',
         blurb: 'Switch between 16 providers — Anthropic, OpenAI, Gemini, Ollama and more — without touching your application code.',
@@ -32,6 +32,22 @@ const FEATURES = [
     {
         title: 'Testing built in',
         blurb: 'Fake any provider response, assert on requests, and ship AI features with a green test suite.',
+    },
+    {
+        title: 'Human-in-the-loop approval',
+        blurb: 'Mark tools clientExecuted() or requiresApproval() — the model proposes, your app or a human decides. Deny-by-default, streamable approval events.',
+        href: '/docs/core-concepts/human-in-the-loop',
+        badge: 'New',
+    },
+    {
+        title: 'Reasoning, dialed in',
+        blurb: 'Provider-agnostic withReasoning(), Anthropic adaptive thinking with output effort, and reasoning-token visibility in every Usage.',
+        badge: 'New',
+    },
+    {
+        title: 'Self-hosted & gateway ready',
+        blurb: 'Point the OpenAI provider at vLLM, LiteLLM, or any compatible backend via api_format — or route through OpenRouter and Requesty.',
+        badge: 'New',
     },
 ];
 
@@ -174,11 +190,19 @@ export default function Landing({ version }: { version: string }) {
                         </h2>
                     </Reveal>
                     <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                        {FEATURES.map((feature, i) => (
-                            <Reveal key={feature.title} delay={i * 70}>
+                        {FEATURES.map((feature, i) => {
+                            const card = (
                                 <div className="k-card h-full p-6">
-                                    <p className="k-mono mb-3">
+                                    <p className="k-mono mb-3 flex items-center gap-2">
                                         <span className="k-grad-text text-sm font-bold tracking-normal">{String(i + 1).padStart(2, '0')}</span>
+                                        {feature.badge && (
+                                            <span
+                                                className="rounded px-1.5 py-0.5 text-[10px] font-bold text-white"
+                                                style={{ background: 'var(--k-grad)', letterSpacing: '0.08em' }}
+                                            >
+                                                {feature.badge.toUpperCase()}
+                                            </span>
+                                        )}
                                     </p>
                                     <h3 className="mb-2 font-semibold" style={{ color: 'var(--k-ink)' }}>
                                         {feature.title}
@@ -187,8 +211,20 @@ export default function Landing({ version }: { version: string }) {
                                         {feature.blurb}
                                     </p>
                                 </div>
-                            </Reveal>
-                        ))}
+                            );
+
+                            return (
+                                <Reveal key={feature.title} delay={i * 70}>
+                                    {feature.href ? (
+                                        <Link href={feature.href} className="block h-full">
+                                            {card}
+                                        </Link>
+                                    ) : (
+                                        card
+                                    )}
+                                </Reveal>
+                            );
+                        })}
                     </div>
                 </div>
             </section>
