@@ -49,6 +49,11 @@ const FEATURES: { title: string; blurb: string; href?: string; badge?: string }[
         blurb: 'Point the OpenAI provider at vLLM, LiteLLM, or any compatible backend via api_format — or route through OpenRouter and Requesty.',
         badge: 'New',
     },
+    {
+        title: 'Observability & telemetry',
+        blurb: 'Opt-in lifecycle events for every generation — token usage, cost, latency, and step/tool spans. Subscribe a Laravel listener for cost tracking, or drop in the OpenTelemetry bridge for traces in Arize Phoenix and any OTLP backend.',
+        badge: 'New',
+    },
 ];
 
 /** Parallax glow layers driven by scroll (Kinetic hero). */
