@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
+use App\Models\Contributor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
@@ -36,14 +36,12 @@ class GitHubWebhookTest extends TestCase
         ], $body);
     }
 
-    protected function contributor(string $login = 'octocat'): User
+    /**
+     * @return array<string, mixed>
+     */
+    protected function actor(string $login = 'octocat', int $id = 42, string $type = 'User'): array
     {
-        return User::create([
-            'name' => 'Octo Cat',
-            'email' => $login.'@example.com',
-            'password' => 'secret',
-            'github_username' => $login,
-        ]);
+        return ['id' => $id, 'login' => $login, 'type' => $type, 'avatar_url' => "https://avatars/$login"];
     }
 
     /**
@@ -53,6 +51,11 @@ class GitHubWebhookTest extends TestCase
     protected function repo(array $extra = []): array
     {
         return array_merge(['repository' => ['full_name' => 'Particle-Academy/prism']], $extra);
+    }
+
+    protected function xpFor(string $login, string $metric): int
+    {
+        return Contributor::where('github_username', $login)->firstOrFail()->getXpFor($metric);
     }
 
     public function test_it_rejects_an_invalid_signature(): void
@@ -71,90 +74,83 @@ class GitHubWebhookTest extends TestCase
 
     public function test_it_ignores_repositories_outside_the_org(): void
     {
-        $user = $this->contributor();
-
         $this->deliver('issues', [
             'action' => 'opened',
             'repository' => ['full_name' => 'someone-else/prism'],
-            'issue' => ['node_id' => 'I_x', 'html_url' => 'http://x', 'user' => ['login' => 'octocat']],
+            'issue' => ['node_id' => 'I_x', 'html_url' => 'http://x', 'user' => $this->actor()],
         ])->assertOk();
 
-        $this->assertSame(0, $user->fresh()->getTotalXp());
+        $this->assertDatabaseCount('contributors', 0);
     }
 
-    public function test_it_awards_issue_xp_for_a_filed_issue(): void
+    public function test_it_awards_issue_xp_and_creates_the_contributor(): void
     {
-        $user = $this->contributor();
-
         $this->deliver('issues', $this->repo([
             'action' => 'opened',
-            'issue' => ['node_id' => 'I_1', 'html_url' => 'http://x/1', 'user' => ['login' => 'octocat']],
+            'issue' => ['node_id' => 'I_1', 'html_url' => 'http://x/1', 'user' => $this->actor()],
         ]))->assertOk()->assertJson(['awarded' => true]);
 
-        $this->assertSame(config('gamification.metrics.issue-xp.xp'), $user->fresh()->getXpFor('issue-xp'));
+        $this->assertDatabaseHas('contributors', ['github_username' => 'octocat', 'github_id' => '42']);
+        $this->assertSame(config('gamification.metrics.issue-xp.xp'), $this->xpFor('octocat', 'issue-xp'));
     }
 
     public function test_it_awards_pr_comment_xp_only_for_comments_on_prs(): void
     {
-        $user = $this->contributor();
-
         // Comment on a plain issue → not rewarded.
         $this->deliver('issue_comment', $this->repo([
             'action' => 'created',
             'issue' => ['number' => 1],
-            'comment' => ['id' => 11, 'html_url' => 'http://x', 'user' => ['login' => 'octocat']],
+            'comment' => ['id' => 11, 'html_url' => 'http://x', 'user' => $this->actor()],
         ]))->assertOk()->assertJson(['awarded' => false]);
 
         // Comment on a PR → rewarded.
         $this->deliver('issue_comment', $this->repo([
             'action' => 'created',
             'issue' => ['number' => 2, 'pull_request' => ['url' => 'http://pr']],
-            'comment' => ['id' => 12, 'html_url' => 'http://x', 'user' => ['login' => 'octocat']],
+            'comment' => ['id' => 12, 'html_url' => 'http://x', 'user' => $this->actor()],
         ]))->assertOk()->assertJson(['awarded' => true]);
 
-        $this->assertSame(config('gamification.metrics.pr-comment-xp.xp'), $user->fresh()->getXpFor('pr-comment-xp'));
+        $this->assertSame(config('gamification.metrics.pr-comment-xp.xp'), $this->xpFor('octocat', 'pr-comment-xp'));
     }
 
-    public function test_it_awards_submitted_and_accepted_pr_xp(): void
+    public function test_it_awards_submitted_and_accepted_pr_xp_with_first_pr_achievement(): void
     {
-        $user = $this->contributor();
-
         $this->deliver('pull_request', $this->repo([
             'action' => 'opened',
-            'pull_request' => ['node_id' => 'PR_1', 'html_url' => 'http://pr/1', 'user' => ['login' => 'octocat']],
+            'pull_request' => ['node_id' => 'PR_1', 'html_url' => 'http://pr/1', 'user' => $this->actor()],
         ]))->assertJson(['awarded' => true]);
 
         $this->deliver('pull_request', $this->repo([
             'action' => 'closed',
-            'pull_request' => ['node_id' => 'PR_1', 'merged' => true, 'html_url' => 'http://pr/1', 'user' => ['login' => 'octocat']],
+            'pull_request' => ['node_id' => 'PR_1', 'merged' => true, 'html_url' => 'http://pr/1', 'user' => $this->actor()],
         ]))->assertJson(['awarded' => true]);
 
-        $fresh = $user->fresh();
-        $this->assertSame(config('gamification.metrics.pr-submitted-xp.xp'), $fresh->getXpFor('pr-submitted-xp'));
-        $this->assertSame(config('gamification.metrics.pr-accepted-xp.xp'), $fresh->getXpFor('pr-accepted-xp'));
-        $this->assertTrue($fresh->hasAchievement('first-pr'));
+        $contributor = Contributor::where('github_username', 'octocat')->firstOrFail();
+        $this->assertSame(config('gamification.metrics.pr-submitted-xp.xp'), $contributor->getXpFor('pr-submitted-xp'));
+        $this->assertSame(config('gamification.metrics.pr-accepted-xp.xp'), $contributor->getXpFor('pr-accepted-xp'));
+        $this->assertTrue($contributor->hasAchievement('first-pr'));
     }
 
     public function test_it_is_idempotent_on_redelivery(): void
     {
-        $user = $this->contributor();
-
         $payload = $this->repo([
             'action' => 'opened',
-            'pull_request' => ['node_id' => 'PR_dup', 'html_url' => 'http://pr', 'user' => ['login' => 'octocat']],
+            'pull_request' => ['node_id' => 'PR_dup', 'html_url' => 'http://pr', 'user' => $this->actor()],
         ]);
 
         $this->deliver('pull_request', $payload)->assertJson(['awarded' => true]);
         $this->deliver('pull_request', $payload)->assertJson(['awarded' => false]);
 
-        $this->assertSame(config('gamification.metrics.pr-submitted-xp.xp'), $user->fresh()->getXpFor('pr-submitted-xp'));
+        $this->assertSame(config('gamification.metrics.pr-submitted-xp.xp'), $this->xpFor('octocat', 'pr-submitted-xp'));
     }
 
-    public function test_it_skips_contributors_without_a_linked_account(): void
+    public function test_it_ignores_bot_contributors(): void
     {
         $this->deliver('issues', $this->repo([
             'action' => 'opened',
-            'issue' => ['node_id' => 'I_2', 'html_url' => 'http://x', 'user' => ['login' => 'a-stranger']],
+            'issue' => ['node_id' => 'I_bot', 'html_url' => 'http://x', 'user' => $this->actor('dependabot', 99, 'Bot')],
         ]))->assertOk()->assertJson(['awarded' => false]);
+
+        $this->assertDatabaseCount('contributors', 0);
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Support;
 
-use App\Models\User;
+use App\Models\Contributor;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use LaravelFunLab\Facades\LFL;
@@ -19,14 +19,14 @@ use Throwable;
 class XpAwarder
 {
     public static function award(
-        ?User $user,
+        ?Contributor $contributor,
         string $metric,
         int $amount,
         string $reason,
         string $dedupKey,
         ?int $dedupSeconds = null,
     ): bool {
-        if (! $user instanceof User || $user->isOptedOut()) {
+        if (! $contributor instanceof Contributor || $contributor->isOptedOut()) {
             return false;
         }
 
@@ -35,17 +35,17 @@ class XpAwarder
         }
 
         $dedupSeconds ??= (int) config('gamification.dedup_seconds', 31_536_000);
-        $cacheKey = "xp:{$user->id}:{$metric}:{$dedupKey}";
+        $cacheKey = "xp:{$contributor->id}:{$metric}:{$dedupKey}";
 
         if (Cache::has($cacheKey)) {
             return false;
         }
 
-        $wasFirstEver = $user->getTotalXp() === 0;
+        $wasFirstEver = $contributor->getTotalXp() === 0;
 
         try {
             LFL::award($metric)
-                ->to($user)
+                ->to($contributor)
                 ->amount($amount)
                 ->because($reason)
                 ->from('github')
@@ -67,7 +67,7 @@ class XpAwarder
 
         if ($wasFirstEver) {
             try {
-                LFL::grant('first-contribution')->to($user)->because('First tracked contribution')->save();
+                LFL::grant('first-contribution')->to($contributor)->because('First tracked contribution')->save();
             } catch (Throwable) {
                 // Achievement is best-effort; never fail the award over it.
             }

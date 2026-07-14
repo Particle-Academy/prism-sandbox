@@ -36,15 +36,9 @@ return [
     ],
 
     'github' => [
-        // Socialite OAuth login (links contributors to their GitHub identity).
-        'client_id' => env('GITHUB_CLIENT_ID'),
-        'client_secret' => env('GITHUB_CLIENT_SECRET'),
-        'redirect' => env('GITHUB_REDIRECT_URI', env('APP_URL').'/auth/github/callback'),
-
-        // Contribution webhook (XP awards).
+        // Contribution webhook — HMAC secret + org scope. Contributors are
+        // tracked directly from the webhook payload (no site accounts).
         'webhook_secret' => env('GITHUB_WEBHOOK_SECRET'),
-
-        // Only contributions to this org are rewarded.
         'org' => env('GITHUB_ORG', 'Particle-Academy'),
     ],
 

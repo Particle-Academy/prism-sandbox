@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Webhooks;
 
-use App\Models\User;
+use App\Models\Contributor;
 use App\Support\XpAwarder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,6 +13,9 @@ use Throwable;
  * Awards contribution XP from GitHub webhook events. Authenticated by the
  * X-Hub-Signature-256 HMAC (not CSRF — the route is CSRF-exempt), scoped to the
  * configured org, and idempotent via {@see XpAwarder}.
+ *
+ * There are no site accounts: the contributor is resolved (and created on first
+ * sight) directly from the GitHub identity in each payload.
  */
 class GitHubWebhookController
 {
@@ -81,7 +84,7 @@ class GitHubWebhookController
         }
 
         return XpAwarder::award(
-            $this->resolveUser(data_get($payload, 'issue.user.login')),
+            $this->contributor(data_get($payload, 'issue.user')),
             'issue-xp',
             $this->xp('issue-xp'),
             'Opened issue '.data_get($payload, 'issue.html_url'),
@@ -100,7 +103,7 @@ class GitHubWebhookController
         }
 
         return $this->awardComment(
-            $this->resolveUser(data_get($payload, 'comment.user.login')),
+            $this->contributor(data_get($payload, 'comment.user')),
             'comment:'.data_get($payload, 'comment.id'),
             data_get($payload, 'comment.html_url'),
         );
@@ -116,16 +119,16 @@ class GitHubWebhookController
         }
 
         return $this->awardComment(
-            $this->resolveUser(data_get($payload, 'comment.user.login')),
+            $this->contributor(data_get($payload, 'comment.user')),
             'review-comment:'.data_get($payload, 'comment.id'),
             data_get($payload, 'comment.html_url'),
         );
     }
 
-    protected function awardComment(?User $user, string $dedupKey, ?string $url): bool
+    protected function awardComment(?Contributor $contributor, string $dedupKey, ?string $url): bool
     {
         return XpAwarder::award(
-            $user,
+            $contributor,
             'pr-comment-xp',
             $this->xp('pr-comment-xp'),
             'Commented on a pull request'.($url !== null ? ' '.$url : ''),
@@ -139,20 +142,20 @@ class GitHubWebhookController
     protected function handlePullRequest(array $payload): bool
     {
         $action = data_get($payload, 'action');
-        $user = $this->resolveUser(data_get($payload, 'pull_request.user.login'));
+        $contributor = $this->contributor(data_get($payload, 'pull_request.user'));
         $nodeId = (string) data_get($payload, 'pull_request.node_id');
         $url = data_get($payload, 'pull_request.html_url');
 
         if ($action === 'opened') {
-            return XpAwarder::award($user, 'pr-submitted-xp', $this->xp('pr-submitted-xp'), 'Opened pull request '.$url, 'pr-opened:'.$nodeId);
+            return XpAwarder::award($contributor, 'pr-submitted-xp', $this->xp('pr-submitted-xp'), 'Opened pull request '.$url, 'pr-opened:'.$nodeId);
         }
 
         if ($action === 'closed' && data_get($payload, 'pull_request.merged') === true) {
-            $awarded = XpAwarder::award($user, 'pr-accepted-xp', $this->xp('pr-accepted-xp'), 'Merged pull request '.$url, 'pr-merged:'.$nodeId);
+            $awarded = XpAwarder::award($contributor, 'pr-accepted-xp', $this->xp('pr-accepted-xp'), 'Merged pull request '.$url, 'pr-merged:'.$nodeId);
 
-            if ($awarded && $user instanceof User && ! $user->hasAchievement('first-pr')) {
+            if ($awarded && $contributor instanceof Contributor && ! $contributor->hasAchievement('first-pr')) {
                 try {
-                    LFL::grant('first-pr')->to($user)->because('First merged pull request')->save();
+                    LFL::grant('first-pr')->to($contributor)->because('First merged pull request')->save();
                 } catch (Throwable) {
                     // best-effort
                 }
@@ -164,13 +167,26 @@ class GitHubWebhookController
         return false;
     }
 
-    protected function resolveUser(mixed $login): ?User
+    /**
+     * Resolve (creating on first sight) a Contributor from a GitHub user object
+     * in the payload. Skips bots and anything missing an id or login.
+     */
+    protected function contributor(mixed $githubUser): ?Contributor
     {
-        if (! is_string($login) || $login === '') {
+        $id = data_get($githubUser, 'id');
+        $login = data_get($githubUser, 'login');
+
+        if ($id === null || ! is_string($login) || $login === '' || data_get($githubUser, 'type') === 'Bot') {
             return null;
         }
 
-        return User::where('github_username', $login)->first();
+        return Contributor::updateOrCreate(
+            ['github_id' => (string) $id],
+            [
+                'github_username' => $login,
+                'avatar_url' => data_get($githubUser, 'avatar_url'),
+            ],
+        );
     }
 
     protected function xp(string $metric): int
