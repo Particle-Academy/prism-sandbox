@@ -2613,22 +2613,26 @@
         },
         {
             "name": "particle-academy/prism",
-            "version": "v0.108.1",
+            "version": "v0.110.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Particle-Academy/prism.git",
-                "reference": "805baab620c173338b004e560703b7cb82bd8a1c"
+                "reference": "864f59982f8e6ad753a99952d34d53a766ba326e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Particle-Academy/prism/zipball/805baab620c173338b004e560703b7cb82bd8a1c",
-                "reference": "805baab620c173338b004e560703b7cb82bd8a1c",
+                "url": "https://api.github.com/repos/Particle-Academy/prism/zipball/864f59982f8e6ad753a99952d34d53a766ba326e",
+                "reference": "864f59982f8e6ad753a99952d34d53a766ba326e",
                 "shasum": ""
             },
             "require": {
                 "ext-fileinfo": "*",
+                "ext-mbstring": "*",
+                "ext-openssl": "*",
                 "laravel/framework": "^12.61.1|^13.12.0",
-                "php": "^8.2"
+                "php": "^8.2",
+                "psr/http-message": "^1.1|^2.0",
+                "symfony/http-foundation": "^7.2|^8.0"
             },
             "require-dev": {
                 "brianium/paratest": "^7.8.4",
@@ -2647,6 +2651,9 @@
                 "rector/rector": "2.3.3",
                 "spatie/laravel-ray": "^1.39",
                 "symplify/rule-doc-generator-contracts": "^11.2"
+            },
+            "suggest": {
+                "laravel/mcp": "Required to expose Prism tools through a Laravel MCP server (LaravelMcpTool)."
             },
             "type": "library",
             "extra": {
@@ -2680,7 +2687,7 @@
             "description": "A powerful Laravel package for integrating Large Language Models (LLMs) into your applications. Actively maintained fork of prism-php/prism.",
             "support": {
                 "issues": "https://github.com/Particle-Academy/prism/issues",
-                "source": "https://github.com/Particle-Academy/prism/tree/v0.108.1"
+                "source": "https://github.com/Particle-Academy/prism/tree/v0.110.0"
             },
             "funding": [
                 {
@@ -2688,7 +2695,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-07-07T04:18:00+00:00"
+            "time": "2026-07-09T18:38:15+00:00"
         },
         {
             "name": "phpoption/phpoption",
