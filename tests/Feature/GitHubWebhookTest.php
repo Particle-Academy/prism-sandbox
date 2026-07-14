@@ -196,4 +196,17 @@ class GitHubWebhookTest extends TestCase
 
         $this->assertDatabaseMissing('contributors', ['github_username' => 'someone']);
     }
+
+    public function test_it_ignores_users_on_the_ignore_list(): void
+    {
+        config()->set('gamification.ignored_users', ['wishborn']);
+
+        // Case-insensitive: "WishBorn" is still ignored.
+        $this->deliver('star', $this->repo([
+            'action' => 'created',
+            'sender' => $this->actor('WishBorn', 1),
+        ]))->assertOk()->assertJson(['awarded' => false]);
+
+        $this->assertDatabaseCount('contributors', 0);
+    }
 }

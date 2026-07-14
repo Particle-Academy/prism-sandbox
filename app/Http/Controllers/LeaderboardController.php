@@ -24,8 +24,12 @@ class LeaderboardController extends Controller
 
         $profiles->load('awardable');
 
+        $ignored = array_map('strtolower', (array) config('gamification.ignored_users', []));
+
         $rows = $profiles
-            ->filter(fn (Profile $profile): bool => $profile->awardable instanceof Contributor && (int) $profile->total_xp > 0)
+            ->filter(fn (Profile $profile): bool => $profile->awardable instanceof Contributor
+                && (int) $profile->total_xp > 0
+                && ! in_array(strtolower((string) $profile->awardable->github_username), $ignored, true))
             ->values()
             ->map(fn (Profile $profile, int $index): array => $this->row($profile, $silos, $index + 1))
             ->all();

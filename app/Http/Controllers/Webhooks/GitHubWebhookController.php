@@ -235,6 +235,13 @@ class GitHubWebhookController
             return null;
         }
 
+        // Maintainers / opted-out logins never earn XP or get recorded.
+        $ignored = array_map('strtolower', (array) config('gamification.ignored_users', []));
+
+        if (in_array(strtolower($login), $ignored, true)) {
+            return null;
+        }
+
         return Contributor::updateOrCreate(
             ['github_id' => (string) $id],
             [

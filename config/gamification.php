@@ -54,4 +54,12 @@ return [
     // One year — a redelivered/replayed webhook can never double-count.
     'dedup_seconds' => (int) env('XP_DEDUP_SECONDS', 31_536_000),
 
+    // GitHub logins (case-insensitive) excluded from XP and the leaderboard —
+    // e.g. maintainers who shouldn't compete with the community. Add more via the
+    // comma-separated GITHUB_IGNORED_USERS env var.
+    'ignored_users' => array_values(array_unique(array_merge(
+        ['wishborn'],
+        array_filter(array_map('trim', explode(',', (string) env('GITHUB_IGNORED_USERS', ''))))
+    ))),
+
 ];
