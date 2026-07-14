@@ -42,7 +42,9 @@ class GitHubWebhookController
             'issues' => $this->handleIssueOpened($payload),
             'issue_comment' => $this->handlePrComment($payload),
             'pull_request_review_comment' => $this->handleReviewComment($payload),
+            'pull_request_review' => $this->handleReview($payload),
             'pull_request' => $this->handlePullRequest($payload),
+            'star' => $this->handleStar($payload),
             default => false,
         };
 
@@ -67,8 +69,21 @@ class GitHubWebhookController
      */
     protected function inScope(array $payload): bool
     {
-        $org = (string) config('services.github.org');
         $fullName = (string) data_get($payload, 'repository.full_name', '');
+
+        if ($fullName === '') {
+            return false;
+        }
+
+        // Explicit repo allowlist wins when configured; otherwise any org repo.
+        /** @var list<string> $repos */
+        $repos = (array) config('services.github.repos', []);
+
+        if ($repos !== []) {
+            return in_array($fullName, $repos, true);
+        }
+
+        $org = (string) config('services.github.org');
 
         return $org !== '' && str_starts_with($fullName, $org.'/');
     }
@@ -133,6 +148,46 @@ class GitHubWebhookController
             $this->xp('pr-comment-xp'),
             'Commented on a pull request'.($url !== null ? ' '.$url : ''),
             $dedupKey,
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    protected function handleReview(array $payload): bool
+    {
+        if (data_get($payload, 'action') !== 'submitted') {
+            return false;
+        }
+
+        $url = data_get($payload, 'review.html_url');
+
+        return XpAwarder::award(
+            $this->contributor(data_get($payload, 'review.user')),
+            'pr-review-xp',
+            $this->xp('pr-review-xp'),
+            'Reviewed a pull request'.($url !== null ? ' '.$url : ''),
+            'review:'.data_get($payload, 'review.id'),
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    protected function handleStar(array $payload): bool
+    {
+        if (data_get($payload, 'action') !== 'created') {
+            return false;
+        }
+
+        $sender = data_get($payload, 'sender');
+
+        return XpAwarder::award(
+            $this->contributor($sender),
+            'star-xp',
+            $this->xp('star-xp'),
+            'Starred the repository',
+            'star:'.data_get($sender, 'id'),
         );
     }
 

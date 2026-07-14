@@ -24,7 +24,7 @@ class LeaderboardTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('Leaderboard')
-                ->has('silos', 4)
+                ->has('silos', 6)
                 ->has('rows', 2)
                 ->where('rows.0.github_username', 'alice')
                 ->where('rows.0.rank', 1)

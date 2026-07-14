@@ -153,4 +153,47 @@ class GitHubWebhookTest extends TestCase
 
         $this->assertDatabaseCount('contributors', 0);
     }
+
+    public function test_it_awards_review_xp_for_a_submitted_review(): void
+    {
+        $this->deliver('pull_request_review', $this->repo([
+            'action' => 'submitted',
+            'review' => ['id' => 555, 'html_url' => 'http://pr#review', 'user' => $this->actor()],
+        ]))->assertOk()->assertJson(['awarded' => true]);
+
+        $this->assertSame(config('gamification.metrics.pr-review-xp.xp'), $this->xpFor('octocat', 'pr-review-xp'));
+    }
+
+    public function test_it_awards_star_xp_once_per_user(): void
+    {
+        $payload = $this->repo([
+            'action' => 'created',
+            'sender' => $this->actor(),
+        ]);
+
+        $this->deliver('star', $payload)->assertOk()->assertJson(['awarded' => true]);
+        $this->deliver('star', $payload)->assertOk()->assertJson(['awarded' => false]); // re-star can't farm
+
+        $this->assertSame(config('gamification.metrics.star-xp.xp'), $this->xpFor('octocat', 'star-xp'));
+    }
+
+    public function test_it_honours_the_repo_allowlist(): void
+    {
+        config()->set('services.github.repos', ['Particle-Academy/prism']);
+
+        $this->deliver('issues', [
+            'action' => 'opened',
+            'repository' => ['full_name' => 'Particle-Academy/prism'],
+            'issue' => ['node_id' => 'I_ok', 'html_url' => 'http://x', 'user' => $this->actor()],
+        ])->assertJson(['awarded' => true]);
+
+        // Another org repo not on the allowlist → ignored.
+        $this->deliver('issues', [
+            'action' => 'opened',
+            'repository' => ['full_name' => 'Particle-Academy/prism-sandbox'],
+            'issue' => ['node_id' => 'I_no', 'html_url' => 'http://x', 'user' => $this->actor('someone', 77)],
+        ])->assertOk();
+
+        $this->assertDatabaseMissing('contributors', ['github_username' => 'someone']);
+    }
 }
