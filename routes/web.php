@@ -2,6 +2,7 @@
 
 use App\Docs\DocsRepository;
 use App\Http\Controllers\DocsController;
+use App\Http\Controllers\Lab\ChatController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\Webhooks\GitHubWebhookController;
 use Illuminate\Support\Facades\Route;
@@ -15,6 +16,11 @@ Route::get('/', fn (DocsRepository $docs) => Inertia::render('Landing', [
 Route::get('/leaderboard', LeaderboardController::class)->name('leaderboard');
 // GitHub webhook — HMAC-authenticated, CSRF-exempt; contributors tracked from the payload.
 Route::post('/webhooks/github', GitHubWebhookController::class)->name('webhooks.github');
+
+if (app()->environment('local')) {
+    Route::get('/lab/chat', [ChatController::class, 'show'])->name('lab.chat');
+    Route::post('/lab/chat', [ChatController::class, 'run'])->name('lab.chat.run');
+}
 
 Route::get('/docs', [DocsController::class, 'index'])->name('docs.index');
 Route::get('/docs-index.json', [DocsController::class, 'searchIndex'])->name('docs.search-index');

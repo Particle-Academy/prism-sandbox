@@ -112,6 +112,12 @@
     border-top: 1px solid var(--k-hairline);
 }
 
+.lab-input {
+    width: 100%; border: 1px solid var(--k-hairline-2); border-radius: 10px;
+    background: var(--k-bg-1); color: var(--k-ink); padding: .7rem .8rem; outline: none;
+}
+.lab-input:focus { border-color: var(--k-cyan); box-shadow: 0 0 0 3px rgba(31, 212, 255, .1); }
+
 /* Marquee */
 .k-marquee {
     overflow: hidden;
