@@ -3,6 +3,7 @@
 use App\Docs\DocsRepository;
 use App\Http\Controllers\DocsController;
 use App\Http\Controllers\Lab\ChatController;
+use App\Http\Controllers\Lab\TestSuiteController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\Webhooks\GitHubWebhookController;
 use Illuminate\Support\Facades\Route;
@@ -20,6 +21,8 @@ Route::post('/webhooks/github', GitHubWebhookController::class)->name('webhooks.
 if (app()->environment('local')) {
     Route::get('/lab/chat', [ChatController::class, 'show'])->name('lab.chat');
     Route::post('/lab/chat', [ChatController::class, 'run'])->name('lab.chat.run');
+    Route::get('/lab/tests', [TestSuiteController::class, 'show'])->name('lab.tests');
+    Route::post('/lab/tests', [TestSuiteController::class, 'run'])->name('lab.tests.run');
 }
 
 Route::get('/docs', [DocsController::class, 'index'])->name('docs.index');
