@@ -22,8 +22,8 @@
         "open-telemetry/exporter-otlp": "^1.0",
         "open-telemetry/sdk": "^1.0",
         "particle-academy/laravel-fun-lab": "0.5",
-        "particle-academy/prism": "dev-feat/telemetry-935",
-        "particle-academy/prism-opentelemetry": "dev-main",
+        "particle-academy/prism": "^0.111",
+        "particle-academy/prism-opentelemetry": "^0.1",
         "tempest/highlight": "^2.27"
     },
     "require-dev": {
@@ -90,22 +90,6 @@
             ]
         }
     },
-    "repositories": [
-        {
-            "type": "path",
-            "url": "../../sandbox/otel-e2e/prism-tel",
-            "options": {
-                "symlink": true
-            }
-        },
-        {
-            "type": "path",
-            "url": "../prism-opentelemetry",
-            "options": {
-                "symlink": true
-            }
-        }
-    ],
     "config": {
         "optimize-autoloader": true,
         "preferred-install": "dist",
