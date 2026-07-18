@@ -56,6 +56,7 @@ final class ChatController extends Controller
         try {
             $generation = Prism::text()
                 ->using($input['provider'], $input['model'])
+                ->withTelemetryMetadata(userId: 'prism-lab-user', sessionId: $request->session()->getId())
                 ->withPrompt($input['prompt']);
 
             if ($input['feature'] === 'tools') {
@@ -70,7 +71,8 @@ final class ChatController extends Controller
                     'latency_ms' => round((hrtime(true) - $started) / 1_000_000, 1),
                     'prompt_tokens' => $response->usage->promptTokens,
                     'completion_tokens' => $response->usage->completionTokens,
-                    'cost' => $response->usage->cost,
+                    'provider_reported_cost' => $response->usage->cost,
+                    'cost_source' => $response->usage->cost === null ? 'Derived in Phoenix after export' : 'Provider response',
                     'steps' => $response->steps->count(),
                     'tool_calls' => count($response->toolCalls),
                     'finish_reason' => $response->finishReason->value,
@@ -81,7 +83,7 @@ final class ChatController extends Controller
             report($exception);
 
             return response()->json([
-                'message' => 'Generation failed: '.$exception->getMessage(),
+                'message' => 'Generation failed. Check the application log for details.',
             ], 502);
         }
     }
