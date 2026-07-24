@@ -92,6 +92,9 @@ export function KineticNav({ version, onSearch }: { version: string; onSearch?: 
                     <Link href="/docs" className="rounded-lg px-3 py-1.5 transition-colors hover:text-[var(--k-cyan)]" style={{ color: 'var(--k-ink-2)' }}>
                         Docs
                     </Link>
+                    <Link href="/leaderboard" className="rounded-lg px-3 py-1.5 transition-colors hover:text-[var(--k-cyan)]" style={{ color: 'var(--k-ink-2)' }}>
+                        Leaderboard
+                    </Link>
                     <a
                         href="https://github.com/Particle-Academy/prism"
                         className="rounded-lg px-3 py-1.5 transition-colors hover:text-[var(--k-cyan)]"
