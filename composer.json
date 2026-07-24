@@ -18,7 +18,12 @@
         "laravel/framework": "^13.8",
         "laravel/tinker": "^3.0",
         "league/commonmark": "^2.8",
-        "particle-academy/prism": ">=0.102",
+        "guzzlehttp/guzzle": "^7.8",
+        "open-telemetry/exporter-otlp": "^1.0",
+        "open-telemetry/sdk": "^1.0",
+        "particle-academy/laravel-fun-lab": "0.5",
+        "particle-academy/prism": "^0.111",
+        "particle-academy/prism-opentelemetry": "^0.1",
         "tempest/highlight": "^2.27"
     },
     "require-dev": {
@@ -80,7 +85,9 @@
     },
     "extra": {
         "laravel": {
-            "dont-discover": []
+            "dont-discover": [
+                "particle-academy/prism-opentelemetry"
+            ]
         }
     },
     "config": {
@@ -89,7 +96,8 @@
         "sort-packages": true,
         "allow-plugins": {
             "pestphp/pest-plugin": true,
-            "php-http/discovery": true
+            "php-http/discovery": true,
+            "tbachert/spi": true
         }
     },
     "minimum-stability": "stable",

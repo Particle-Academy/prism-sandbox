@@ -35,4 +35,19 @@ return [
         ],
     ],
 
+    'github' => [
+        // Contribution webhook — HMAC secret + scope. Contributors are tracked
+        // directly from the webhook payload (no site accounts).
+        'webhook_secret' => env('GITHUB_WEBHOOK_SECRET'),
+        'org' => env('GITHUB_ORG', 'Particle-Academy'),
+
+        // Optional allowlist of "owner/repo" full names to reward. When set, only
+        // these repos count (register the webhook per-repo anyway). Empty = any
+        // repo in `org`. Comma-separated, e.g. "Particle-Academy/prism".
+        'repos' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('GITHUB_REPOS', ''))
+        ))),
+    ],
+
 ];
