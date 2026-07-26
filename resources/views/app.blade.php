@@ -25,8 +25,7 @@
 <body class="min-h-screen bg-white text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-100">
     @inertia
 
-    {{-- Fancy Pixel — production-only visitor heuristics badge (Particle Academy).
-         @verbatim keeps the "@particle-academy" in the URL from being parsed as a Blade directive. --}}
+    {{-- Fancy Pixel: production-only visitor heuristics badge (Particle Academy). --}}
     @production
         @verbatim
         <script src="https://unpkg.com/@particle-academy/fancy-pixel/dist/fancy-pixel.global.min.js" data-site="gegxb2ehq3vl" data-style="badge" data-mode="floating" data-endpoint="https://ui.particle.academy/heuristics"></script>
