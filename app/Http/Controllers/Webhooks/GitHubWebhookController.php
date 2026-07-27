@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Webhooks;
 
 use App\Models\Contributor;
+use App\Support\ContributorResolver;
 use App\Support\XpAwarder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -228,27 +229,7 @@ class GitHubWebhookController
      */
     protected function contributor(mixed $githubUser): ?Contributor
     {
-        $id = data_get($githubUser, 'id');
-        $login = data_get($githubUser, 'login');
-
-        if ($id === null || ! is_string($login) || $login === '' || data_get($githubUser, 'type') === 'Bot') {
-            return null;
-        }
-
-        // Maintainers / opted-out logins never earn XP or get recorded.
-        $ignored = array_map('strtolower', (array) config('gamification.ignored_users', []));
-
-        if (in_array(strtolower($login), $ignored, true)) {
-            return null;
-        }
-
-        return Contributor::updateOrCreate(
-            ['github_id' => (string) $id],
-            [
-                'github_username' => $login,
-                'avatar_url' => data_get($githubUser, 'avatar_url'),
-            ],
-        );
+        return app(ContributorResolver::class)->resolve($githubUser);
     }
 
     protected function xp(string $metric): int

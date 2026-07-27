@@ -41,6 +41,10 @@ return [
         'webhook_secret' => env('GITHUB_WEBHOOK_SECRET'),
         'org' => env('GITHUB_ORG', 'Particle-Academy'),
 
+        // API token for the backfill/reconcile command. Read via config (not
+        // env() directly) so it still resolves under `php artisan config:cache`.
+        'token' => env('GITHUB_TOKEN') ?: env('GH_TOKEN') ?: null,
+
         // Optional allowlist of "owner/repo" full names to reward. When set, only
         // these repos count (register the webhook per-repo anyway). Empty = any
         // repo in `org`. Comma-separated, e.g. "Particle-Academy/prism".
