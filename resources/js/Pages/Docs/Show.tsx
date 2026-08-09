@@ -63,19 +63,35 @@ export default function Show({ page, nav, path, version }: { page: Page; nav: Na
                                 <ul className="space-y-0.5 border-l" style={{ borderColor: 'var(--k-hairline)' }}>
                                     {group.items.map((item) => {
                                         const active = item.link === current;
+                                        // The upstream VitePress sidebar mixes in absolute links to
+                                        // companion packages (Relay, Bedrock). Those are not pages we
+                                        // render, so they must not be prefixed with /docs.
+                                        const external = /^https?:\/\//.test(item.link);
+                                        const className =
+                                            '-ml-px block border-l py-1 pl-3.5 text-[0.83rem] transition-colors';
+                                        const style = {
+                                            borderColor: active ? 'var(--k-mag)' : 'transparent',
+                                            color: active ? 'var(--k-ink)' : 'var(--k-ink-3)',
+                                            fontWeight: active ? 600 : 400,
+                                        };
+
                                         return (
                                             <li key={item.link}>
-                                                <Link
-                                                    href={'/docs' + item.link}
-                                                    className="-ml-px block border-l py-1 pl-3.5 text-[0.83rem] transition-colors"
-                                                    style={{
-                                                        borderColor: active ? 'var(--k-mag)' : 'transparent',
-                                                        color: active ? 'var(--k-ink)' : 'var(--k-ink-3)',
-                                                        fontWeight: active ? 600 : 400,
-                                                    }}
-                                                >
-                                                    {item.text}
-                                                </Link>
+                                                {external ? (
+                                                    <a
+                                                        href={item.link}
+                                                        target="_blank"
+                                                        rel="noreferrer noopener"
+                                                        className={className}
+                                                        style={style}
+                                                    >
+                                                        {item.text} ↗
+                                                    </a>
+                                                ) : (
+                                                    <Link href={'/docs' + item.link} className={className} style={style}>
+                                                        {item.text}
+                                                    </Link>
+                                                )}
                                             </li>
                                         );
                                     })}

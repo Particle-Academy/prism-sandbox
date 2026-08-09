@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Docs\DocsRepository;
 use Tests\TestCase;
 
 class DocsTest extends TestCase
@@ -50,5 +51,40 @@ class DocsTest extends TestCase
     {
         $this->get('/sitemap.xml')->assertOk()->assertSee('urlset', false);
         $this->get('/llms.txt')->assertOk()->assertSee('# Prism');
+    }
+
+    public function test_nav_marks_companion_package_links_as_external(): void
+    {
+        $nav = app(DocsRepository::class)->flatNav();
+
+        $external = array_values(array_filter($nav, fn (array $i): bool => $i['external']));
+
+        $this->assertNotEmpty($external, 'Upstream sidebar should still carry absolute package links.');
+
+        foreach ($external as $item) {
+            $this->assertMatchesRegularExpression('#^https?://#', $item['link']);
+        }
+
+        foreach (app(DocsRepository::class)->pages() as $item) {
+            $this->assertFalse($item['external']);
+            $this->assertStringStartsWith('/', $item['link']);
+        }
+    }
+
+    public function test_sitemap_never_prefixes_an_absolute_link_with_docs(): void
+    {
+        $body = $this->get('/sitemap.xml')->assertOk()->getContent();
+
+        // Regression: '/docs' . 'https://github.com/...' produced
+        // '/docshttps://github.com/...' in the sitemap fed to search engines.
+        $this->assertStringNotContainsString('/docshttp', (string) $body);
+    }
+
+    public function test_llms_txt_links_companion_packages_straight_out(): void
+    {
+        $body = (string) $this->get('/llms.txt')->assertOk()->getContent();
+
+        $this->assertStringNotContainsString('/docshttp', $body);
+        $this->assertStringContainsString('[Relay](https://github.com/prism-php/relay)', $body);
     }
 }

@@ -55,7 +55,11 @@ class DocsRepository
     }
 
     /**
-     * @return array<int, array{text: string, link: string, section: string}>
+     * Every nav entry, including the absolute links to companion packages that
+     * the upstream sidebar mixes in. Only the sidebar wants those — anything
+     * that builds a URL from a nav entry wants pages() instead.
+     *
+     * @return array<int, array{text: string, link: string, external: bool, section: string}>
      */
     public function flatNav(): array
     {
@@ -68,6 +72,21 @@ class DocsRepository
         }
 
         return $flat;
+    }
+
+    /**
+     * Nav entries that are actually pages on this site — external links
+     * dropped. Prefixing one of those with /docs yields a nonsense URL, so
+     * sitemap, llms.txt, search, and prev/next all build from this.
+     *
+     * @return array<int, array{text: string, link: string, external: bool, section: string}>
+     */
+    public function pages(): array
+    {
+        return array_values(array_filter(
+            $this->flatNav(),
+            fn (array $item): bool => ! $item['external'],
+        ));
     }
 
     public function exists(string $path): bool
@@ -103,7 +122,7 @@ class DocsRepository
         return Cache::rememberForever($this->cacheKey('search'), function (): array {
             $index = [];
 
-            foreach ($this->flatNav() as $item) {
+            foreach ($this->pages() as $item) {
                 $file = $this->pageFile(ltrim($item['link'], '/'));
 
                 if (! is_file($file)) {
@@ -259,7 +278,7 @@ class DocsRepository
      */
     protected function siblings(string $path): array
     {
-        $flat = $this->flatNav();
+        $flat = $this->pages();
         $needle = '/'.trim($path, '/');
 
         foreach ($flat as $i => $item) {
@@ -295,7 +314,13 @@ class DocsRepository
 
             foreach ($group['items'] ?? [] as $item) {
                 if (isset($item['text'], $item['link'])) {
-                    $items[] = ['text' => $item['text'], 'link' => rtrim($item['link'], '/')];
+                    $link = rtrim($item['link'], '/');
+
+                    $items[] = [
+                        'text' => $item['text'],
+                        'link' => $link,
+                        'external' => (bool) preg_match('#^https?://#i', $link),
+                    ];
                 }
             }
 
@@ -325,7 +350,7 @@ class DocsRepository
 
             foreach (glob($dir.'/*.md') ?: [] as $file) {
                 $slug = basename($file, '.md');
-                $items[] = ['text' => Str::headline($slug), 'link' => "/$name/$slug"];
+                $items[] = ['text' => Str::headline($slug), 'link' => "/$name/$slug", 'external' => false];
             }
 
             if ($items !== []) {

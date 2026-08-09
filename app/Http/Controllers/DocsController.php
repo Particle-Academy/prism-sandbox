@@ -49,7 +49,7 @@ class DocsController extends Controller
 
     public function sitemap(): Response
     {
-        $urls = collect($this->docs->flatNav())
+        $urls = collect($this->docs->pages())
             ->map(fn (array $item): string => '<url><loc>'.url('/docs'.$item['link']).'</loc></url>')
             ->prepend('<url><loc>'.url('/').'</loc></url>')
             ->implode('');
@@ -64,7 +64,7 @@ class DocsController extends Controller
         $lines = [
             '# Prism',
             '',
-            '> Prism is a Laravel package for integrating Large Language Models (LLMs) into applications — a unified, fluent API across '.count($this->docs->flatNav()).' documented topics and 16 providers.',
+            '> Prism is a Laravel package for integrating Large Language Models (LLMs) into applications — a unified, fluent API across '.count($this->docs->pages()).' documented topics and 16 providers.',
             '> This is the actively maintained Particle Academy fork, published as `particle-academy/prism` (drop-in for `prism-php/prism`). Installed version: '.$this->docs->version().'.',
             '',
         ];
@@ -74,7 +74,9 @@ class DocsController extends Controller
             $lines[] = '';
 
             foreach ($group['items'] as $item) {
-                $lines[] = '- ['.$item['text'].']('.url('/docs'.$item['link']).')';
+                // Companion-package entries link straight out to GitHub; only
+                // real pages live under /docs.
+                $lines[] = '- ['.$item['text'].']('.($item['external'] ? $item['link'] : url('/docs'.$item['link'])).')';
             }
 
             $lines[] = '';
