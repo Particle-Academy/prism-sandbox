@@ -15,6 +15,17 @@ use Tempest\Highlight\CommonMark\HighlightExtension;
 
 class DocsRepository
 {
+    /**
+     * Shape version for everything this class caches forever.
+     *
+     * The cache key used to be namespaced by package version alone, so a
+     * deploy that changed the *shape* of a cached structure (rather than the
+     * Prism release) kept reading the old shape back — which took sitemap.xml
+     * and llms.txt down with a 500 when `external` was added to nav entries.
+     * Bump this whenever a cached structure changes.
+     */
+    private const SCHEMA = 2;
+
     public function basePath(): string
     {
         return base_path('vendor/particle-academy/prism/docs');
@@ -85,8 +96,20 @@ class DocsRepository
     {
         return array_values(array_filter(
             $this->flatNav(),
-            fn (array $item): bool => ! $item['external'],
+            fn (array $item): bool => ! $this->isExternal($item),
         ));
+    }
+
+    /**
+     * Whether a nav entry points off-site. Falls back to inspecting the link
+     * so a nav array from any source — including a cache entry written by an
+     * older deploy — is still classified correctly rather than fataling.
+     *
+     * @param  array{link: string, external?: bool}  $item
+     */
+    public function isExternal(array $item): bool
+    {
+        return $item['external'] ?? (bool) preg_match('#^https?://#i', $item['link']);
     }
 
     public function exists(string $path): bool
@@ -153,7 +176,7 @@ class DocsRepository
 
     protected function cacheKey(string $suffix): string
     {
-        return 'docs:'.$this->version().':'.$suffix;
+        return 'docs:'.self::SCHEMA.':'.$this->version().':'.$suffix;
     }
 
     protected function converter(): MarkdownConverter

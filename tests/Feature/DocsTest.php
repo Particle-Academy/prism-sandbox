@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Docs\DocsRepository;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class DocsTest extends TestCase
@@ -78,6 +79,36 @@ class DocsTest extends TestCase
         // Regression: '/docs' . 'https://github.com/...' produced
         // '/docshttps://github.com/...' in the sitemap fed to search engines.
         $this->assertStringNotContainsString('/docshttp', (string) $body);
+    }
+
+    public function test_public_endpoints_survive_a_nav_cache_from_an_older_deploy(): void
+    {
+        // Reproduces the outage: the nav cache key was namespaced by package
+        // version only, so a deploy that added `external` to nav entries read
+        // back the old shape and 500'd sitemap.xml and llms.txt.
+        $repo = app(DocsRepository::class);
+        $stale = array_map(
+            fn (array $g): array => [
+                'text' => $g['text'],
+                'items' => array_map(
+                    fn (array $i): array => ['text' => $i['text'], 'link' => $i['link']],
+                    $g['items'],
+                ),
+            ],
+            $repo->nav(),
+        );
+
+        $key = (fn (): string => $this->cacheKey('nav'))->call($repo);
+        Cache::forever($key, $stale);
+
+        $this->get('/sitemap.xml')->assertOk();
+        $this->get('/llms.txt')->assertOk();
+        $this->get('/docs')->assertOk();
+
+        $this->assertStringNotContainsString(
+            '/docshttp',
+            (string) $this->get('/sitemap.xml')->getContent(),
+        );
     }
 
     public function test_llms_txt_links_companion_packages_straight_out(): void

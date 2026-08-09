@@ -76,7 +76,9 @@ class DocsController extends Controller
             foreach ($group['items'] as $item) {
                 // Companion-package entries link straight out to GitHub; only
                 // real pages live under /docs.
-                $lines[] = '- ['.$item['text'].']('.($item['external'] ? $item['link'] : url('/docs'.$item['link'])).')';
+                $href = $this->docs->isExternal($item) ? $item['link'] : url('/docs'.$item['link']);
+
+                $lines[] = '- ['.$item['text'].']('.$href.')';
             }
 
             $lines[] = '';
