@@ -6,8 +6,10 @@ namespace App\Http\Controllers\Lab;
 
 use App\Docs\DocsRepository;
 use App\Http\Controllers\Controller;
+use App\Lab\ProviderRegistry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Prism\Prism\Facades\Prism;
@@ -16,20 +18,14 @@ use Throwable;
 
 final class ChatController extends Controller
 {
-    private const MODELS = [
-        'openai' => 'gpt-4.1-mini',
-        'anthropic' => 'claude-sonnet-4-5',
-    ];
+    public function __construct(private readonly ProviderRegistry $providers) {}
 
     public function show(DocsRepository $docs): Response
     {
         return Inertia::render('Lab/Chat', [
             'version' => $docs->version(),
-            'models' => self::MODELS,
-            'availability' => [
-                'openai' => filled(config('prism.providers.openai.api_key')),
-                'anthropic' => filled(config('prism.providers.anthropic.api_key')),
-            ],
+            'providers' => $this->providers->all(),
+            'undescribed' => $this->providers->undescribed(),
             'phoenixUrl' => rtrim((string) env('PHOENIX_UI_URL', 'http://localhost:6006'), '/'),
         ]);
     }
@@ -37,16 +33,18 @@ final class ChatController extends Controller
     public function run(Request $request): JsonResponse
     {
         $input = $request->validate([
-            'provider' => ['required', 'in:openai,anthropic'],
+            // Every text provider is accepted, configured or not, so an
+            // unconfigured pick gets the setup hint below instead of a bare
+            // validation error that explains nothing.
+            'provider' => ['required', Rule::in($this->providers->textProviderKeys())],
             'model' => ['required', 'string', 'max:120'],
             'feature' => ['required', 'in:text,tools'],
             'prompt' => ['required', 'string', 'max:12000'],
         ]);
 
-        $key = config("prism.providers.{$input['provider']}.api_key");
-        if (blank($key)) {
+        if (! $this->providers->isConfigured($input['provider'])) {
             return response()->json([
-                'message' => "Add {$this->keyName($input['provider'])} to repos/prism-sandbox/.env, then reload the app.",
+                'message' => $this->providers->setupHint($input['provider']),
                 'missing_key' => true,
             ], 422);
         }
@@ -101,10 +99,5 @@ final class ChatController extends Controller
                 'bridge_enabled' => (bool) config('prism-opentelemetry.enabled'),
                 'checked_at' => now()->toIso8601String(),
             ], JSON_THROW_ON_ERROR));
-    }
-
-    private function keyName(string $provider): string
-    {
-        return $provider === 'openai' ? 'OPENAI_API_KEY' : 'ANTHROPIC_API_KEY';
     }
 }

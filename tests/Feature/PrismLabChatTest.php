@@ -38,7 +38,7 @@ class PrismLabChatTest extends TestCase
 
         $this->assertSame(422, $response->getStatusCode());
         $this->assertSame([
-            'message' => 'Add OPENAI_API_KEY to repos/prism-sandbox/.env, then reload the app.',
+            'message' => 'Set OPENAI_API_KEY in repos/prism-sandbox/.env, then reload.',
             'missing_key' => true,
         ], $response->getData(true));
     }
