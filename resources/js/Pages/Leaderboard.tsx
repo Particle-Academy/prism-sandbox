@@ -7,6 +7,7 @@ type Row = {
     rank: number;
     github_username: string;
     avatar_url: string | null;
+    score: number;
     total_xp: number;
     achievements: number;
     silos: { slug: string; xp: number }[];
@@ -50,6 +51,10 @@ export default function Leaderboard({ version, silos, rows }: { version: string;
                                         </th>
                                     ))}
                                     <th className="py-3 pl-4 text-right font-normal">Total XP</th>
+                                    {/* The ranked column — silo XP weighted by significance. */}
+                                    <th className="py-3 pl-4 text-right font-normal" title="Silo XP weighted by contribution significance — the ranking used here">
+                                        Score
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -85,8 +90,11 @@ export default function Leaderboard({ version, silos, rows }: { version: string;
                                                 {silo.xp || '—'}
                                             </td>
                                         ))}
-                                        <td className="py-4 pl-4 text-right font-semibold tabular-nums" style={{ color: 'var(--k-ink)' }}>
+                                        <td className="py-4 pl-4 text-right tabular-nums" style={{ color: 'var(--k-ink-2)' }}>
                                             {row.total_xp}
+                                        </td>
+                                        <td className="py-4 pl-4 text-right font-semibold tabular-nums" style={{ color: 'var(--k-ink)' }}>
+                                            {row.score}
                                         </td>
                                     </tr>
                                 ))}
