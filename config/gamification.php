@@ -50,14 +50,13 @@ return [
         // opened upstream and we replay the commit — so the author never fires
         // a pull_request event here and would otherwise score nothing at all
         // while their code ships in every release.
-        // Deliberately the smallest per-event award after a star. Landing a
-        // commit here is real, but opening and getting a PR merged on this repo
-        // is a bigger act of contribution and should stay ahead of it — and
-        // absorbed commits arrive in bulk, so anything larger lets a single
-        // multi-commit absorption swamp every other silo combined.
+        // Ordering against merged PRs is guaranteed by the weighted group, not
+        // by keeping this number small, so it can be generous enough to credit
+        // absorbed work visibly: 10 XP at weight 1.0 is 10 points against 125
+        // for a merged PR, so it still takes ~12 landed commits to match one.
         'commit-xp' => [
             'name' => 'Commits Landed',
-            'xp' => (int) env('XP_COMMIT', 3),
+            'xp' => (int) env('XP_COMMIT', 10),
             'weight' => 1.0,
         ],
     ],
