@@ -32,6 +32,31 @@ class ContributorResolver
     }
 
     /**
+     * Resolve an EXISTING contributor from a bare login.
+     *
+     * Push webhooks identify a commit author by username only — the payload
+     * carries no numeric GitHub id. Since contributors are keyed on github_id,
+     * creating one from a login would mint a second row for someone the
+     * backfill already tracks. So this matches only what is already known and
+     * returns null otherwise; the backfill, which has real ids, picks up
+     * first-time authors on its next run.
+     */
+    public function resolveByUsername(mixed $login): ?Contributor
+    {
+        if (! is_string($login) || $login === '') {
+            return null;
+        }
+
+        $ignored = array_map('strtolower', (array) config('gamification.ignored_users', []));
+
+        if (in_array(strtolower($login), $ignored, true)) {
+            return null;
+        }
+
+        return Contributor::whereRaw('lower(github_username) = ?', [strtolower($login)])->first();
+    }
+
+    /**
      * Whether a GitHub user is eligible to earn XP — WITHOUT persisting anything.
      * Used by dry-run tooling that must not create contributor rows.
      */

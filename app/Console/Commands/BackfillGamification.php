@@ -175,6 +175,66 @@ class BackfillGamification extends Command
         foreach ($this->paginate($http, "/repos/{$repo}/stargazers") as $star) {
             $this->award($resolver, $star, 'star-xp', 'star', data_get($star, 'id'), 'Starred the repository');
         }
+
+        $this->backfillCommits($http, $resolver, $repo);
+    }
+
+    /**
+     * Commit authorship, scoped to commits that landed in THIS repository.
+     *
+     * On a fork that matters enormously: /repos/{repo}/contributors and
+     * /repos/{repo}/commits both return the whole INHERITED history, so they
+     * would award XP to every upstream author for work that predates the fork
+     * — on prism that is 563 commits and 100+ people who never contributed
+     * here. The compare endpoint returns only what this fork is ahead by, which
+     * is exactly the set whose authors deserve credit.
+     */
+    private function backfillCommits(PendingRequest $http, ContributorResolver $resolver, string $repo): void
+    {
+        $parent = data_get($http->get("/repos/{$repo}")->json(), 'parent.full_name');
+
+        if (is_string($parent) && $parent !== '') {
+            [$parentOwner] = explode('/', $parent, 2);
+            [$owner] = explode('/', $repo, 2);
+
+            $base = data_get($http->get("/repos/{$repo}")->json(), 'default_branch', 'main');
+            $response = $http->get("/repos/{$repo}/compare/{$parentOwner}:{$base}...{$owner}:{$base}");
+
+            if (! $response->successful()) {
+                $this->error("  {$repo}: could not compare against {$parent} — skipping commit XP");
+
+                return;
+            }
+
+            $payload = $response->json();
+            $commits = (array) data_get($payload, 'commits', []);
+            $total = (int) data_get($payload, 'total_commits', count($commits));
+
+            // The compare endpoint caps its commit list at 250. Say so rather
+            // than silently crediting a prefix of the range.
+            if ($total > count($commits)) {
+                $this->warn(sprintf(
+                    '  %s: %d commits ahead but the compare API returned %d — commit XP covers the returned set only.',
+                    $repo, $total, count($commits),
+                ));
+            }
+        } else {
+            // Not a fork: every commit on the default branch is ours.
+            $commits = iterator_to_array($this->paginate($http, "/repos/{$repo}/commits"), false);
+        }
+
+        foreach ($commits as $commit) {
+            // `author` is the resolved GitHub ACCOUNT (matched by commit email);
+            // `commit.author` is the raw git trailer and has no account to award.
+            $this->award(
+                $resolver,
+                data_get($commit, 'author'),
+                'commit-xp',
+                'commit',
+                data_get($commit, 'sha'),
+                'Landed commit '.substr((string) data_get($commit, 'sha'), 0, 7).' '.data_get($commit, 'html_url'),
+            );
+        }
     }
 
     /**

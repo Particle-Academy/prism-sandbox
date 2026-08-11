@@ -144,6 +144,79 @@ class GitHubWebhookTest extends TestCase
         $this->assertSame(config('gamification.metrics.pr-submitted-xp.xp'), $this->xpFor('octocat', 'pr-submitted-xp'));
     }
 
+    /**
+     * @param  array<int, array<string, mixed>>  $commits
+     * @return array<string, mixed>
+     */
+    protected function pushPayload(array $commits, string $ref = 'refs/heads/main'): array
+    {
+        return [
+            'ref' => $ref,
+            'repository' => ['full_name' => 'Particle-Academy/prism', 'default_branch' => 'main'],
+            'commits' => $commits,
+        ];
+    }
+
+    public function test_it_awards_commit_xp_to_the_author_not_the_pusher(): void
+    {
+        // The absorption case: a contributor already known from a backfill,
+        // whose commit is replayed here by the maintainer.
+        Contributor::create(['github_id' => '777', 'github_username' => 'lintume', 'avatar_url' => 'https://avatars/lintume']);
+
+        $this->deliver('push', $this->pushPayload([
+            ['id' => 'abc1234def', 'author' => ['username' => 'lintume', 'name' => 'lialia.sakhno']],
+        ]))->assertOk()->assertJson(['awarded' => true]);
+
+        $this->assertSame(config('gamification.metrics.commit-xp.xp'), $this->xpFor('lintume', 'commit-xp'));
+    }
+
+    public function test_commit_xp_is_idempotent_on_redelivery(): void
+    {
+        Contributor::create(['github_id' => '777', 'github_username' => 'lintume', 'avatar_url' => 'https://avatars/lintume']);
+
+        $payload = $this->pushPayload([['id' => 'abc1234def', 'author' => ['username' => 'lintume']]]);
+
+        $this->deliver('push', $payload)->assertJson(['awarded' => true]);
+        $this->deliver('push', $payload)->assertJson(['awarded' => false]);
+
+        $this->assertSame(config('gamification.metrics.commit-xp.xp'), $this->xpFor('lintume', 'commit-xp'));
+    }
+
+    public function test_it_ignores_pushes_to_branches_other_than_the_default(): void
+    {
+        Contributor::create(['github_id' => '777', 'github_username' => 'lintume', 'avatar_url' => 'https://avatars/lintume']);
+
+        $this->deliver('push', $this->pushPayload(
+            [['id' => 'abc1234def', 'author' => ['username' => 'lintume']]],
+            'refs/heads/some-feature',
+        ))->assertOk()->assertJson(['awarded' => false]);
+
+        $this->assertSame(0, $this->xpFor('lintume', 'commit-xp'));
+    }
+
+    public function test_a_push_never_creates_a_duplicate_contributor(): void
+    {
+        // Push payloads carry a username but no numeric id, and contributors are
+        // keyed on github_id — creating from a login would mint a second row
+        // alongside the backfill's. Unknown authors wait for the backfill.
+        $this->deliver('push', $this->pushPayload([
+            ['id' => 'abc1234def', 'author' => ['username' => 'brand-new-person']],
+        ]))->assertOk()->assertJson(['awarded' => false]);
+
+        $this->assertDatabaseCount('contributors', 0);
+    }
+
+    public function test_it_never_awards_commit_xp_to_an_ignored_user(): void
+    {
+        Contributor::create(['github_id' => '1', 'github_username' => 'wishborn', 'avatar_url' => 'https://avatars/wishborn']);
+
+        $this->deliver('push', $this->pushPayload([
+            ['id' => 'abc1234def', 'author' => ['username' => 'wishborn']],
+        ]))->assertOk()->assertJson(['awarded' => false]);
+
+        $this->assertSame(0, $this->xpFor('wishborn', 'commit-xp'));
+    }
+
     public function test_it_ignores_bot_contributors(): void
     {
         $this->deliver('issues', $this->repo([

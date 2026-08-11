@@ -45,6 +45,16 @@ return [
             'xp' => (int) env('XP_PR_ACCEPTED', 25),
             'weight' => 5.0,
         ],
+        // Commit authorship, counted only for commits that actually landed in
+        // THIS fork. Most community work reaches us by absorption — the PR is
+        // opened upstream and we replay the commit — so the author never fires
+        // a pull_request event here and would otherwise score nothing at all
+        // while their code ships in every release.
+        'commit-xp' => [
+            'name' => 'Commits Landed',
+            'xp' => (int) env('XP_COMMIT', 15),
+            'weight' => 4.0,
+        ],
     ],
 
     // The weighted metric-level-group that rolls the silos into one score.

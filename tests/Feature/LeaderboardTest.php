@@ -24,7 +24,8 @@ class LeaderboardTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('Leaderboard')
-                ->has('silos', 6)
+                // Driven by config, so it tracks the silos rather than a literal.
+                ->has('silos', count(config('gamification.metrics')))
                 ->has('rows', 2)
                 ->where('rows.0.github_username', 'alice')
                 ->where('rows.0.rank', 1)

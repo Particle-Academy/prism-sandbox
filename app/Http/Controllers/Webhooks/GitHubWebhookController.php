@@ -46,6 +46,7 @@ class GitHubWebhookController
             'pull_request_review' => $this->handleReview($payload),
             'pull_request' => $this->handlePullRequest($payload),
             'star' => $this->handleStar($payload),
+            'push' => $this->handlePush($payload),
             default => false,
         };
 
@@ -170,6 +171,62 @@ class GitHubWebhookController
             'Reviewed a pull request'.($url !== null ? ' '.$url : ''),
             'review:'.data_get($payload, 'review.id'),
         );
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    /**
+     * Commits landing on the default branch.
+     *
+     * This is the live half of the commit-authorship silo. Most community work
+     * reaches this fork by absorption — the PR is opened upstream and the
+     * commit is replayed here — so no pull_request event ever fires and the
+     * author would score nothing while their code ships.
+     *
+     * Credit follows the git AUTHOR, not the pusher: whoever replays the commit
+     * is the committer, and crediting them would hand every absorbed commit to
+     * the maintainer instead of the person who wrote it.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    protected function handlePush(array $payload): bool
+    {
+        $default = (string) data_get($payload, 'repository.default_branch', 'main');
+
+        if (data_get($payload, 'ref') !== "refs/heads/{$default}") {
+            return false;
+        }
+
+        $awarded = false;
+
+        foreach ((array) data_get($payload, 'commits', []) as $commit) {
+            $sha = (string) data_get($commit, 'id');
+            $username = data_get($commit, 'author.username');
+
+            if ($sha === '') {
+                continue;
+            }
+
+            // Push payloads carry a username but no numeric id, and contributors
+            // are keyed on github_id — so match an existing one rather than
+            // minting a duplicate row. Unknown authors are left to the backfill.
+            $contributor = app(ContributorResolver::class)->resolveByUsername($username);
+
+            if (! $contributor instanceof Contributor) {
+                continue;
+            }
+
+            $awarded = XpAwarder::award(
+                $contributor,
+                'commit-xp',
+                $this->xp('commit-xp'),
+                'Landed commit '.substr($sha, 0, 7),
+                'commit:'.$sha,
+            ) || $awarded;
+        }
+
+        return $awarded;
     }
 
     /**
