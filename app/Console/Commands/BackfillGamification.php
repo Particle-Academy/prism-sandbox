@@ -10,6 +10,7 @@ use Illuminate\Console\Command;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use LaravelFunLab\Facades\LFL;
+use LaravelFunLab\Models\GamedMetric;
 use RuntimeException;
 use Throwable;
 
@@ -42,6 +43,9 @@ class BackfillGamification extends Command
 
     private int $skipped = 0;
 
+    /** @var array<string, int> reason => count, so the summary can explain itself */
+    private array $skipReasons = [];
+
     public function handle(ContributorResolver $resolver): int
     {
         $this->dry = (bool) $this->option('dry-run');
@@ -56,6 +60,10 @@ class BackfillGamification extends Command
             ->acceptJson()
             ->withHeaders(['X-GitHub-Api-Version' => '2022-11-28'])
             ->when($token !== '', fn (PendingRequest $r) => $r->withToken($token));
+
+        if (! $this->taxonomyIsComplete()) {
+            return self::FAILURE;
+        }
 
         $repos = $this->resolveRepos($http, $token);
 
@@ -79,11 +87,17 @@ class BackfillGamification extends Command
 
         $this->newLine();
         $this->info(sprintf(
-            '%s%d contribution event(s); %d skipped/duplicate.',
+            '%s%d contribution event(s); %d skipped.',
             $this->dry ? '[dry-run] would award ' : 'awarded ',
             $this->awarded,
             $this->skipped,
         ));
+
+        // "42 skipped" on its own says nothing about whether the run worked.
+        arsort($this->skipReasons);
+        foreach ($this->skipReasons as $reason => $count) {
+            $this->line(sprintf('  %-26s %d', $reason, $count));
+        }
 
         return self::SUCCESS;
     }
@@ -129,13 +143,40 @@ class BackfillGamification extends Command
         }
 
         // Issues (opened) — the issues endpoint also returns PRs; skip those here.
-        foreach ($this->paginate($http, "/repos/{$repo}/issues", ['state' => 'all']) as $issue) {
-            if (data_get($issue, 'pull_request') !== null) {
-                continue;
+        $this->section($repo, 'issues', function () use ($http, $resolver, $repo): void {
+            foreach ($this->paginate($http, "/repos/{$repo}/issues", ['state' => 'all']) as $issue) {
+                if (data_get($issue, 'pull_request') !== null) {
+                    continue;
+                }
+                $this->award($resolver, data_get($issue, 'user'), 'issue-xp', 'issue', data_get($issue, 'node_id'), 'Opened issue '.data_get($issue, 'html_url'));
             }
-            $this->award($resolver, data_get($issue, 'user'), 'issue-xp', 'issue', data_get($issue, 'node_id'), 'Opened issue '.data_get($issue, 'html_url'));
-        }
+        });
 
+        $this->section($repo, 'pull requests', fn () => $this->backfillPullRequests($http, $resolver, $repo));
+
+        // Inline review comments across the repo (review-comment id space).
+        $this->section($repo, 'review comments', function () use ($http, $resolver, $repo): void {
+            foreach ($this->paginate($http, "/repos/{$repo}/pulls/comments") as $comment) {
+                $this->award($resolver, data_get($comment, 'user'), 'pr-comment-xp', 'review-comment', data_get($comment, 'id'), 'Commented on a pull request '.data_get($comment, 'html_url'));
+            }
+        });
+
+        // Stargazers (default response is user objects).
+        //
+        // Each section runs independently: a token that cannot read stargazers
+        // must not cost us the commit XP that follows. Before this, one 403
+        // here aborted the whole repo and silently skipped every commit.
+        $this->section($repo, 'stargazers', function () use ($http, $resolver, $repo): void {
+            foreach ($this->paginate($http, "/repos/{$repo}/stargazers") as $star) {
+                $this->award($resolver, $star, 'star-xp', 'star', data_get($star, 'id'), 'Starred the repository');
+            }
+        });
+
+        $this->section($repo, 'commits', fn () => $this->backfillCommits($http, $resolver, $repo));
+    }
+
+    private function backfillPullRequests(PendingRequest $http, ContributorResolver $resolver, string $repo): void
+    {
         // Pull requests: opened (+ merged), plus each PR's reviews and comments.
         foreach ($this->paginate($http, "/repos/{$repo}/pulls", ['state' => 'all']) as $pr) {
             $user = data_get($pr, 'user');
@@ -165,18 +206,58 @@ class BackfillGamification extends Command
                 $this->award($resolver, data_get($comment, 'user'), 'pr-comment-xp', 'comment', data_get($comment, 'id'), 'Commented on a pull request '.data_get($comment, 'html_url'));
             }
         }
+    }
 
-        // Inline review comments across the repo (review-comment id space).
-        foreach ($this->paginate($http, "/repos/{$repo}/pulls/comments") as $comment) {
-            $this->award($resolver, data_get($comment, 'user'), 'pr-comment-xp', 'review-comment', data_get($comment, 'id'), 'Commented on a pull request '.data_get($comment, 'html_url'));
+    /**
+     * Every configured silo must have a catalog row to award against.
+     *
+     * When one is missing, LFL::award() throws and XpAwarder swallows it to
+     * keep the webhook alive — so the run reports skips and looks merely
+     * uneventful while that silo awards nothing, ever. Checking up front turns
+     * a silent dud into a one-line diagnosis.
+     */
+    private function taxonomyIsComplete(): bool
+    {
+        $configured = array_keys((array) config('gamification.metrics', []));
+        $seeded = GamedMetric::query()->pluck('slug')->all();
+
+        $missing = array_values(array_diff($configured, $seeded));
+
+        if ($missing === []) {
+            return true;
         }
 
-        // Stargazers (default response is user objects).
-        foreach ($this->paginate($http, "/repos/{$repo}/stargazers") as $star) {
-            $this->award($resolver, $star, 'star-xp', 'star', data_get($star, 'id'), 'Starred the repository');
-        }
+        $this->error('Missing gamification catalog rows for: '.implode(', ', $missing));
+        $this->line('These silos cannot award anything until they are seeded. Run:');
+        $this->line('  php artisan migrate   # or: php artisan db:seed --class=FunLabSeeder');
 
-        $this->backfillCommits($http, $resolver, $repo);
+        return false;
+    }
+
+    private function skip(string $reason): void
+    {
+        $this->skipped++;
+        $this->skipReasons[$reason] = ($this->skipReasons[$reason] ?? 0) + 1;
+    }
+
+    /**
+     * Run one part of a repo's backfill, reporting failure without aborting
+     * the rest. A 401/403 almost always means the token lacks a scope rather
+     * than the data being unavailable, so say so.
+     */
+    private function section(string $repo, string $name, callable $work): void
+    {
+        try {
+            $work();
+        } catch (Throwable $e) {
+            $message = $e->getMessage();
+
+            $hint = str_contains($message, '401') || str_contains($message, '403')
+                ? ' — the token is missing a scope for this endpoint; other sections continue'
+                : '';
+
+            $this->error("  {$repo}: {$name} failed: {$message}{$hint}");
+        }
     }
 
     /**
@@ -246,7 +327,7 @@ class BackfillGamification extends Command
     {
         $id = is_scalar($id) ? (string) $id : '';
         if ($id === '') {
-            $this->skipped++;
+            $this->skip('no id');
 
             return false;
         }
@@ -257,7 +338,15 @@ class BackfillGamification extends Command
 
                 return true;
             }
-            $this->skipped++;
+            $this->skip('not eligible');
+
+            return false;
+        }
+
+        // Distinguish "we chose not to award this" from "already awarded", so a
+        // run reporting nothing new is self-explaining instead of a bare count.
+        if (! $resolver->isEligible($user)) {
+            $this->skip(data_get($user, 'type') === 'Bot' ? 'bot' : 'ignored or unlinked user');
 
             return false;
         }
@@ -270,7 +359,7 @@ class BackfillGamification extends Command
             "$keyPrefix:$id",
         );
 
-        $ok ? $this->awarded++ : $this->skipped++;
+        $ok ? $this->awarded++ : $this->skip('already awarded');
 
         return $ok;
     }
