@@ -66,9 +66,15 @@ class LeaderboardController extends Controller
 
         return Inertia::render('Leaderboard', [
             'version' => $docs->version(),
+            // xp/weight travel with each silo so the page can explain the
+            // scoring from the same config the awards are made from, rather
+            // than a hand-maintained copy that drifts the first time a value
+            // changes.
             'silos' => collect($silos)->map(fn (array $meta, string $slug): array => [
                 'slug' => $slug,
                 'name' => $meta['name'],
+                'xp' => (int) $meta['xp'],
+                'weight' => (float) $meta['weight'],
             ])->values()->all(),
             'rows' => $rows,
         ]);

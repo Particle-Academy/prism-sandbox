@@ -1,7 +1,7 @@
 import { Head } from '@inertiajs/react';
 import { KineticFooter, KineticNav } from '../components/kinetic';
 
-type Silo = { slug: string; name: string };
+type Silo = { slug: string; name: string; xp: number; weight: number };
 
 type Row = {
     rank: number;
@@ -102,9 +102,73 @@ export default function Leaderboard({ version, silos, rows }: { version: string;
                         </table>
                     </div>
                 )}
+
+                <HowPointsWork silos={silos} />
             </section>
 
             <KineticFooter />
+        </div>
+    );
+}
+
+function HowPointsWork({ silos }: { silos: Silo[] }) {
+    // Ranking is by weighted score, so showing XP alone would misexplain the
+    // order — a contributor can sit above someone with more raw XP.
+    const ranked = [...silos].sort((a, b) => b.xp * b.weight - a.xp * a.weight);
+    const top = ranked[0];
+
+    return (
+        <div className="mt-20">
+            <p className="k-mono mb-4">How points are earned</p>
+
+            <p className="max-w-2xl" style={{ color: 'var(--k-ink-2)' }}>
+                Every tracked contribution awards XP. Because some contributions are worth more than
+                others, each type carries a weight, and the board ranks on the weighted{' '}
+                <strong style={{ color: 'var(--k-ink)' }}>score</strong> — not on raw XP.
+            </p>
+
+            <div className="mt-8 overflow-x-auto">
+                <table className="w-full min-w-[34rem] border-collapse text-left text-sm">
+                    <thead>
+                        <tr className="k-mono" style={{ color: 'var(--k-ink-2)' }}>
+                            <th className="py-3 pr-4 font-normal">Contribution</th>
+                            <th className="py-3 pr-4 text-right font-normal">XP each</th>
+                            <th className="py-3 pr-4 text-right font-normal">Weight</th>
+                            <th className="py-3 pl-4 text-right font-normal">Points each</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {ranked.map((silo) => (
+                            <tr key={silo.slug} className="border-t" style={{ borderColor: 'var(--k-hairline)' }}>
+                                <td className="py-3 pr-4" style={{ color: 'var(--k-ink)' }}>
+                                    {silo.name}
+                                </td>
+                                <td className="py-3 pr-4 text-right tabular-nums" style={{ color: 'var(--k-ink-2)' }}>
+                                    {silo.xp}
+                                </td>
+                                <td className="py-3 pr-4 text-right tabular-nums" style={{ color: 'var(--k-ink-2)' }}>
+                                    ×{silo.weight}
+                                </td>
+                                <td
+                                    className="py-3 pl-4 text-right font-semibold tabular-nums"
+                                    style={{ color: 'var(--k-ink)' }}
+                                >
+                                    {Math.round(silo.xp * silo.weight * 10) / 10}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+            {top && (
+                <p className="mt-6 max-w-2xl text-sm" style={{ color: 'var(--k-ink-3)' }}>
+                    So one <strong style={{ color: 'var(--k-ink-2)' }}>{top.name.toLowerCase()}</strong> is worth{' '}
+                    {Math.round(top.xp * top.weight * 10) / 10} points — the heaviest single contribution here.
+                    Contributions absorbed from upstream count too: commits that land in this fork earn XP even when
+                    the pull request was opened on <code>prism-php/prism</code>.
+                </p>
+            )}
         </div>
     );
 }
