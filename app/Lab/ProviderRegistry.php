@@ -24,7 +24,11 @@ class ProviderRegistry
     private const DESCRIPTORS = [
         'openai' => ['label' => 'OpenAI', 'env' => 'OPENAI_API_KEY', 'model' => 'gpt-4.1-mini', 'modality' => 'text'],
         'anthropic' => ['label' => 'Anthropic', 'env' => 'ANTHROPIC_API_KEY', 'model' => 'claude-sonnet-4-5', 'modality' => 'text'],
-        'gemini' => ['label' => 'Gemini', 'env' => 'GEMINI_API_KEY', 'model' => 'gemini-2.0-flash', 'modality' => 'text'],
+        // A moving alias, not a pinned version: gemini-2.0-flash sat here until
+        // Google delisted it, and a prefilled default that names a withdrawn
+        // model fails on the user's first request rather than at configuration
+        // time. Mistral's default already works this way.
+        'gemini' => ['label' => 'Gemini', 'env' => 'GEMINI_API_KEY', 'model' => 'gemini-flash-latest', 'modality' => 'text'],
         'deepseek' => ['label' => 'DeepSeek', 'env' => 'DEEPSEEK_API_KEY', 'model' => 'deepseek-chat', 'modality' => 'text'],
         'groq' => ['label' => 'Groq', 'env' => 'GROQ_API_KEY', 'model' => null, 'modality' => 'text'],
         'mistral' => ['label' => 'Mistral', 'env' => 'MISTRAL_API_KEY', 'model' => 'mistral-large-latest', 'modality' => 'text'],

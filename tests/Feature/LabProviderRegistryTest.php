@@ -74,7 +74,7 @@ class LabProviderRegistryTest extends TestCase
 
         $response = app(ChatController::class)->run(Request::create('/lab/chat', 'POST', [
             'provider' => 'gemini',
-            'model' => 'gemini-2.0-flash',
+            'model' => 'gemini-flash-latest',
             'feature' => 'text',
             'prompt' => 'hello',
         ]));
