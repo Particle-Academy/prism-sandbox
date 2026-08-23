@@ -1,6 +1,6 @@
 import { createFancyServer } from '@particle-academy/fancy-inertia/server';
 import { Toast } from '@particle-academy/react-fancy';
-import type { ReactNode } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 
 /**
  * Server-side rendering entry. It renders each page inside the SAME Fancy
@@ -17,7 +17,7 @@ const providers = (outlet: ReactNode): ReactNode => (
 
 createFancyServer({
     resolve: (name) => {
-        const pages = import.meta.glob('./Pages/**/*.tsx', { eager: true });
+        const pages = import.meta.glob<{ default: ComponentType }>('./Pages/**/*.tsx', { eager: true });
         return pages[`./Pages/${name}.tsx`];
     },
     providers,

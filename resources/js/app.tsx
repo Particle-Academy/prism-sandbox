@@ -1,7 +1,7 @@
 import { createInertiaApp } from '@inertiajs/react';
 import { setupFancyApp } from '@particle-academy/fancy-inertia';
 import { Toast } from '@particle-academy/react-fancy';
-import type { ReactNode } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 import '@particle-academy/react-fancy/styles.css';
 
 const appName = import.meta.env.VITE_APP_NAME ?? 'Fancy';
@@ -19,16 +19,26 @@ const providers = (outlet: ReactNode): ReactNode => (
 createInertiaApp({
     title: (title) => (title ? `${title} — ${appName}` : appName),
     resolve: (name) => {
-        const pages = import.meta.glob('./Pages/**/*.tsx');
+        // Typing the glob is what keeps this assignable to Inertia's
+        // ComponentResolver — an untyped glob resolves to `unknown`.
+        const pages = import.meta.glob<{ default: ComponentType }>('./Pages/**/*.tsx');
         const page = pages[`./Pages/${name}.tsx`];
         if (!page) {
             return Promise.reject(new Error(`Inertia page not found: ${name}`));
         }
-        return page().then((module: { default: unknown }) => module.default);
+        return page().then((module) => module.default);
     },
     // setupFancyApp builds the page-transition + provider tree and auto-detects
     // hydrateRoot vs createRoot. `appRoot: false` keeps the root lean (just our
     // providers); set it to `{}` to mount the full FancyAppRoot (Toast +
     // ScreenSystem + ECharts registration) instead.
-    setup: ({ App, props, el }) => setupFancyApp({ el, App, props, providers, appRoot: false }),
+    setup: ({ App, props, el }) => {
+        // Inertia types `el` as nullable; fail loudly rather than cast, since a
+        // missing root means the Blade shell is wrong and nothing will mount.
+        if (!el) {
+            throw new Error('Inertia root element not found');
+        }
+
+        return setupFancyApp({ el, App, props, providers, appRoot: false });
+    },
 });
