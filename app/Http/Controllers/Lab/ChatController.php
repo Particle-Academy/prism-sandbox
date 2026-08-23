@@ -13,6 +13,7 @@ use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Prism\Prism\Facades\Prism;
+use Prism\Prism\Text\Step;
 use Prism\Prism\Tool;
 use Throwable;
 
@@ -72,7 +73,10 @@ final class ChatController extends Controller
                     'provider_reported_cost' => $response->usage->cost,
                     'cost_source' => $response->usage->cost === null ? 'Derived in Phoenix after export' : 'Provider response',
                     'steps' => $response->steps->count(),
-                    'tool_calls' => count($response->toolCalls),
+                    // Sum across steps, not $response->toolCalls: that holds only the
+                    // FINAL step's calls, which is empty once the loop ends on a text
+                    // answer — so a working tool run always reported zero.
+                    'tool_calls' => $response->steps->sum(fn (Step $step): int => count($step->toolCalls)),
                     'finish_reason' => $response->finishReason->value,
                 ],
                 'phoenix_url' => rtrim((string) env('PHOENIX_UI_URL', 'http://localhost:6006'), '/'),
