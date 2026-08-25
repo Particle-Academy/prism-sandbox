@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5356528c756d77855ff37a97665ddff3",
+    "content-hash": "b2271c2032d0e4d11164b6abe7e70e83",
     "packages": [
         {
             "name": "brick/math",
@@ -3510,6 +3510,70 @@
                 "source": "https://github.com/Particle-Academy/prism-opentelemetry/tree/v0.1.1"
             },
             "time": "2026-08-17T05:47:13+00:00"
+        },
+        {
+            "name": "particle-academy/prism-perplexity",
+            "version": "v0.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Particle-Academy/prism-perplexity.git",
+                "reference": "d783dbb7664b1d7cc75a0f8abbf54ffc8239bc5a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Particle-Academy/prism-perplexity/zipball/d783dbb7664b1d7cc75a0f8abbf54ffc8239bc5a",
+                "reference": "d783dbb7664b1d7cc75a0f8abbf54ffc8239bc5a",
+                "shasum": ""
+            },
+            "require": {
+                "laravel/framework": "^12.61.1|^13.12.0",
+                "particle-academy/prism": ">=0.113 <1.0",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.30",
+                "orchestra/testbench": "^10.0|^11.0",
+                "pestphp/pest": "^3.0|^4.0",
+                "phpstan/phpstan": "^2.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Prism\\Perplexity\\PrismPerplexityServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Prism\\Perplexity\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Wish Born",
+                    "email": "wish@impact.do"
+                }
+            ],
+            "description": "The rest of the Perplexity API for Prism — embeddings, direct search, and async deep research beyond the Agent API chat surface.",
+            "keywords": [
+                "ai",
+                "embeddings",
+                "laravel",
+                "llm",
+                "perplexity",
+                "prism",
+                "search"
+            ],
+            "support": {
+                "issues": "https://github.com/Particle-Academy/prism-perplexity/issues",
+                "source": "https://github.com/Particle-Academy/prism-perplexity/tree/v0.1.0"
+            },
+            "time": "2026-08-25T07:16:03+00:00"
         },
         {
             "name": "php-http/discovery",

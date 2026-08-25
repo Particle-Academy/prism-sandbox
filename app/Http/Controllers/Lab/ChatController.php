@@ -16,7 +16,9 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Prism\Harness\Models\Thread;
 use Prism\Harness\PrismHarness;
+use Prism\Perplexity\Perplexity as PerplexityProvider;
 use Prism\Prism\Facades\Prism;
+use Prism\Prism\PrismManager;
 use Prism\Prism\Text\Step;
 use Prism\Prism\Tool;
 use Throwable;
@@ -43,7 +45,7 @@ final class ChatController extends Controller
             // validation error that explains nothing.
             'provider' => ['required', Rule::in($this->providers->textProviderKeys())],
             'model' => ['required', 'string', 'max:120'],
-            'feature' => ['required', 'in:text,tools'],
+            'feature' => ['required', 'in:text,tools,research'],
             'prompt' => ['required', 'string', 'max:12000'],
         ]);
 
@@ -69,6 +71,15 @@ final class ChatController extends Controller
 
             if ($input['feature'] === 'tools') {
                 $generation->withTools([$this->diagnosticTool()])->withMaxSteps(4);
+            }
+
+            if ($input['feature'] === 'research') {
+                // Perplexity's Search API through prism-perplexity, handed to
+                // whichever provider is driving the conversation. So the
+                // researcher and the searcher are deliberately different
+                // vendors: this exercises the satellite package and the core
+                // shuttle together, which is the thing worth testing.
+                $generation->withTools([$this->researchTool()])->withMaxSteps(6);
             }
 
             $response = $generation->asText();
@@ -126,6 +137,44 @@ final class ChatController extends Controller
             ->for($operator)
             ->session('lab:chat:'.$request->session()->getId())
             ->thread();
+    }
+
+    /**
+     * Web search, backed by Perplexity's Search API.
+     *
+     * Deliberately search rather than ask-a-model: the point is to hand the
+     * conversation's own provider a set of real, resolvable sources and let it
+     * do the reasoning, so the answer can be checked against what was found.
+     * A research tool that returns someone else's prose cannot be audited.
+     */
+    private function researchTool(): Tool
+    {
+        return (new Tool)
+            ->as('search_web')
+            ->for('Search the web for current information. Returns titles, URLs and snippets. Use it before answering anything time-sensitive, then cite the URLs you used.')
+            ->withStringParameter('query', 'What to search for')
+            ->using(function (string $query): string {
+                /** @var PerplexityProvider $perplexity */
+                $perplexity = app(PrismManager::class)->resolve('perplexity');
+
+                $results = $perplexity->search($query, ['max_results' => 5]);
+
+                if ($results === []) {
+                    // An empty result set is an answer, not a failure — say so
+                    // plainly rather than returning nothing and letting the
+                    // model invent a reason.
+                    return json_encode(['query' => $query, 'results' => [], 'note' => 'No results found.'], JSON_THROW_ON_ERROR);
+                }
+
+                return json_encode([
+                    'query' => $query,
+                    'results' => array_map(fn (array $r): array => [
+                        'title' => $r['title'] ?? null,
+                        'url' => $r['url'] ?? null,
+                        'snippet' => $r['snippet'] ?? null,
+                    ], $results),
+                ], JSON_THROW_ON_ERROR);
+            });
     }
 
     private function diagnosticTool(): Tool

@@ -1,3 +1,4 @@
+import { ContentRenderer } from '@particle-academy/react-fancy';
 import { Head } from '@inertiajs/react';
 import { useState } from 'react';
 import { KineticFooter, KineticNav } from '../../components/kinetic';
@@ -103,9 +104,14 @@ export default function Threads({ version, threads }: { version: string; threads
                                                     </header>
 
                                                     {message.text !== '' && (
-                                                        <p className="whitespace-pre-wrap" style={{ color: 'var(--k-ink-2)' }}>
-                                                            {message.text}
-                                                        </p>
+                                                        // Sanitised by default, and it must stay that way: a stored
+                                                        // message is model output, and a model can be talked into
+                                                        // emitting markup. `unsafe` would render it.
+                                                        <ContentRenderer
+                                                            value={message.text}
+                                                            format="markdown"
+                                                            className="text-[var(--k-ink-2)]"
+                                                        />
                                                     )}
 
                                                     {message.tool_calls.map((call, j) => (
