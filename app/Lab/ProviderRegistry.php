@@ -29,7 +29,11 @@ class ProviderRegistry
         // model fails on the user's first request rather than at configuration
         // time. Mistral's default already works this way.
         'gemini' => ['label' => 'Gemini', 'env' => 'GEMINI_API_KEY', 'model' => 'gemini-flash-latest', 'modality' => 'text'],
-        'deepseek' => ['label' => 'DeepSeek', 'env' => 'DEEPSEEK_API_KEY', 'model' => 'deepseek-chat', 'modality' => 'text'],
+        // deepseek-chat and deepseek-reasoner were both withdrawn on 2026-08-25
+        // when DeepSeek rotated to a v4 generation. Same failure the comment
+        // above describes for gemini-2.0-flash: a prefilled default naming a
+        // withdrawn model fails on the user's first request, not at config time.
+        'deepseek' => ['label' => 'DeepSeek', 'env' => 'DEEPSEEK_API_KEY', 'model' => 'deepseek-v4-flash', 'modality' => 'text'],
         'groq' => ['label' => 'Groq', 'env' => 'GROQ_API_KEY', 'model' => null, 'modality' => 'text'],
         'mistral' => ['label' => 'Mistral', 'env' => 'MISTRAL_API_KEY', 'model' => 'mistral-large-latest', 'modality' => 'text'],
         'xai' => ['label' => 'xAI', 'env' => 'XAI_API_KEY', 'model' => null, 'modality' => 'text'],
