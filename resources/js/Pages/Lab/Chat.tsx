@@ -18,8 +18,14 @@ export default function Chat({ version, providers, undescribed, phoenixUrl }: { 
     // Only text providers can drive this form; audio/embeddings ones are
     // reported in the status panel instead of being offered here.
     const textProviders = useMemo(() => providers.filter(p => p.modality === 'text'), [providers]);
+    // Anthropic Sonnet is the default because it is the one this Lab is used to
+    // judge others against — starting on whichever provider happens to sit
+    // first in config made the baseline depend on config order.
     const initial = useMemo(
-        () => textProviders.find(p => p.configured) ?? textProviders[0],
+        () =>
+            textProviders.find(p => p.key === 'anthropic' && p.configured)
+            ?? textProviders.find(p => p.configured)
+            ?? textProviders[0],
         [textProviders],
     );
 

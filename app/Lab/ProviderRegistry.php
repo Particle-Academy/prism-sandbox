@@ -35,7 +35,7 @@ class ProviderRegistry
         'xai' => ['label' => 'xAI', 'env' => 'XAI_API_KEY', 'model' => null, 'modality' => 'text'],
         'openrouter' => ['label' => 'OpenRouter', 'env' => 'OPENROUTER_API_KEY', 'model' => null, 'modality' => 'text'],
         'requesty' => ['label' => 'Requesty', 'env' => 'REQUESTY_API_KEY', 'model' => null, 'modality' => 'text'],
-        'perplexity' => ['label' => 'Perplexity', 'env' => 'PERPLEXITY_API_KEY', 'model' => null, 'modality' => 'text'],
+        'perplexity' => ['label' => 'Perplexity', 'env' => 'PERPLEXITY_API_KEY', 'model' => 'sonar', 'modality' => 'text'],
         'qwen' => ['label' => 'Qwen', 'env' => 'QWEN_API_KEY', 'model' => null, 'modality' => 'text'],
         'azure' => ['label' => 'Azure AI', 'env' => 'AZURE_AI_API_KEY', 'model' => null, 'modality' => 'text'],
         'z' => ['label' => 'Z.ai', 'env' => 'Z_API_KEY', 'model' => null, 'modality' => 'text'],
