@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "854cc2094672d54eb5b17da68149db8c",
+    "content-hash": "5356528c756d77855ff37a97665ddff3",
     "packages": [
         {
             "name": "brick/math",
@@ -3289,16 +3289,16 @@
         },
         {
             "name": "particle-academy/prism",
-            "version": "v0.113.0",
+            "version": "v0.114.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Particle-Academy/prism.git",
-                "reference": "32c1938eece49dbbcdb34a6fdd3bdf204ad5f310"
+                "reference": "7125227870a46667ba8fc534f687bc3a0096be1e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Particle-Academy/prism/zipball/32c1938eece49dbbcdb34a6fdd3bdf204ad5f310",
-                "reference": "32c1938eece49dbbcdb34a6fdd3bdf204ad5f310",
+                "url": "https://api.github.com/repos/Particle-Academy/prism/zipball/7125227870a46667ba8fc534f687bc3a0096be1e",
+                "reference": "7125227870a46667ba8fc534f687bc3a0096be1e",
                 "shasum": ""
             },
             "require": {
@@ -3367,7 +3367,7 @@
             "description": "A powerful Laravel package for integrating Large Language Models (LLMs) into your applications. Actively maintained fork of prism-php/prism.",
             "support": {
                 "issues": "https://github.com/Particle-Academy/prism/issues",
-                "source": "https://github.com/Particle-Academy/prism/tree/v0.113.0"
+                "source": "https://github.com/Particle-Academy/prism/tree/v0.114.0"
             },
             "funding": [
                 {
@@ -3375,7 +3375,70 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-08-23T17:34:49+00:00"
+            "time": "2026-08-25T14:47:41+00:00"
+        },
+        {
+            "name": "particle-academy/prism-harness",
+            "version": "v0.1.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Particle-Academy/prism-harness.git",
+                "reference": "4515281efd36933667b760ca0c11901046cc270e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Particle-Academy/prism-harness/zipball/4515281efd36933667b760ca0c11901046cc270e",
+                "reference": "4515281efd36933667b760ca0c11901046cc270e",
+                "shasum": ""
+            },
+            "require": {
+                "laravel/framework": "^12.61.1|^13.12.0",
+                "particle-academy/prism": ">=0.113 <1.0",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.30",
+                "orchestra/testbench": "^10.0|^11.0",
+                "pestphp/pest": "^3.0|^4.0",
+                "phpstan/phpstan": "^2.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Prism\\Harness\\PrismHarnessServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Prism\\Harness\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Wish Born",
+                    "email": "wish@impact.do"
+                }
+            ],
+            "description": "Durable agent sessions for Laravel — threads, modes, tool permissions and subagents on top of Prism.",
+            "keywords": [
+                "agents",
+                "ai",
+                "laravel",
+                "llm",
+                "prism",
+                "sessions"
+            ],
+            "support": {
+                "issues": "https://github.com/Particle-Academy/prism-harness/issues",
+                "source": "https://github.com/Particle-Academy/prism-harness/tree/v0.1.2"
+            },
+            "time": "2026-08-25T15:31:08+00:00"
         },
         {
             "name": "particle-academy/prism-opentelemetry",
