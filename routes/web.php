@@ -5,6 +5,7 @@ use App\Http\Controllers\DocsController;
 use App\Http\Controllers\Lab\BenchmarkController;
 use App\Http\Controllers\Lab\ChatController;
 use App\Http\Controllers\Lab\TestSuiteController;
+use App\Http\Controllers\Lab\ThreadController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\Webhooks\GitHubWebhookController;
 use App\Http\Middleware\EnsurePrismLabIsLocal;
@@ -26,6 +27,7 @@ if (app()->environment('local')) {
         Route::post('/lab/chat', [ChatController::class, 'run'])->name('lab.chat.run');
         Route::get('/lab/tests', [TestSuiteController::class, 'show'])->name('lab.tests');
         Route::post('/lab/tests', [TestSuiteController::class, 'run'])->name('lab.tests.run');
+        Route::get('/lab/threads', [ThreadController::class, 'show'])->name('lab.threads');
         Route::get('/lab/benchmarks', [BenchmarkController::class, 'show'])->name('lab.benchmarks');
         Route::get('/lab/benchmarks/export', [BenchmarkController::class, 'export'])->name('lab.benchmarks.export');
     });

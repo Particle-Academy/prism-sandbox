@@ -1,5 +1,6 @@
 import { Head } from '@inertiajs/react';
 import { KineticFooter, KineticNav } from '../../components/kinetic';
+import { LabNav, labBlurb } from '../../components/lab-nav';
 
 type Benchmark = {
     provider: string;
@@ -20,7 +21,7 @@ const show = (value: number | null, suffix = '') => (value === null ? '—' : `$
 
 export default function Benchmarks({ version, benchmarks, totalRuns, phoenixUrl }: { version: string; benchmarks: Benchmark[]; totalRuns: number; phoenixUrl: string }) {
     return <div className="k-page"><Head title="Prism Lab Benchmarks" /><KineticNav version={version} /><main className="mx-auto max-w-7xl px-6 py-16">
-        <div className="mb-7 flex gap-2"><a className="k-btn k-btn--ghost" href="/lab/chat">Chat console</a><a className="k-btn k-btn--ghost" href="/lab/tests">Test suite</a><a className="k-btn k-btn--grad" href="/lab/benchmarks">Benchmarks</a></div>
+        <LabNav current="/lab/benchmarks" />
         <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end"><div><p className="k-mono mb-4">Local only · aggregated from real generations</p><h1 className="text-5xl font-extrabold tracking-[-.05em] sm:text-7xl">Provider <span className="k-grad-text">benchmarks</span></h1><p className="mt-5 max-w-3xl text-lg text-[var(--k-ink-2)]">Latency, token, and cost comparisons accumulated across every test-suite run — grouped by provider, model, and feature.</p></div><div className="flex gap-2"><a className="k-btn k-btn--ghost" href={phoenixUrl} target="_blank" rel="noreferrer">Open Phoenix ↗</a>{benchmarks.length > 0 && <a className="k-btn k-btn--grad" href="/lab/benchmarks/export">Export JSON ↓</a>}</div></div>
 
         {benchmarks.length === 0
