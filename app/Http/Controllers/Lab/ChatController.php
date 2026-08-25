@@ -7,11 +7,15 @@ namespace App\Http\Controllers\Lab;
 use App\Docs\DocsRepository;
 use App\Http\Controllers\Controller;
 use App\Lab\ProviderRegistry;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Prism\Harness\Models\Thread;
+use Prism\Harness\PrismHarness;
 use Prism\Prism\Facades\Prism;
 use Prism\Prism\Text\Step;
 use Prism\Prism\Tool;
@@ -53,9 +57,14 @@ final class ChatController extends Controller
         $started = hrtime(true);
 
         try {
+            $thread = $this->thread($request);
+
             $generation = Prism::text()
                 ->using($input['provider'], $input['model'])
                 ->withTelemetryMetadata(userId: 'prism-lab-user', sessionId: $request->session()->getId())
+                // Everything said so far, read from the database rather than
+                // rebuilt here. The prompt below is the new turn.
+                ->withThread($thread)
                 ->withPrompt($input['prompt']);
 
             if ($input['feature'] === 'tools') {
@@ -63,6 +72,10 @@ final class ChatController extends Controller
             }
 
             $response = $generation->asText();
+
+            // The full exchange, tool steps included — so a run interrupted
+            // mid-tool resumes where it stopped rather than restarting.
+            $thread->record($response->messages);
 
             return response()->json([
                 'text' => $response->text,
@@ -88,6 +101,31 @@ final class ChatController extends Controller
                 'message' => 'Generation failed. Check the application log for details.',
             ], 502);
         }
+    }
+
+    /**
+     * The conversation this browser session is having with the Lab.
+     *
+     * Resolved through the harness rather than held anywhere: a fresh worker
+     * handling the next request lands on the same thread, which is the whole
+     * reason the Lab can now remember a conversation at all.
+     *
+     * The Lab has no authentication, so the participant is a stable local
+     * operator record. A real application would pass `$request->user()` here.
+     */
+    private function thread(Request $request): Thread
+    {
+        $operator = User::firstOrCreate(
+            ['email' => 'lab@prism.local'],
+            ['name' => 'Prism Lab operator', 'password' => bcrypt(Str::random(32))],
+        );
+
+        // Scoped per browser session, so two tabs are two conversations rather
+        // than one interleaved mess.
+        return app(PrismHarness::class)
+            ->for($operator)
+            ->session('lab:chat:'.$request->session()->getId())
+            ->thread();
     }
 
     private function diagnosticTool(): Tool
