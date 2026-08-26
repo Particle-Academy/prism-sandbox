@@ -38,6 +38,9 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            // Gates the nav link. A prominent link to a page that says
+            // "not configured" is worse than no link at all.
+            'demoEnabled' => filled(config('prism.providers.groq.api_key')),
             'auth' => [
                 'user' => $request->user() ? [
                     'id' => $request->user()->id,

@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { cn } from '@particle-academy/react-fancy';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
@@ -60,6 +60,8 @@ export function GradGlyph({ className }: { className?: string }) {
 
 /** Top navigation bar shared by the landing page and docs. */
 export function KineticNav({ version, onSearch }: { version: string; onSearch?: () => void }) {
+    const { demoEnabled = false } = usePage<{ demoEnabled?: boolean }>().props;
+
 
 
     return (
@@ -84,9 +86,11 @@ export function KineticNav({ version, onSearch }: { version: string; onSearch?: 
                             </kbd>
                         </button>
                     )}
-                    <Link href="/demo" className="rounded-lg px-3 py-1.5 font-semibold text-[var(--k-cyan)] transition-colors hover:text-white">
-                        Demo
-                    </Link>
+                    {demoEnabled && (
+                        <Link href="/demo" className="rounded-lg px-3 py-1.5 font-semibold text-[var(--k-cyan)] transition-colors hover:text-white">
+                            Demo
+                        </Link>
+                    )}
                     <Link href="/docs" className="rounded-lg px-3 py-1.5 transition-colors hover:text-[var(--k-cyan)]" style={{ color: 'var(--k-ink-2)' }}>
                         Docs
                     </Link>
