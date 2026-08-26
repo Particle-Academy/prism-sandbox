@@ -351,6 +351,17 @@
     margin: 0 0 0.35rem !important;
 }
 
+/* A callout body is parsed as markdown, so it arrives as real block elements —
+   paragraphs, lists, code. Collapse the outer margins so the box keeps its own
+   padding instead of stacking a paragraph margin on top of it. */
+.doc-callout > :first-child {
+    margin-top: 0;
+}
+
+.doc-callout > :last-child {
+    margin-bottom: 0;
+}
+
 .doc-codelabel {
     display: inline-block;
     font-family: ui-monospace, monospace;

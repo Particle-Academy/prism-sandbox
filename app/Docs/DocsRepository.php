@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace App\Docs;
 
 use Composer\InstalledVersions;
+use FilesystemIterator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
 use League\CommonMark\Extension\Table\TableExtension;
 use League\CommonMark\MarkdownConverter;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 use Tempest\Highlight\CommonMark\HighlightExtension;
 
 class DocsRepository
@@ -24,11 +28,48 @@ class DocsRepository
      * and llms.txt down with a 500 when `external` was added to nav entries.
      * Bump this whenever a cached structure changes.
      */
-    private const SCHEMA = 2;
+    private const SCHEMA = 3;
 
+    private ?string $siteFingerprint = null;
+
+    /**
+     * The Prism package's own docs root.
+     *
+     * Everything the release documents about itself lives here, shipped inside
+     * the composer package, which is why this site never has to be redeployed
+     * to publish a new version's docs.
+     */
     public function basePath(): string
     {
         return base_path('vendor/particle-academy/prism/docs');
+    }
+
+    /**
+     * This repository's own docs root.
+     *
+     * Prism core is a provider API shuttle and stays that way — documentation
+     * for the packages *around* it does not belong inside it. So the site
+     * carries a second source, and pages that are about the ecosystem rather
+     * than the release live here instead of being pushed upstream.
+     */
+    public function sitePath(): string
+    {
+        return resource_path('docs');
+    }
+
+    /**
+     * Where a page can come from, in resolution order.
+     *
+     * The package first, always. A site-owned file can never shadow one the
+     * release ships: if core ever documents a path this repo also has, core
+     * wins and the site page becomes dead weight rather than a silent
+     * override of the release's own words.
+     *
+     * @return array<int, string>
+     */
+    public function roots(): array
+    {
+        return [$this->basePath(), $this->sitePath()];
     }
 
     public function version(): string
@@ -37,32 +78,62 @@ class DocsRepository
     }
 
     /**
-     * Navigation tree parsed from the package's VitePress sidebar config, so
-     * the site's nav always matches the installed release.
+     * The package's nav, then this site's own sections appended after it.
      *
      * @return array<int, array{text: string, items: array<int, array{text: string, link: string}>}>
      */
     public function nav(): array
     {
-        return Cache::rememberForever($this->cacheKey('nav'), function (): array {
-            $config = @file_get_contents($this->basePath().'/.vitepress/config.mts');
+        return Cache::rememberForever($this->siteCacheKey('nav'), fn (): array => [
+            ...$this->packageNav(),
+            ...$this->siteNav(),
+        ]);
+    }
 
-            if ($config !== false) {
-                $literal = JsLiteralParser::extractArray($config, 'sidebar');
-                $sidebar = $literal !== null ? JsLiteralParser::parse($literal) : null;
+    /**
+     * Navigation tree parsed from the package's VitePress sidebar config, so
+     * the site's nav always matches the installed release.
+     *
+     * @return array<int, array{text: string, items: array<int, array{text: string, link: string}>}>
+     */
+    protected function packageNav(): array
+    {
+        $config = @file_get_contents($this->basePath().'/.vitepress/config.mts');
 
-                if (is_array($sidebar)) {
-                    $groups = $sidebar[0]['items'] ?? $sidebar;
-                    $nav = $this->normalizeNav($groups);
+        if ($config !== false) {
+            $literal = JsLiteralParser::extractArray($config, 'sidebar');
+            $sidebar = $literal !== null ? JsLiteralParser::parse($literal) : null;
 
-                    if ($nav !== []) {
-                        return $nav;
-                    }
+            if (is_array($sidebar)) {
+                $groups = $sidebar[0]['items'] ?? $sidebar;
+                $nav = $this->normalizeNav($groups);
+
+                if ($nav !== []) {
+                    return $nav;
                 }
             }
+        }
 
-            return $this->navFromDirectories();
-        });
+        return $this->navFromDirectories();
+    }
+
+    /**
+     * The nav sections this site owns, declared in `config/docs.php`.
+     *
+     * Declared rather than globbed: order and titles are editorial decisions,
+     * and a directory scan would sort them alphabetically and headline the
+     * filenames. A section naming a page that does not exist is a typo CI
+     * catches — `SiteDocsTest` walks every entry — not something this method
+     * quietly drops, because a dropped nav entry looks exactly like a page
+     * nobody wrote.
+     *
+     * @return array<int, array{text: string, items: array<int, array{text: string, link: string}>}>
+     */
+    protected function siteNav(): array
+    {
+        $sections = config('docs.sections', []);
+
+        return $this->normalizeNav(is_array($sections) ? $sections : []);
     }
 
     /**
@@ -122,8 +193,11 @@ class DocsRepository
      */
     public function page(string $path): array
     {
-        return Cache::rememberForever($this->cacheKey("page:$path"), function () use ($path): array {
-            $markdown = (string) file_get_contents($this->pageFile($path));
+        $file = $this->pageFile($path);
+        $key = $this->isSiteFile($file) ? $this->siteCacheKey("page:$path") : $this->cacheKey("page:$path");
+
+        return Cache::rememberForever($key, function () use ($file, $path): array {
+            $markdown = (string) file_get_contents($file);
             $markdown = $this->preprocess($markdown);
 
             $html = $this->converter()->convert($markdown)->getContent();
@@ -142,7 +216,7 @@ class DocsRepository
      */
     public function searchIndex(): array
     {
-        return Cache::rememberForever($this->cacheKey('search'), function (): array {
+        return Cache::rememberForever($this->siteCacheKey('search'), function (): array {
             $index = [];
 
             foreach ($this->pages() as $item) {
@@ -171,12 +245,92 @@ class DocsRepository
     {
         $path = trim(str_replace(['..', '\\'], '', $path), '/');
 
+        foreach ($this->roots() as $root) {
+            $file = $root.'/'.$path.'.md';
+
+            if (is_file($file)) {
+                return $file;
+            }
+        }
+
+        // Nothing matched. Hand back the package path so a miss still reads as
+        // "the release does not document this", which is what it is.
         return $this->basePath().'/'.$path.'.md';
+    }
+
+    protected function isSiteFile(string $file): bool
+    {
+        return str_starts_with($file, $this->sitePath().'/');
     }
 
     protected function cacheKey(string $suffix): string
     {
         return 'docs:'.self::SCHEMA.':'.$this->version().':'.$suffix;
+    }
+
+    /**
+     * Cache key for anything whose content includes site-owned docs.
+     *
+     * The plain key is namespaced by the installed Prism release, which is
+     * exactly right for package pages: they cannot change unless it does.
+     * Site-owned pages can — a deploy of this repo edits them while Prism
+     * stays put — and `rememberForever` would then keep serving the previous
+     * deploy's copy for as long as the release held, which on a site that
+     * tracks stable releases is weeks. So their keys carry a fingerprint of
+     * the source instead.
+     */
+    protected function siteCacheKey(string $suffix): string
+    {
+        return $this->cacheKey($this->siteFingerprint().':'.$suffix);
+    }
+
+    /**
+     * A short digest of every site-owned docs input.
+     *
+     * Covers the declared nav as well as the files, so reordering a section
+     * without touching a page still invalidates. Memoised because sitemap and
+     * llms.txt ask for several cached structures in one request.
+     */
+    protected function siteFingerprint(): string
+    {
+        if ($this->siteFingerprint !== null) {
+            return $this->siteFingerprint;
+        }
+
+        $parts = [(string) json_encode(config('docs.sections', []))];
+
+        foreach ($this->siteFiles() as $file) {
+            $parts[] = $file.':'.(string) filemtime($file).':'.(string) filesize($file);
+        }
+
+        return $this->siteFingerprint = substr(sha1(implode('|', $parts)), 0, 12);
+    }
+
+    /**
+     * Every site-owned markdown file, in a stable order.
+     *
+     * @return array<int, string>
+     */
+    protected function siteFiles(): array
+    {
+        if (! is_dir($this->sitePath())) {
+            return [];
+        }
+
+        $files = [];
+
+        /** @var SplFileInfo $file */
+        foreach (new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($this->sitePath(), FilesystemIterator::SKIP_DOTS)
+        ) as $file) {
+            if ($file->isFile() && $file->getExtension() === 'md') {
+                $files[] = str_replace('\\', '/', $file->getPathname());
+            }
+        }
+
+        sort($files);
+
+        return $files;
     }
 
     protected function converter(): MarkdownConverter
@@ -205,20 +359,8 @@ class DocsRepository
             $markdown = str_replace('<ProviderSupport />', $this->providerSupportTable(), $markdown);
         }
 
-        // ::: code-group — unwrap; each fence keeps its [label] handled below.
-        $markdown = (string) preg_replace('/^::: ?code-group\s*$/m', '', $markdown);
-
-        // ::: tip|warning|danger|info|details [title]
-        $markdown = (string) preg_replace_callback(
-            '/^::: ?(tip|warning|danger|info|details)[ \t]*(.*)$/m',
-            function (array $m): string {
-                $title = $m[2] !== '' ? $m[2] : strtoupper($m[1]);
-
-                return "<div class=\"doc-callout doc-callout--{$m[1]}\">\n\n<p class=\"doc-callout-title\">{$title}</p>";
-            },
-            $markdown
-        );
-        $markdown = (string) preg_replace('/^:::\s*$/m', "\n</div>", $markdown);
+        // ::: code-group / ::: tip|warning|… and the bare ::: that closes one.
+        $markdown = $this->containers($markdown);
 
         // ```php [Label] fences → label chip above the fence.
         $markdown = (string) preg_replace_callback(
@@ -228,6 +370,87 @@ class DocsRepository
         );
 
         return $markdown;
+    }
+
+    /**
+     * VitePress container blocks: `::: code-group`, `::: tip|warning|…`, and
+     * the bare `:::` that closes whichever of them is open.
+     *
+     * Walked line by line rather than matched with three independent regexes,
+     * because the closing token is identical for every container and a pattern
+     * that rewrote every `:::` into `</div>` also emitted one for each
+     * code-group — whose opener is dropped and which therefore has nothing to
+     * close. That left an unbalanced `</div>` on every page using a code group,
+     * the introduction included.
+     *
+     * Blank lines around the generated HTML are the other half of the fix.
+     * CommonMark runs an HTML block to the next blank line, so a callout whose
+     * `<p>` title was followed immediately by its body swallowed that body as
+     * raw HTML — `**bold**` reached the page as asterisks — and a `</div>` sat
+     * directly against whatever came next, eating the heading after it.
+     *
+     * Fenced code is copied through untouched, so a `:::` being *documented*
+     * inside a fence is not mistaken for a container.
+     */
+    protected function containers(string $markdown): string
+    {
+        $out = [];
+        $open = [];
+        $fenced = false;
+
+        // Split on the three line endings CommonMark recognises, spelled out.
+        // `\R` looks like the tidier choice and is a trap: outside UTF mode it
+        // also matches the single byte 0x85, which is a continuation byte in
+        // plenty of UTF-8 sequences — ✅ among them — so the provider support
+        // table came back cut mid-character and CommonMark rejected the input.
+        foreach (preg_split("/\r\n|\n|\r/", $markdown) ?: [] as $line) {
+            if (preg_match('/^ {0,3}(`{3,}|~{3,})/', $line) === 1) {
+                $fenced = ! $fenced;
+                $out[] = $line;
+
+                continue;
+            }
+
+            if ($fenced) {
+                $out[] = $line;
+
+                continue;
+            }
+
+            if (preg_match('/^::: ?code-group[ \t]*$/', $line) === 1) {
+                // Unwrapped: each fence inside keeps its own [label], which the
+                // code-label pass turns into a chip.
+                $open[] = 'code-group';
+
+                continue;
+            }
+
+            if (preg_match('/^::: ?(tip|warning|danger|info|details)[ \t]*(.*)$/', $line, $m) === 1) {
+                $title = trim($m[2]) !== '' ? trim($m[2]) : strtoupper($m[1]);
+                $open[] = 'callout';
+
+                $out[] = '<div class="doc-callout doc-callout--'.$m[1].'">';
+                $out[] = '';
+                $out[] = '<p class="doc-callout-title">'.$title.'</p>';
+                $out[] = '';
+
+                continue;
+            }
+
+            if (preg_match('/^:::[ \t]*$/', $line) === 1) {
+                if (array_pop($open) === 'callout') {
+                    $out[] = '';
+                    $out[] = '</div>';
+                    $out[] = '';
+                }
+
+                continue;
+            }
+
+            $out[] = $line;
+        }
+
+        return implode("\n", $out);
     }
 
     /**
