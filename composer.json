@@ -22,10 +22,10 @@
         "open-telemetry/exporter-otlp": "^1.0",
         "open-telemetry/sdk": "^1.0",
         "particle-academy/laravel-fun-lab": "0.6",
-        "particle-academy/prism": ">=0.111 <1.0",
-        "particle-academy/prism-harness": "^0.1.0",
-        "particle-academy/prism-opentelemetry": "^0.1",
-        "particle-academy/prism-perplexity": "^0.1",
+        "particle-academy/prism": ">=0.115.0-alpha <1.0",
+        "particle-academy/prism-harness": ">=0.1.0-alpha <1.0",
+        "particle-academy/prism-opentelemetry": ">=0.1.0-alpha <1.0",
+        "particle-academy/prism-perplexity": ">=0.1.0-alpha <1.0",
         "tempest/highlight": "^2.27"
     },
     "require-dev": {
@@ -102,6 +102,6 @@
             "tbachert/spi": true
         }
     },
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "prefer-stable": true
 }
