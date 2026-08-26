@@ -17,8 +17,8 @@ const providers = (outlet: ReactNode): ReactNode => (
 
 createFancyServer({
     resolve: (name) => {
-        const pages = import.meta.glob<{ default: ComponentType }>('./Pages/**/*.tsx', { eager: true });
-        return pages[`./Pages/${name}.tsx`];
+        const pages = import.meta.glob<{ default: ComponentType }>('./pages/**/*.tsx', { eager: true });
+        return pages[`./pages/${name}.tsx`];
     },
     providers,
     appRoot: false,
