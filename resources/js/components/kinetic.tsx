@@ -60,7 +60,9 @@ export function GradGlyph({ className }: { className?: string }) {
 
 /** Top navigation bar shared by the landing page and docs. */
 export function KineticNav({ version, onSearch }: { version: string; onSearch?: () => void }) {
-    const { labEnabled = false } = usePage<{ labEnabled?: boolean }>().props;
+    const { demoEnabled = false } = usePage<{ demoEnabled?: boolean }>().props;
+
+
 
     return (
         <header className="sticky top-0 z-40 border-b backdrop-blur-md" style={{ borderColor: 'var(--k-hairline)', background: 'rgba(7,7,11,0.85)' }}>
@@ -84,9 +86,9 @@ export function KineticNav({ version, onSearch }: { version: string; onSearch?: 
                             </kbd>
                         </button>
                     )}
-                    {labEnabled && (
-                        <Link href="/lab/tests" className="rounded-lg px-3 py-1.5 font-semibold text-[var(--k-cyan)] transition-colors hover:text-white">
-                            Lab
+                    {demoEnabled && (
+                        <Link href="/demo" className="rounded-lg px-3 py-1.5 font-semibold text-[var(--k-cyan)] transition-colors hover:text-white">
+                            Demo
                         </Link>
                     )}
                     <Link href="/docs" className="rounded-lg px-3 py-1.5 transition-colors hover:text-[var(--k-cyan)]" style={{ color: 'var(--k-ink-2)' }}>

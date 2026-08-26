@@ -2,7 +2,7 @@
     "$schema": "https://getcomposer.org/schema.json",
     "name": "particle-academy/prism-sandbox",
     "type": "project",
-    "description": "Sandbox app for the Particle-Academy prism fork \u2014 Laravel 13 + Inertia + React 19 + Tailwind v4 (Fancy UI starter kit).",
+    "description": "Sandbox app for the Particle-Academy prism fork — Laravel 13 + Inertia + React 19 + Tailwind v4 (Fancy UI starter kit).",
     "keywords": [
         "laravel",
         "inertia",
@@ -19,13 +19,8 @@
         "laravel/framework": "^13.8",
         "laravel/tinker": "^3.0",
         "league/commonmark": "^2.8",
-        "open-telemetry/exporter-otlp": "^1.0",
-        "open-telemetry/sdk": "^1.0",
         "particle-academy/laravel-fun-lab": "0.6",
-        "particle-academy/prism": ">=0.115.0-alpha <1.0",
-        "particle-academy/prism-harness": ">=0.1.0-alpha <1.0",
-        "particle-academy/prism-opentelemetry": ">=0.1.0-alpha <1.0",
-        "particle-academy/prism-perplexity": ">=0.1.0-alpha <1.0",
+        "particle-academy/prism": ">=0.114 <1.0",
         "tempest/highlight": "^2.27"
     },
     "require-dev": {
@@ -85,13 +80,6 @@
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
         ]
     },
-    "extra": {
-        "laravel": {
-            "dont-discover": [
-                "particle-academy/prism-opentelemetry"
-            ]
-        }
-    },
     "config": {
         "optimize-autoloader": true,
         "preferred-install": "dist",
@@ -102,6 +90,6 @@
             "tbachert/spi": true
         }
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "prefer-stable": true
 }
