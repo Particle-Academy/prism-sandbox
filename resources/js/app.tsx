@@ -21,8 +21,8 @@ createInertiaApp({
     resolve: (name) => {
         // Typing the glob is what keeps this assignable to Inertia's
         // ComponentResolver — an untyped glob resolves to `unknown`.
-        const pages = import.meta.glob<{ default: ComponentType }>('./Pages/**/*.tsx');
-        const page = pages[`./Pages/${name}.tsx`];
+        const pages = import.meta.glob<{ default: ComponentType }>('./pages/**/*.tsx');
+        const page = pages[`./pages/${name}.tsx`];
         if (!page) {
             return Promise.reject(new Error(`Inertia page not found: ${name}`));
         }
