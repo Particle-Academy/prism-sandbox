@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8e169fce52c5360926a00f1a10b75f04",
+    "content-hash": "bca266a6af7a2218f31e34a044eb61cf",
     "packages": [
         {
             "name": "brick/math",
@@ -3289,16 +3289,16 @@
         },
         {
             "name": "particle-academy/prism",
-            "version": "v0.114.0",
+            "version": "v0.115.0-alpha.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Particle-Academy/prism.git",
-                "reference": "7125227870a46667ba8fc534f687bc3a0096be1e"
+                "reference": "4e83207b91eb5000d69f5856378ef66ee94b0284"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Particle-Academy/prism/zipball/7125227870a46667ba8fc534f687bc3a0096be1e",
-                "reference": "7125227870a46667ba8fc534f687bc3a0096be1e",
+                "url": "https://api.github.com/repos/Particle-Academy/prism/zipball/4e83207b91eb5000d69f5856378ef66ee94b0284",
+                "reference": "4e83207b91eb5000d69f5856378ef66ee94b0284",
                 "shasum": ""
             },
             "require": {
@@ -3367,7 +3367,7 @@
             "description": "A powerful Laravel package for integrating Large Language Models (LLMs) into your applications. Actively maintained fork of prism-php/prism.",
             "support": {
                 "issues": "https://github.com/Particle-Academy/prism/issues",
-                "source": "https://github.com/Particle-Academy/prism/tree/v0.114.0"
+                "source": "https://github.com/Particle-Academy/prism/tree/v0.115.0-alpha.1"
             },
             "funding": [
                 {
@@ -3375,7 +3375,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-08-25T14:47:41+00:00"
+            "time": "2026-08-26T02:23:39+00:00"
         },
         {
             "name": "particle-academy/prism-harness",
@@ -9943,7 +9943,7 @@
         }
     ],
     "aliases": [],
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
