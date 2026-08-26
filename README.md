@@ -10,6 +10,11 @@ It ships **Fancy Core** (`react-fancy` + `fancy-inertia` + `fancy-query`), full
 settings) with every page built on Fancy UI, and a Fancy-branded welcome page
 with jump-off points to grow your app.
 
+> **Working on this package?** Read **[`AGENTS.md`](AGENTS.md)** first — the boundary
+> this package has to hold, the gates that must be green, and the traps that have
+> already caught someone.
+> `@link AGENTS.md`
+
 ## Create a new app
 
 ```bash
