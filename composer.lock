@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "bca266a6af7a2218f31e34a044eb61cf",
+    "content-hash": "ed1307ee170de05b2917e7f3d93a1c80",
     "packages": [
         {
             "name": "brick/math",
@@ -133,83 +133,6 @@
                 }
             ],
             "time": "2024-02-09T16:56:22+00:00"
-        },
-        {
-            "name": "composer/semver",
-            "version": "3.4.4",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/composer/semver.git",
-                "reference": "198166618906cb2de69b95d7d47e5fa8aa1b2b95"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/composer/semver/zipball/198166618906cb2de69b95d7d47e5fa8aa1b2b95",
-                "reference": "198166618906cb2de69b95d7d47e5fa8aa1b2b95",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^5.3.2 || ^7.0 || ^8.0"
-            },
-            "require-dev": {
-                "phpstan/phpstan": "^1.11",
-                "symfony/phpunit-bridge": "^3 || ^7"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-main": "3.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Composer\\Semver\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Nils Adermann",
-                    "email": "naderman@naderman.de",
-                    "homepage": "http://www.naderman.de"
-                },
-                {
-                    "name": "Jordi Boggiano",
-                    "email": "j.boggiano@seld.be",
-                    "homepage": "http://seld.be"
-                },
-                {
-                    "name": "Rob Bast",
-                    "email": "rob.bast@gmail.com",
-                    "homepage": "http://robbast.nl"
-                }
-            ],
-            "description": "Semver library that offers utilities, version constraint parsing and validation.",
-            "keywords": [
-                "semantic",
-                "semver",
-                "validation",
-                "versioning"
-            ],
-            "support": {
-                "irc": "ircs://irc.libera.chat:6697/composer",
-                "issues": "https://github.com/composer/semver/issues",
-                "source": "https://github.com/composer/semver/tree/3.4.4"
-            },
-            "funding": [
-                {
-                    "url": "https://packagist.com",
-                    "type": "custom"
-                },
-                {
-                    "url": "https://github.com/composer",
-                    "type": "github"
-                }
-            ],
-            "time": "2025-08-20T19:15:30+00:00"
         },
         {
             "name": "dflydev/dot-access-data",
@@ -654,50 +577,6 @@
                 }
             ],
             "time": "2025-12-03T09:33:47+00:00"
-        },
-        {
-            "name": "google/protobuf",
-            "version": "v5.36.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/protocolbuffers/protobuf-php.git",
-                "reference": "9c105104b54709ecd902494ab340ed2122789b2d"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/protocolbuffers/protobuf-php/zipball/9c105104b54709ecd902494ab340ed2122789b2d",
-                "reference": "9c105104b54709ecd902494ab340ed2122789b2d",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=8.2.0"
-            },
-            "require-dev": {
-                "phpunit/phpunit": ">=11.5.50 <12.0.0"
-            },
-            "suggest": {
-                "ext-bcmath": "Need to support JSON deserialization"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Google\\Protobuf\\": "src/Google/Protobuf",
-                    "GPBMetadata\\Google\\Protobuf\\": "src/GPBMetadata/Google/Protobuf"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "BSD-3-Clause"
-            ],
-            "description": "proto library for PHP",
-            "homepage": "https://developers.google.com/protocol-buffers/",
-            "keywords": [
-                "proto"
-            ],
-            "support": {
-                "source": "https://github.com/protocolbuffers/protobuf-php/tree/v5.36.0"
-            },
-            "time": "2026-08-20T13:06:50+00:00"
         },
         {
             "name": "graham-campbell/result-type",
@@ -1249,16 +1128,16 @@
         },
         {
             "name": "laravel/framework",
-            "version": "v13.26.1",
+            "version": "v13.29.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/framework.git",
-                "reference": "e4a1bc52ef551d52e60244bb004256d6861da7ab"
+                "reference": "6e2c363716964d8238cee7097b258119a984f0cf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/framework/zipball/e4a1bc52ef551d52e60244bb004256d6861da7ab",
-                "reference": "e4a1bc52ef551d52e60244bb004256d6861da7ab",
+                "url": "https://api.github.com/repos/laravel/framework/zipball/6e2c363716964d8238cee7097b258119a984f0cf",
+                "reference": "6e2c363716964d8238cee7097b258119a984f0cf",
                 "shasum": ""
             },
             "require": {
@@ -1380,7 +1259,7 @@
                 "phpstan/phpstan": "^2.0",
                 "phpunit/phpunit": "^11.5.50 || ^12.5.8 || ^13.0.3",
                 "predis/predis": "^2.3 || ^3.0",
-                "rector/rector": "^2.3",
+                "rector/rector": "2.6.3",
                 "resend/resend-php": "^1.0",
                 "symfony/cache": "^7.4.0 || ^8.0.0",
                 "symfony/http-client": "^7.4.0 || ^8.0.0",
@@ -1472,20 +1351,20 @@
                 "issues": "https://github.com/laravel/framework/issues",
                 "source": "https://github.com/laravel/framework"
             },
-            "time": "2026-08-18T20:31:28+00:00"
+            "time": "2026-08-25T20:57:16+00:00"
         },
         {
             "name": "laravel/prompts",
-            "version": "v0.3.23",
+            "version": "v0.3.24",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/prompts.git",
-                "reference": "b7b4c35e5bc47450f6b6238c6cc9c47ba19b2221"
+                "reference": "5d3cdef29e93ca3b62b1871359db3078cd99908b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/prompts/zipball/b7b4c35e5bc47450f6b6238c6cc9c47ba19b2221",
-                "reference": "b7b4c35e5bc47450f6b6238c6cc9c47ba19b2221",
+                "url": "https://api.github.com/repos/laravel/prompts/zipball/5d3cdef29e93ca3b62b1871359db3078cd99908b",
+                "reference": "5d3cdef29e93ca3b62b1871359db3078cd99908b",
                 "shasum": ""
             },
             "require": {
@@ -1529,22 +1408,22 @@
             "description": "Add beautiful and user-friendly forms to your command-line applications.",
             "support": {
                 "issues": "https://github.com/laravel/prompts/issues",
-                "source": "https://github.com/laravel/prompts/tree/v0.3.23"
+                "source": "https://github.com/laravel/prompts/tree/v0.3.24"
             },
-            "time": "2026-08-11T18:58:24+00:00"
+            "time": "2026-08-20T12:55:36+00:00"
         },
         {
             "name": "laravel/serializable-closure",
-            "version": "v2.0.15",
+            "version": "v2.0.16",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/serializable-closure.git",
-                "reference": "dccd8bcb851bb03fcc005df650b708b57cc52661"
+                "reference": "7cfc24e4fa2cca045fb8dd2a797a2b2b13b655ed"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/serializable-closure/zipball/dccd8bcb851bb03fcc005df650b708b57cc52661",
-                "reference": "dccd8bcb851bb03fcc005df650b708b57cc52661",
+                "url": "https://api.github.com/repos/laravel/serializable-closure/zipball/7cfc24e4fa2cca045fb8dd2a797a2b2b13b655ed",
+                "reference": "7cfc24e4fa2cca045fb8dd2a797a2b2b13b655ed",
                 "shasum": ""
             },
             "require": {
@@ -1592,7 +1471,7 @@
                 "issues": "https://github.com/laravel/serializable-closure/issues",
                 "source": "https://github.com/laravel/serializable-closure"
             },
-            "time": "2026-07-21T16:49:22+00:00"
+            "time": "2026-08-18T20:28:54+00:00"
         },
         {
             "name": "laravel/tinker",
@@ -2733,485 +2612,6 @@
             "time": "2026-02-16T23:10:27+00:00"
         },
         {
-            "name": "nyholm/psr7-server",
-            "version": "1.1.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Nyholm/psr7-server.git",
-                "reference": "4335801d851f554ca43fa6e7d2602141538854dc"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Nyholm/psr7-server/zipball/4335801d851f554ca43fa6e7d2602141538854dc",
-                "reference": "4335801d851f554ca43fa6e7d2602141538854dc",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^7.1 || ^8.0",
-                "psr/http-factory": "^1.0",
-                "psr/http-message": "^1.0 || ^2.0"
-            },
-            "require-dev": {
-                "nyholm/nsa": "^1.1",
-                "nyholm/psr7": "^1.3",
-                "phpunit/phpunit": "^7.0 || ^8.5 || ^9.3"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Nyholm\\Psr7Server\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Tobias Nyholm",
-                    "email": "tobias.nyholm@gmail.com"
-                },
-                {
-                    "name": "Martijn van der Ven",
-                    "email": "martijn@vanderven.se"
-                }
-            ],
-            "description": "Helper classes to handle PSR-7 server requests",
-            "homepage": "http://tnyholm.se",
-            "keywords": [
-                "psr-17",
-                "psr-7"
-            ],
-            "support": {
-                "issues": "https://github.com/Nyholm/psr7-server/issues",
-                "source": "https://github.com/Nyholm/psr7-server/tree/1.1.0"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/Zegnat",
-                    "type": "github"
-                },
-                {
-                    "url": "https://github.com/nyholm",
-                    "type": "github"
-                }
-            ],
-            "time": "2023-11-08T09:30:43+00:00"
-        },
-        {
-            "name": "open-telemetry/api",
-            "version": "1.10.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/opentelemetry-php/api.git",
-                "reference": "7c029c4a6fd457094a20569bf98f93d95e9a7559"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/opentelemetry-php/api/zipball/7c029c4a6fd457094a20569bf98f93d95e9a7559",
-                "reference": "7c029c4a6fd457094a20569bf98f93d95e9a7559",
-                "shasum": ""
-            },
-            "require": {
-                "open-telemetry/context": "^1.4",
-                "php": "^8.1",
-                "psr/log": "^1.1|^2.0|^3.0",
-                "symfony/polyfill-php82": "^1.26"
-            },
-            "conflict": {
-                "open-telemetry/sdk": "<=1.11"
-            },
-            "type": "library",
-            "extra": {
-                "spi": {
-                    "OpenTelemetry\\API\\Instrumentation\\AutoInstrumentation\\HookManagerInterface": [
-                        "OpenTelemetry\\API\\Instrumentation\\AutoInstrumentation\\ExtensionHookManager"
-                    ]
-                },
-                "branch-alias": {
-                    "dev-main": "1.8.x-dev"
-                }
-            },
-            "autoload": {
-                "files": [
-                    "Trace/functions.php"
-                ],
-                "psr-4": {
-                    "OpenTelemetry\\API\\": "."
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "Apache-2.0"
-            ],
-            "authors": [
-                {
-                    "name": "opentelemetry-php contributors",
-                    "homepage": "https://github.com/open-telemetry/opentelemetry-php/graphs/contributors"
-                }
-            ],
-            "description": "API for OpenTelemetry PHP.",
-            "keywords": [
-                "Metrics",
-                "api",
-                "apm",
-                "logging",
-                "opentelemetry",
-                "otel",
-                "tracing"
-            ],
-            "support": {
-                "chat": "https://app.slack.com/client/T08PSQ7BQ/C01NFPCV44V",
-                "docs": "https://opentelemetry.io/docs/languages/php",
-                "issues": "https://github.com/open-telemetry/opentelemetry-php/issues",
-                "source": "https://github.com/open-telemetry/opentelemetry-php"
-            },
-            "time": "2026-07-06T12:28:04+00:00"
-        },
-        {
-            "name": "open-telemetry/context",
-            "version": "1.5.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/opentelemetry-php/context.git",
-                "reference": "3c414b246e0dabb7d6145404e6a5e4536ca18d07"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/opentelemetry-php/context/zipball/3c414b246e0dabb7d6145404e6a5e4536ca18d07",
-                "reference": "3c414b246e0dabb7d6145404e6a5e4536ca18d07",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^8.1",
-                "symfony/polyfill-php82": "^1.26"
-            },
-            "suggest": {
-                "ext-ffi": "To allow context switching in Fibers"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-main": "1.0.x-dev"
-                }
-            },
-            "autoload": {
-                "files": [
-                    "fiber/initialize_fiber_handler.php"
-                ],
-                "psr-4": {
-                    "OpenTelemetry\\Context\\": "."
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "Apache-2.0"
-            ],
-            "authors": [
-                {
-                    "name": "opentelemetry-php contributors",
-                    "homepage": "https://github.com/open-telemetry/opentelemetry-php/graphs/contributors"
-                }
-            ],
-            "description": "Context implementation for OpenTelemetry PHP.",
-            "keywords": [
-                "Context",
-                "opentelemetry",
-                "otel"
-            ],
-            "support": {
-                "chat": "https://app.slack.com/client/T08PSQ7BQ/C01NFPCV44V",
-                "docs": "https://opentelemetry.io/docs/languages/php",
-                "issues": "https://github.com/open-telemetry/opentelemetry-php/issues",
-                "source": "https://github.com/open-telemetry/opentelemetry-php"
-            },
-            "time": "2025-10-19T06:44:33+00:00"
-        },
-        {
-            "name": "open-telemetry/exporter-otlp",
-            "version": "1.4.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/opentelemetry-php/exporter-otlp.git",
-                "reference": "283a0d66522f2adc6d8d7debfd7686be91c282be"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/opentelemetry-php/exporter-otlp/zipball/283a0d66522f2adc6d8d7debfd7686be91c282be",
-                "reference": "283a0d66522f2adc6d8d7debfd7686be91c282be",
-                "shasum": ""
-            },
-            "require": {
-                "open-telemetry/api": "^1.0",
-                "open-telemetry/gen-otlp-protobuf": "^1.1",
-                "open-telemetry/sdk": "^1.0",
-                "php": "^8.1",
-                "php-http/discovery": "^1.14"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-main": "1.0.x-dev"
-                }
-            },
-            "autoload": {
-                "files": [
-                    "_register.php"
-                ],
-                "psr-4": {
-                    "OpenTelemetry\\Contrib\\Otlp\\": "."
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "Apache-2.0"
-            ],
-            "authors": [
-                {
-                    "name": "opentelemetry-php contributors",
-                    "homepage": "https://github.com/open-telemetry/opentelemetry-php/graphs/contributors"
-                }
-            ],
-            "description": "OTLP exporter for OpenTelemetry.",
-            "keywords": [
-                "Metrics",
-                "exporter",
-                "gRPC",
-                "http",
-                "opentelemetry",
-                "otel",
-                "otlp",
-                "tracing"
-            ],
-            "support": {
-                "chat": "https://app.slack.com/client/T08PSQ7BQ/C01NFPCV44V",
-                "docs": "https://opentelemetry.io/docs/languages/php",
-                "issues": "https://github.com/open-telemetry/opentelemetry-php/issues",
-                "source": "https://github.com/open-telemetry/opentelemetry-php"
-            },
-            "time": "2026-02-05T09:44:52+00:00"
-        },
-        {
-            "name": "open-telemetry/gen-otlp-protobuf",
-            "version": "1.10.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/opentelemetry-php/gen-otlp-protobuf.git",
-                "reference": "66f04d0e448ad333033bfc7baae1aa56330be088"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/opentelemetry-php/gen-otlp-protobuf/zipball/66f04d0e448ad333033bfc7baae1aa56330be088",
-                "reference": "66f04d0e448ad333033bfc7baae1aa56330be088",
-                "shasum": ""
-            },
-            "require": {
-                "google/protobuf": "^3.22 || ^4.0 || ^5.0",
-                "php": "^8.0"
-            },
-            "suggest": {
-                "ext-protobuf": "For better performance, when dealing with the protobuf format"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-main": "1.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Opentelemetry\\Proto\\": "Opentelemetry/Proto/",
-                    "GPBMetadata\\Opentelemetry\\": "GPBMetadata/Opentelemetry/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "Apache-2.0"
-            ],
-            "authors": [
-                {
-                    "name": "opentelemetry-php contributors",
-                    "homepage": "https://github.com/open-telemetry/opentelemetry-php/graphs/contributors"
-                }
-            ],
-            "description": "PHP protobuf files for communication with OpenTelemetry OTLP collectors/servers.",
-            "keywords": [
-                "Metrics",
-                "apm",
-                "gRPC",
-                "logging",
-                "opentelemetry",
-                "otel",
-                "otlp",
-                "protobuf",
-                "tracing"
-            ],
-            "support": {
-                "chat": "https://app.slack.com/client/T08PSQ7BQ/C01NFPCV44V",
-                "docs": "https://opentelemetry.io/docs/languages/php",
-                "issues": "https://github.com/open-telemetry/opentelemetry-php/issues",
-                "source": "https://github.com/open-telemetry/opentelemetry-php"
-            },
-            "time": "2026-06-17T12:06:32+00:00"
-        },
-        {
-            "name": "open-telemetry/sdk",
-            "version": "1.15.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/opentelemetry-php/sdk.git",
-                "reference": "77e1aa73850154abb86937d52a70883edc3b4547"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/opentelemetry-php/sdk/zipball/77e1aa73850154abb86937d52a70883edc3b4547",
-                "reference": "77e1aa73850154abb86937d52a70883edc3b4547",
-                "shasum": ""
-            },
-            "require": {
-                "ext-json": "*",
-                "nyholm/psr7-server": "^1.1",
-                "open-telemetry/api": "^1.8",
-                "open-telemetry/context": "^1.4",
-                "open-telemetry/sem-conv": "^1.38.0",
-                "php": "^8.1",
-                "php-http/discovery": "^1.14",
-                "psr/http-client": "^1.0",
-                "psr/http-client-implementation": "^1.0",
-                "psr/http-factory-implementation": "^1.0",
-                "psr/http-message": "^1.0.1|^2.0",
-                "psr/log": "^1.1|^2.0|^3.0",
-                "ramsey/uuid": "^3.0 || ^4.0",
-                "symfony/polyfill-mbstring": "^1.23",
-                "symfony/polyfill-php82": "^1.26",
-                "tbachert/spi": "^1.0.5"
-            },
-            "suggest": {
-                "ext-gmp": "To support unlimited number of synchronous metric readers",
-                "ext-mbstring": "To increase performance of string operations",
-                "open-telemetry/sdk-configuration": "File-based OpenTelemetry SDK configuration"
-            },
-            "type": "library",
-            "extra": {
-                "spi": {
-                    "OpenTelemetry\\API\\Configuration\\ConfigEnv\\EnvComponentLoader": [
-                        "OpenTelemetry\\API\\Instrumentation\\Configuration\\General\\ConfigEnv\\EnvComponentLoaderHttpConfig",
-                        "OpenTelemetry\\API\\Instrumentation\\Configuration\\General\\ConfigEnv\\EnvComponentLoaderPeerConfig",
-                        "OpenTelemetry\\SDK\\ConfigEnv\\Trace\\SpanSuppressionStrategySemConv",
-                        "OpenTelemetry\\SDK\\ConfigEnv\\Trace\\SpanSuppressionStrategySpanKind",
-                        "OpenTelemetry\\SDK\\ConfigEnv\\Distribution\\DistributionConfigurationSdk"
-                    ],
-                    "OpenTelemetry\\SDK\\Common\\Configuration\\Resolver\\ResolverInterface": [
-                        "OpenTelemetry\\SDK\\Common\\Configuration\\Resolver\\SdkConfigurationResolver"
-                    ],
-                    "OpenTelemetry\\API\\Instrumentation\\AutoInstrumentation\\HookManagerInterface": [
-                        "OpenTelemetry\\API\\Instrumentation\\AutoInstrumentation\\ExtensionHookManager"
-                    ]
-                },
-                "branch-alias": {
-                    "dev-main": "1.14.x-dev"
-                }
-            },
-            "autoload": {
-                "files": [
-                    "Common/Util/functions.php",
-                    "Logs/Exporter/_register.php",
-                    "Metrics/MetricExporter/_register.php",
-                    "Propagation/_register.php",
-                    "Trace/SpanExporter/_register.php",
-                    "Common/Dev/Compatibility/_load.php",
-                    "_autoload.php"
-                ],
-                "psr-4": {
-                    "OpenTelemetry\\SDK\\": "."
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "Apache-2.0"
-            ],
-            "authors": [
-                {
-                    "name": "opentelemetry-php contributors",
-                    "homepage": "https://github.com/open-telemetry/opentelemetry-php/graphs/contributors"
-                }
-            ],
-            "description": "SDK for OpenTelemetry PHP.",
-            "keywords": [
-                "Metrics",
-                "apm",
-                "logging",
-                "opentelemetry",
-                "otel",
-                "sdk",
-                "tracing"
-            ],
-            "support": {
-                "chat": "https://app.slack.com/client/T08PSQ7BQ/C01NFPCV44V",
-                "docs": "https://opentelemetry.io/docs/languages/php",
-                "issues": "https://github.com/open-telemetry/opentelemetry-php/issues",
-                "source": "https://github.com/open-telemetry/opentelemetry-php"
-            },
-            "time": "2026-07-14T13:09:54+00:00"
-        },
-        {
-            "name": "open-telemetry/sem-conv",
-            "version": "1.38.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/opentelemetry-php/sem-conv.git",
-                "reference": "e613bc640a407def4991b8a936a9b27edd9a3240"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/opentelemetry-php/sem-conv/zipball/e613bc640a407def4991b8a936a9b27edd9a3240",
-                "reference": "e613bc640a407def4991b8a936a9b27edd9a3240",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^8.0"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-main": "1.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "OpenTelemetry\\SemConv\\": "."
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "Apache-2.0"
-            ],
-            "authors": [
-                {
-                    "name": "opentelemetry-php contributors",
-                    "homepage": "https://github.com/open-telemetry/opentelemetry-php/graphs/contributors"
-                }
-            ],
-            "description": "Semantic conventions for OpenTelemetry PHP.",
-            "keywords": [
-                "Metrics",
-                "apm",
-                "logging",
-                "opentelemetry",
-                "otel",
-                "semantic conventions",
-                "semconv",
-                "tracing"
-            ],
-            "support": {
-                "chat": "https://app.slack.com/client/T08PSQ7BQ/C01NFPCV44V",
-                "docs": "https://opentelemetry.io/docs/languages/php",
-                "issues": "https://github.com/open-telemetry/opentelemetry-php/issues",
-                "source": "https://github.com/open-telemetry/opentelemetry-php"
-            },
-            "time": "2026-01-21T04:14:03+00:00"
-        },
-        {
             "name": "particle-academy/laravel-fun-lab",
             "version": "v0.6.0",
             "source": {
@@ -3289,16 +2689,16 @@
         },
         {
             "name": "particle-academy/prism",
-            "version": "v0.115.0-alpha.1",
+            "version": "v0.114.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Particle-Academy/prism.git",
-                "reference": "4e83207b91eb5000d69f5856378ef66ee94b0284"
+                "reference": "7125227870a46667ba8fc534f687bc3a0096be1e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Particle-Academy/prism/zipball/4e83207b91eb5000d69f5856378ef66ee94b0284",
-                "reference": "4e83207b91eb5000d69f5856378ef66ee94b0284",
+                "url": "https://api.github.com/repos/Particle-Academy/prism/zipball/7125227870a46667ba8fc534f687bc3a0096be1e",
+                "reference": "7125227870a46667ba8fc534f687bc3a0096be1e",
                 "shasum": ""
             },
             "require": {
@@ -3367,7 +2767,7 @@
             "description": "A powerful Laravel package for integrating Large Language Models (LLMs) into your applications. Actively maintained fork of prism-php/prism.",
             "support": {
                 "issues": "https://github.com/Particle-Academy/prism/issues",
-                "source": "https://github.com/Particle-Academy/prism/tree/v0.115.0-alpha.1"
+                "source": "https://github.com/Particle-Academy/prism/tree/v0.114.0"
             },
             "funding": [
                 {
@@ -3375,284 +2775,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-08-26T02:23:39+00:00"
-        },
-        {
-            "name": "particle-academy/prism-harness",
-            "version": "v0.1.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Particle-Academy/prism-harness.git",
-                "reference": "4515281efd36933667b760ca0c11901046cc270e"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Particle-Academy/prism-harness/zipball/4515281efd36933667b760ca0c11901046cc270e",
-                "reference": "4515281efd36933667b760ca0c11901046cc270e",
-                "shasum": ""
-            },
-            "require": {
-                "laravel/framework": "^12.61.1|^13.12.0",
-                "particle-academy/prism": ">=0.113 <1.0",
-                "php": "^8.2"
-            },
-            "require-dev": {
-                "laravel/pint": "^1.30",
-                "orchestra/testbench": "^10.0|^11.0",
-                "pestphp/pest": "^3.0|^4.0",
-                "phpstan/phpstan": "^2.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Prism\\Harness\\PrismHarnessServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Prism\\Harness\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Wish Born",
-                    "email": "wish@impact.do"
-                }
-            ],
-            "description": "Durable agent sessions for Laravel — threads, modes, tool permissions and subagents on top of Prism.",
-            "keywords": [
-                "agents",
-                "ai",
-                "laravel",
-                "llm",
-                "prism",
-                "sessions"
-            ],
-            "support": {
-                "issues": "https://github.com/Particle-Academy/prism-harness/issues",
-                "source": "https://github.com/Particle-Academy/prism-harness/tree/v0.1.2"
-            },
-            "time": "2026-08-25T15:31:08+00:00"
-        },
-        {
-            "name": "particle-academy/prism-opentelemetry",
-            "version": "v0.1.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Particle-Academy/prism-opentelemetry.git",
-                "reference": "12c51c194631fdc5dad78f3a65e3c3c051581a6b"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Particle-Academy/prism-opentelemetry/zipball/12c51c194631fdc5dad78f3a65e3c3c051581a6b",
-                "reference": "12c51c194631fdc5dad78f3a65e3c3c051581a6b",
-                "shasum": ""
-            },
-            "require": {
-                "ext-json": "*",
-                "illuminate/contracts": "^12.0|^13.0",
-                "illuminate/support": "^12.0|^13.0",
-                "open-telemetry/api": "^1.0",
-                "particle-academy/prism": ">=0.111 <1.0",
-                "php": "^8.2"
-            },
-            "require-dev": {
-                "laravel/pint": "^1.14",
-                "open-telemetry/sdk": "^1.0",
-                "orchestra/testbench": "^10|^11",
-                "pestphp/pest": "^3.0|^4.0",
-                "phpstan/phpstan": "^2.1"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Prism\\OpenTelemetry\\PrismOpenTelemetryServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Prism\\OpenTelemetry\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Particle Academy"
-                }
-            ],
-            "description": "OpenTelemetry bridge for Prism: turns Prism telemetry events into GenAI-convention spans for Arize Phoenix and any OTLP backend.",
-            "homepage": "https://github.com/Particle-Academy/prism-opentelemetry",
-            "keywords": [
-                "Phoenix",
-                "gen-ai",
-                "laravel",
-                "llm",
-                "observability",
-                "opentelemetry",
-                "otel",
-                "otlp",
-                "prism",
-                "tracing"
-            ],
-            "support": {
-                "issues": "https://github.com/Particle-Academy/prism-opentelemetry/issues",
-                "source": "https://github.com/Particle-Academy/prism-opentelemetry/tree/v0.1.1"
-            },
-            "time": "2026-08-17T05:47:13+00:00"
-        },
-        {
-            "name": "particle-academy/prism-perplexity",
-            "version": "v0.1.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Particle-Academy/prism-perplexity.git",
-                "reference": "d783dbb7664b1d7cc75a0f8abbf54ffc8239bc5a"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Particle-Academy/prism-perplexity/zipball/d783dbb7664b1d7cc75a0f8abbf54ffc8239bc5a",
-                "reference": "d783dbb7664b1d7cc75a0f8abbf54ffc8239bc5a",
-                "shasum": ""
-            },
-            "require": {
-                "laravel/framework": "^12.61.1|^13.12.0",
-                "particle-academy/prism": ">=0.113 <1.0",
-                "php": "^8.2"
-            },
-            "require-dev": {
-                "laravel/pint": "^1.30",
-                "orchestra/testbench": "^10.0|^11.0",
-                "pestphp/pest": "^3.0|^4.0",
-                "phpstan/phpstan": "^2.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Prism\\Perplexity\\PrismPerplexityServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Prism\\Perplexity\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Wish Born",
-                    "email": "wish@impact.do"
-                }
-            ],
-            "description": "The rest of the Perplexity API for Prism — embeddings, direct search, and async deep research beyond the Agent API chat surface.",
-            "keywords": [
-                "ai",
-                "embeddings",
-                "laravel",
-                "llm",
-                "perplexity",
-                "prism",
-                "search"
-            ],
-            "support": {
-                "issues": "https://github.com/Particle-Academy/prism-perplexity/issues",
-                "source": "https://github.com/Particle-Academy/prism-perplexity/tree/v0.1.0"
-            },
-            "time": "2026-08-25T07:16:03+00:00"
-        },
-        {
-            "name": "php-http/discovery",
-            "version": "1.20.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/php-http/discovery.git",
-                "reference": "82fe4c73ef3363caed49ff8dd1539ba06044910d"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/php-http/discovery/zipball/82fe4c73ef3363caed49ff8dd1539ba06044910d",
-                "reference": "82fe4c73ef3363caed49ff8dd1539ba06044910d",
-                "shasum": ""
-            },
-            "require": {
-                "composer-plugin-api": "^1.0|^2.0",
-                "php": "^7.1 || ^8.0"
-            },
-            "conflict": {
-                "nyholm/psr7": "<1.0",
-                "zendframework/zend-diactoros": "*"
-            },
-            "provide": {
-                "php-http/async-client-implementation": "*",
-                "php-http/client-implementation": "*",
-                "psr/http-client-implementation": "*",
-                "psr/http-factory-implementation": "*",
-                "psr/http-message-implementation": "*"
-            },
-            "require-dev": {
-                "composer/composer": "^1.0.2|^2.0",
-                "graham-campbell/phpspec-skip-example-extension": "^5.0",
-                "php-http/httplug": "^1.0 || ^2.0",
-                "php-http/message-factory": "^1.0",
-                "phpspec/phpspec": "^5.1 || ^6.1 || ^7.3",
-                "sebastian/comparator": "^3.0.5 || ^4.0.8",
-                "symfony/phpunit-bridge": "^6.4.4 || ^7.0.1"
-            },
-            "type": "composer-plugin",
-            "extra": {
-                "class": "Http\\Discovery\\Composer\\Plugin",
-                "plugin-optional": true
-            },
-            "autoload": {
-                "psr-4": {
-                    "Http\\Discovery\\": "src/"
-                },
-                "exclude-from-classmap": [
-                    "src/Composer/Plugin.php"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Márk Sági-Kazár",
-                    "email": "mark.sagikazar@gmail.com"
-                }
-            ],
-            "description": "Finds and installs PSR-7, PSR-17, PSR-18 and HTTPlug implementations",
-            "homepage": "http://php-http.org",
-            "keywords": [
-                "adapter",
-                "client",
-                "discovery",
-                "factory",
-                "http",
-                "message",
-                "psr17",
-                "psr7"
-            ],
-            "support": {
-                "issues": "https://github.com/php-http/discovery/issues",
-                "source": "https://github.com/php-http/discovery/tree/1.20.0"
-            },
-            "time": "2024-10-02T11:20:13+00:00"
+            "time": "2026-08-25T14:47:41+00:00"
         },
         {
             "name": "phpoption/phpoption",
@@ -7091,58 +6214,6 @@
             "time": "2026-08-21T12:16:08+00:00"
         },
         {
-            "name": "tbachert/spi",
-            "version": "v1.0.5",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Nevay/spi.git",
-                "reference": "e7078767866d0a9e0f91d3f9d42a832df5e39002"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Nevay/spi/zipball/e7078767866d0a9e0f91d3f9d42a832df5e39002",
-                "reference": "e7078767866d0a9e0f91d3f9d42a832df5e39002",
-                "shasum": ""
-            },
-            "require": {
-                "composer-plugin-api": "^2.0",
-                "composer/semver": "^1.0 || ^2.0 || ^3.0",
-                "php": "^8.1"
-            },
-            "require-dev": {
-                "composer/composer": "^2.0",
-                "infection/infection": "^0.27.9",
-                "phpunit/phpunit": "^10.5",
-                "psalm/phar": "^5.18"
-            },
-            "type": "composer-plugin",
-            "extra": {
-                "class": "Nevay\\SPI\\Composer\\Plugin",
-                "branch-alias": {
-                    "dev-main": "1.0.x-dev"
-                },
-                "plugin-optional": true
-            },
-            "autoload": {
-                "psr-4": {
-                    "Nevay\\SPI\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "Apache-2.0"
-            ],
-            "description": "Service provider loading facility",
-            "keywords": [
-                "service provider"
-            ],
-            "support": {
-                "issues": "https://github.com/Nevay/spi/issues",
-                "source": "https://github.com/Nevay/spi/tree/v1.0.5"
-            },
-            "time": "2025-06-29T15:42:06+00:00"
-        },
-        {
             "name": "tempest/highlight",
             "version": "2.27.1",
             "source": {
@@ -8350,23 +7421,23 @@
         },
         {
             "name": "phpunit/php-file-iterator",
-            "version": "7.0.1",
+            "version": "7.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/php-file-iterator.git",
-                "reference": "3ccaa29123548190af12fee7af078dcd7f3ddfab"
+                "reference": "9bb4e6c58b62c1e043be995c66abec7c97307aae"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/php-file-iterator/zipball/3ccaa29123548190af12fee7af078dcd7f3ddfab",
-                "reference": "3ccaa29123548190af12fee7af078dcd7f3ddfab",
+                "url": "https://api.github.com/repos/sebastianbergmann/php-file-iterator/zipball/9bb4e6c58b62c1e043be995c66abec7c97307aae",
+                "reference": "9bb4e6c58b62c1e043be995c66abec7c97307aae",
                 "shasum": ""
             },
             "require": {
                 "php": ">=8.4"
             },
             "require-dev": {
-                "phpunit/phpunit": "^13.3.0"
+                "phpunit/phpunit": "^13.3.1"
             },
             "type": "library",
             "extra": {
@@ -8399,7 +7470,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/php-file-iterator/issues",
                 "security": "https://github.com/sebastianbergmann/php-file-iterator/security/policy",
-                "source": "https://github.com/sebastianbergmann/php-file-iterator/tree/7.0.1"
+                "source": "https://github.com/sebastianbergmann/php-file-iterator/tree/7.0.2"
             },
             "funding": [
                 {
@@ -8419,7 +7490,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-08-10T06:43:12+00:00"
+            "time": "2026-08-25T14:47:43+00:00"
         },
         {
             "name": "phpunit/php-invoker",
@@ -8966,24 +8037,24 @@
         },
         {
             "name": "sebastian/diff",
-            "version": "9.0.0",
+            "version": "9.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/diff.git",
-                "reference": "a3fb6a298a265ff487a91bbea46e03cd01dbb226"
+                "reference": "a2df6626c1baf31d5a88674882a3072f151b5a26"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/diff/zipball/a3fb6a298a265ff487a91bbea46e03cd01dbb226",
-                "reference": "a3fb6a298a265ff487a91bbea46e03cd01dbb226",
+                "url": "https://api.github.com/repos/sebastianbergmann/diff/zipball/a2df6626c1baf31d5a88674882a3072f151b5a26",
+                "reference": "a2df6626c1baf31d5a88674882a3072f151b5a26",
                 "shasum": ""
             },
             "require": {
                 "php": ">=8.4"
             },
             "require-dev": {
-                "phpunit/phpunit": "^13.2",
-                "symfony/process": "^7.4.13"
+                "phpunit/phpunit": "^13.3.1",
+                "symfony/process": "^7.4.17"
             },
             "type": "library",
             "extra": {
@@ -9021,7 +8092,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/diff/issues",
                 "security": "https://github.com/sebastianbergmann/diff/security/policy",
-                "source": "https://github.com/sebastianbergmann/diff/tree/9.0.0"
+                "source": "https://github.com/sebastianbergmann/diff/tree/9.0.1"
             },
             "funding": [
                 {
@@ -9041,7 +8112,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-06-05T03:04:51+00:00"
+            "time": "2026-08-25T15:38:55+00:00"
         },
         {
             "name": "sebastian/environment",
@@ -9943,7 +9014,7 @@
         }
     ],
     "aliases": [],
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,

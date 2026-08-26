@@ -38,7 +38,6 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
-            'labEnabled' => app()->environment('local'),
             'auth' => [
                 'user' => $request->user() ? [
                     'id' => $request->user()->id,

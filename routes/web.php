@@ -1,14 +1,10 @@
 <?php
 
 use App\Docs\DocsRepository;
+use App\Http\Controllers\DemoController;
 use App\Http\Controllers\DocsController;
-use App\Http\Controllers\Lab\BenchmarkController;
-use App\Http\Controllers\Lab\ChatController;
-use App\Http\Controllers\Lab\TestSuiteController;
-use App\Http\Controllers\Lab\ThreadController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\Webhooks\GitHubWebhookController;
-use App\Http\Middleware\EnsurePrismLabIsLocal;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -21,17 +17,15 @@ Route::get('/leaderboard', LeaderboardController::class)->name('leaderboard');
 // GitHub webhook — HMAC-authenticated, CSRF-exempt; contributors tracked from the payload.
 Route::post('/webhooks/github', GitHubWebhookController::class)->name('webhooks.github');
 
-if (app()->environment('local')) {
-    Route::middleware([EnsurePrismLabIsLocal::class, 'throttle:10,1'])->group(function (): void {
-        Route::get('/lab/chat', [ChatController::class, 'show'])->name('lab.chat');
-        Route::post('/lab/chat', [ChatController::class, 'run'])->name('lab.chat.run');
-        Route::get('/lab/tests', [TestSuiteController::class, 'show'])->name('lab.tests');
-        Route::post('/lab/tests', [TestSuiteController::class, 'run'])->name('lab.tests.run');
-        Route::get('/lab/threads', [ThreadController::class, 'show'])->name('lab.threads');
-        Route::get('/lab/benchmarks', [BenchmarkController::class, 'show'])->name('lab.benchmarks');
-        Route::get('/lab/benchmarks/export', [BenchmarkController::class, 'export'])->name('lab.benchmarks.export');
-    });
-}
+// A small public demonstration, on Groq's free tier. The Lab that used to sit
+// here — sixteen provider credentials, real spend, live generations — now
+// lives in prism-labs, which is never deployed.
+//
+// Throttled well under the provider's published free limits, because that
+// quota is shared across everything using the key: exhausting it is denial of
+// service for every visitor after you.
+Route::get('/demo', [DemoController::class, 'show'])->name('demo');
+Route::post('/demo', [DemoController::class, 'run'])->middleware('throttle:5,1')->name('demo.run');
 
 Route::get('/docs', [DocsController::class, 'index'])->name('docs.index');
 Route::get('/docs-index.json', [DocsController::class, 'searchIndex'])->name('docs.search-index');
