@@ -98,7 +98,10 @@ class DocsTest extends TestCase
             $repo->nav(),
         );
 
-        $key = (fn (): string => $this->cacheKey('nav'))->call($repo);
+        // The key nav() actually reads. It is the site-fingerprinted one now
+        // that the nav merges this repo's own sections in — writing to the
+        // plain key would leave this test green while reproducing nothing.
+        $key = (fn (): string => $this->siteCacheKey('nav'))->call($repo);
         Cache::forever($key, $stale);
 
         $this->get('/sitemap.xml')->assertOk();
