@@ -106,7 +106,7 @@ class GitHubWebhookController
             $this->xp('issue-xp'),
             'Opened issue '.data_get($payload, 'issue.html_url'),
             'issue:'.data_get($payload, 'issue.node_id'),
-        );
+        )->awarded();
     }
 
     /**
@@ -150,7 +150,7 @@ class GitHubWebhookController
             $this->xp('pr-comment-xp'),
             'Commented on a pull request'.($url !== null ? ' '.$url : ''),
             $dedupKey,
-        );
+        )->awarded();
     }
 
     /**
@@ -170,7 +170,7 @@ class GitHubWebhookController
             $this->xp('pr-review-xp'),
             'Reviewed a pull request'.($url !== null ? ' '.$url : ''),
             'review:'.data_get($payload, 'review.id'),
-        );
+        )->awarded();
     }
 
     /**
@@ -223,7 +223,7 @@ class GitHubWebhookController
                 $this->xp('commit-xp'),
                 'Landed commit '.substr($sha, 0, 7),
                 'commit:'.$sha,
-            ) || $awarded;
+            )->awarded() || $awarded;
         }
 
         return $awarded;
@@ -246,7 +246,7 @@ class GitHubWebhookController
             $this->xp('star-xp'),
             'Starred the repository',
             'star:'.data_get($sender, 'id'),
-        );
+        )->awarded();
     }
 
     /**
@@ -260,11 +260,11 @@ class GitHubWebhookController
         $url = data_get($payload, 'pull_request.html_url');
 
         if ($action === 'opened') {
-            return XpAwarder::award($contributor, 'pr-submitted-xp', $this->xp('pr-submitted-xp'), 'Opened pull request '.$url, 'pr-opened:'.$nodeId);
+            return XpAwarder::award($contributor, 'pr-submitted-xp', $this->xp('pr-submitted-xp'), 'Opened pull request '.$url, 'pr-opened:'.$nodeId)->awarded();
         }
 
         if ($action === 'closed' && data_get($payload, 'pull_request.merged') === true) {
-            $awarded = XpAwarder::award($contributor, 'pr-accepted-xp', $this->xp('pr-accepted-xp'), 'Merged pull request '.$url, 'pr-merged:'.$nodeId);
+            $awarded = XpAwarder::award($contributor, 'pr-accepted-xp', $this->xp('pr-accepted-xp'), 'Merged pull request '.$url, 'pr-merged:'.$nodeId)->awarded();
 
             if ($awarded && $contributor instanceof Contributor && ! $contributor->hasAchievement('first-pr')) {
                 try {

@@ -33,20 +33,20 @@ class XpAwarder
         string $reason,
         string $dedupKey,
         ?int $dedupSeconds = null,
-    ): bool {
+    ): AwardOutcome {
         if (! $contributor instanceof Contributor || $contributor->isOptedOut()) {
-            return false;
+            return AwardOutcome::Ineligible;
         }
 
         if ($amount <= 0) {
-            return false;
+            return AwardOutcome::Ineligible;
         }
 
         $dedupSeconds ??= (int) config('gamification.dedup_seconds', 31_536_000);
         $cacheKey = "xp:{$contributor->id}:{$metric}:{$dedupKey}";
 
         if (Cache::has($cacheKey)) {
-            return false;
+            return AwardOutcome::Duplicate;
         }
 
         // Cache miss is not proof this is new — it is also what a cache:clear
@@ -55,7 +55,7 @@ class XpAwarder
         if (self::alreadyAwarded($contributor, $metric, $dedupKey)) {
             Cache::put($cacheKey, true, $dedupSeconds);
 
-            return false;
+            return AwardOutcome::Duplicate;
         }
 
         $wasFirstEver = $contributor->getTotalXp() === 0;
@@ -77,7 +77,7 @@ class XpAwarder
                 'error' => $e->getMessage(),
             ]);
 
-            return false;
+            return AwardOutcome::Failed;
         }
 
         Cache::put($cacheKey, true, $dedupSeconds);
@@ -90,7 +90,7 @@ class XpAwarder
             }
         }
 
-        return true;
+        return AwardOutcome::Awarded;
     }
 
     /**

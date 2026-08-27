@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Contributor;
+use App\Support\AwardOutcome;
 use App\Support\ContributorResolver;
 use App\Support\XpAwarder;
 use Generator;
@@ -351,7 +352,7 @@ class BackfillGamification extends Command
             return false;
         }
 
-        $ok = XpAwarder::award(
+        $outcome = XpAwarder::award(
             $resolver->resolve($user),
             $metric,
             (int) config("gamification.metrics.$metric.xp", 0),
@@ -359,9 +360,17 @@ class BackfillGamification extends Command
             "$keyPrefix:$id",
         );
 
-        $ok ? $this->awarded++ : $this->skip('already awarded');
+        // This line is why the enum exists. It used to read `$ok ? awarded++ :
+        // skip('already awarded')`, so a run against an unseeded taxonomy
+        // counted every FAILURE as a duplicate and reported itself clean.
+        match ($outcome) {
+            AwardOutcome::Awarded => $this->awarded++,
+            AwardOutcome::Duplicate => $this->skip('already awarded'),
+            AwardOutcome::Ineligible => $this->skip('not eligible'),
+            AwardOutcome::Failed => $this->skip('award FAILED — retryable, cooldown left unset'),
+        };
 
-        return $ok;
+        return $outcome->awarded();
     }
 
     private function grantFirstPr(ContributorResolver $resolver, mixed $user): void

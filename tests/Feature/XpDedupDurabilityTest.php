@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Contributor;
+use App\Support\AwardOutcome;
 use App\Support\XpAwarder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -27,13 +28,13 @@ class XpDedupDurabilityTest extends TestCase
     {
         $c = $this->contributor();
 
-        $this->assertTrue(XpAwarder::award($c, 'commit-xp', 10, 'landed', 'commit:abc123'));
+        $this->assertSame(AwardOutcome::Awarded, XpAwarder::award($c, 'commit-xp', 10, 'landed', 'commit:abc123'));
         $this->assertSame(10, $c->fresh()->getXpFor('commit-xp'));
 
         // The deploy-step scenario that caused the bug.
         Cache::flush();
 
-        $this->assertFalse(XpAwarder::award($c, 'commit-xp', 10, 'landed', 'commit:abc123'));
+        $this->assertSame(AwardOutcome::Duplicate, XpAwarder::award($c, 'commit-xp', 10, 'landed', 'commit:abc123'));
         $this->assertSame(10, $c->fresh()->getXpFor('commit-xp'));
     }
 
@@ -50,7 +51,7 @@ class XpDedupDurabilityTest extends TestCase
         Cache::flush();
 
         foreach ($shas as $sha) {
-            $this->assertFalse(XpAwarder::award($c, 'commit-xp', 10, 'landed', $sha));
+            $this->assertSame(AwardOutcome::Duplicate, XpAwarder::award($c, 'commit-xp', 10, 'landed', $sha));
         }
 
         $this->assertSame(30, $c->fresh()->getXpFor('commit-xp'));
@@ -78,7 +79,7 @@ class XpDedupDurabilityTest extends TestCase
 
         Cache::flush();
 
-        $this->assertTrue(XpAwarder::award($c, 'commit-xp', 10, 'landed', 'commit:different'));
+        $this->assertSame(AwardOutcome::Awarded, XpAwarder::award($c, 'commit-xp', 10, 'landed', 'commit:different'));
         $this->assertSame(20, $c->fresh()->getXpFor('commit-xp'));
     }
 
@@ -89,7 +90,7 @@ class XpDedupDurabilityTest extends TestCase
 
         Cache::flush();
 
-        $this->assertTrue(XpAwarder::award($c, 'pr-comment-xp', 2, 'commented', 'shared-id'));
+        $this->assertSame(AwardOutcome::Awarded, XpAwarder::award($c, 'pr-comment-xp', 2, 'commented', 'shared-id'));
         $this->assertSame(10, $c->fresh()->getXpFor('commit-xp'));
         $this->assertSame(2, $c->fresh()->getXpFor('pr-comment-xp'));
     }
@@ -103,7 +104,7 @@ class XpDedupDurabilityTest extends TestCase
 
         Cache::flush();
 
-        $this->assertTrue(XpAwarder::award($b, 'commit-xp', 10, 'landed', 'commit:abc123'));
+        $this->assertSame(AwardOutcome::Awarded, XpAwarder::award($b, 'commit-xp', 10, 'landed', 'commit:abc123'));
         $this->assertSame(10, $b->fresh()->getXpFor('commit-xp'));
     }
 }
