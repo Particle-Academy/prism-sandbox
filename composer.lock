@@ -2689,16 +2689,16 @@
         },
         {
             "name": "particle-academy/prism",
-            "version": "v0.114.0",
+            "version": "v0.115.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Particle-Academy/prism.git",
-                "reference": "7125227870a46667ba8fc534f687bc3a0096be1e"
+                "reference": "a38a85a3084c31a5740152356595275feb6c9d77"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Particle-Academy/prism/zipball/7125227870a46667ba8fc534f687bc3a0096be1e",
-                "reference": "7125227870a46667ba8fc534f687bc3a0096be1e",
+                "url": "https://api.github.com/repos/Particle-Academy/prism/zipball/a38a85a3084c31a5740152356595275feb6c9d77",
+                "reference": "a38a85a3084c31a5740152356595275feb6c9d77",
                 "shasum": ""
             },
             "require": {
@@ -2708,6 +2708,7 @@
                 "laravel/framework": "^12.61.1|^13.12.0",
                 "php": "^8.2",
                 "psr/http-message": "^1.1|^2.0",
+                "symfony/console": "^7.2|^8.0",
                 "symfony/http-foundation": "^7.2|^8.0",
                 "symfony/polyfill-php83": "^1.32"
             },
@@ -2767,7 +2768,7 @@
             "description": "A powerful Laravel package for integrating Large Language Models (LLMs) into your applications. Actively maintained fork of prism-php/prism.",
             "support": {
                 "issues": "https://github.com/Particle-Academy/prism/issues",
-                "source": "https://github.com/Particle-Academy/prism/tree/v0.114.0"
+                "source": "https://github.com/Particle-Academy/prism/tree/v0.115.0"
             },
             "funding": [
                 {
@@ -2775,7 +2776,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-08-25T14:47:41+00:00"
+            "time": "2026-08-30T06:22:57+00:00"
         },
         {
             "name": "phpoption/phpoption",
