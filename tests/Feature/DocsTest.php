@@ -118,7 +118,16 @@ class DocsTest extends TestCase
     {
         $body = (string) $this->get('/llms.txt')->assertOk()->getContent();
 
+        // The property is the first assertion: an ABSOLUTE link in the upstream
+        // sidebar must be emitted as-is, not prefixed into `/docshttp://…`.
+        //
+        // The second is its positive control, and it has to name a package the
+        // installed version actually ships. It used to name Relay, which
+        // v0.115.1 dropped from the sidebar — so the check began failing for a
+        // reason that had nothing to do with the behaviour it guards. Without a
+        // control the first assertion would pass vacuously the day the sidebar
+        // stops carrying any absolute link at all.
         $this->assertStringNotContainsString('/docshttp', $body);
-        $this->assertStringContainsString('[Relay](https://github.com/prism-php/relay)', $body);
+        $this->assertStringContainsString('[Bedrock](https://github.com/prism-php/bedrock)', $body);
     }
 }

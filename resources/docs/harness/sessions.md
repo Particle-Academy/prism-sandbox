@@ -1,0 +1,52 @@
+# Sessions and threads
+
+A session is how a conversation survives the request that started it.
+
+```php
+$session = PrismHarness::for($user)->session('support');
+
+$session->usingMode('plan')->usingModel('claude-sonnet-5');
+
+$response = $session->send('Where did we get to?');
+```
+
+## Resolved, never held
+
+A Laravel request boots, serves and dies. So a session cannot be an object kept
+in memory the way a long-lived Node process can keep one — every call rebuilds
+it from a store.
+
+That is the constraint the whole package is shaped around, and it is why the
+four verbs below exist rather than a `new Agent(...)` you hold onto:
+
+| | |
+|---|---|
+| **Resolve** | address a session by participant *and* scope, so one user can hold several unrelated conversations that never merge |
+| **Rehydrate** | rebuild its state from the store on every request, because nothing survived the last one |
+| **Lock** | run work that must not happen twice, even if the user double-submits or a queue retries |
+| **Continue** | append to the thread rather than replaying it, so the conversation grows without the prompt growing with it |
+
+## Scope is part of the address
+
+A session is keyed by participant **and** scope. Without the scope, a user's
+support conversation and their billing conversation are the same thread, and
+the model answers one with the context of the other — which is not a bug you
+notice in testing and is very noticeable in production.
+
+## Locking
+
+```php
+$session->lock(function (Session $session) {
+    // whatever must not happen twice
+});
+```
+
+An agent turn is expensive and frequently side-effectful. Two of them running
+concurrently against one session is the failure this prevents — a double-submit,
+a queue retrying a job whose first attempt is still in flight, two browser tabs.
+
+## Threads
+
+The thread is the durable record of the exchange. It is appended to, and read
+back selectively — see [Memory](/docs/packages/memory) for retrieving only the
+parts that matter now, rather than replaying the whole thing into every prompt.
