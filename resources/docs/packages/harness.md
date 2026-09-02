@@ -1,17 +1,22 @@
 # Prism Harness
 
-Durable agent sessions for Laravel — threads, session state and, eventually,
-modes, tool permissions and subagents, built on top of Prism.
+Durable agent sessions for Laravel — threads, reconstructed session state,
+persisted provider/model/mode selection, exclusive locking, and a bounded agent
+runtime built on top of Prism, with nested subagents that carry their own
+budgets.
 
-::: warning Release candidate — still in testing
-`prism-harness` is at **`v0.1.2`** and is a **release candidate, not a stable
-release**. Threads and session state are implemented, tested and in use; the
-rest of the surface described below as *planned* is design, not code. The API
-can still change in a minor version, and two known defects are
+::: warning Pre-1.0 — every planned surface ships, the API can still move
+`prism-harness` is at **`v0.2.1`**. Threads, sessions, modes, skills, tool
+permissions, approvals, subagents, budgets, the event stream and a config doctor
+are all implemented and tested — there is no longer a row in the table below
+that is design rather than code.
+
+It is still **pre-1.0**: the API can change in a minor version, tool
+authorization is **off by default**, and the open defects are
 [listed at the bottom of this page](#known-defects).
 
-Use it where you can follow a moving package. Do not pin your production
-roadmap to it yet.
+Use it where you can follow a moving package. Run `harness:doctor` to see what
+your own configuration is actually doing rather than what it looks like it does.
 :::
 
 ## What it is for
@@ -122,6 +127,30 @@ $session->thread();   // the durable conversation for this address
 $session->mode();     // 'plan' — read back from the store, in any worker
 ```
 
+### Running the durable agent
+
+`send()` resolves the session's configured mode, provider, model, system
+prompt, and explicit tool allowlist, then performs the Prism run while holding
+the session lock. It records every returned message and leaves durable run
+bookkeeping on both success and failure.
+
+```php
+$result = $session
+    ->usingProvider('anthropic')
+    ->usingModel('claude-sonnet-4-5')
+    ->usingMode('support')
+    ->send('Help with my order');
+
+echo $result->text();
+$session->run(); // run id, state, provider, model, finish reason
+```
+
+Modes are config-defined in this first runtime slice. Tool names are selected
+by the active mode; applications can additionally enable the `harness.tool`
+Laravel Gate. Identity-dependent capabilities can register a session-bound
+tool factory, so callbacks resolve against the locked owner session rather than
+process-global state.
+
 ::: tip There is no facade
 Resolve `PrismHarness` from the container, as above. The package binds it as a
 singleton and does not register a facade, so `PrismHarness::for(...)` written as
@@ -205,28 +234,35 @@ line four paragraphs above a table does not travel with the row somebody quotes.
 | Thread | **shipped** | Eloquent models here; contract in Prism 0.113 |
 | Session | **shipped** | Resolved per request, keyed on participant + scope |
 | State stores | **shipped** | Redis and database behind one contract, durable slot guarded |
-| Controller | *planned* | A container singleton, config plus mode classes |
-| Modes | *planned* | One class per mode, container-resolved so they are testable |
-| Permissions | *planned* | Gates and Policies — "may this tool run" is an authorization question |
-| Subagents | *planned* | A Prism tool wrapping a nested run with a narrowed toolset |
-| Event bus | *planned* | Laravel events over Reverb, separate from Prism telemetry |
+| Agent runtime | **shipped** | `Session::send()`, durable run bookkeeping, full-message recording |
+| Modes | **shipped** | Config-defined system prompt, tool allowlist, and max-step budget |
+| Permissions | **shipped** | Explicit mode allowlists plus optional `harness.tool` Gate filtering |
+| Subagents | **shipped** | A Prism tool wrapping a nested run with a narrowed toolset and its own budget |
+| Event bus | **shipped** | Laravel events over Reverb, separate from Prism telemetry |
 | Workspace | *elsewhere* | A scoped filesystem disk — that is `prism-workspace` |
 
-Two design questions are still genuinely open: whether **mode** is owned by the
-session or by the thread, and whether subagent **step budgets** nest or reset.
+One of the two design questions this page used to leave open has been settled:
+subagent **step budgets NEST, they do not reset**. A parent limited to eight
+steps that may spawn children each entitled to a fresh eight has no bound at
+all, so a child gets the smaller of what it declares and what the tree has left.
+See [Subagents and budgets](/docs/harness/subagents).
+
+Still genuinely open: whether **mode** is owned by the session or by the thread.
 
 ## Known defects
 
-Both are open against the package and neither is fixed in `v0.1.2`:
+Open against the package as of `v0.2.1`:
 
-- [**#2**](https://github.com/Particle-Academy/prism-harness/issues/2) —
-  `record()` computes the next position with `max('position')` outside a
-  transaction, so two turns landing on one thread concurrently can collide.
-  Serialise writes to a thread (the session lock above does this) until it is
-  fixed.
-- [**#5**](https://github.com/Particle-Academy/prism-harness/issues/5) — the
-  published config is `harness.php`; ecosystem convention says it should be
-  `prism-harness.php`. Fixing it will be a breaking change to the config key.
+- [**#10**](https://github.com/Particle-Academy/prism-harness/issues/10) —
+  `RunBudget::nestedWithin()` computes a child's budget as what *remains*, while
+  `RunLedger::exhaustion()` compares the ledger's *cumulative* total. The two
+  halves of one rule disagree about what the number means.
+- [**#9**](https://github.com/Particle-Academy/prism-harness/issues/9) — the
+  executable agent runtime, tracked from a consumer's migration.
+
+Two defects this page used to list are now closed: the config is published as
+`prism-harness.php` as ecosystem convention requires, and the thread `position`
+race is fixed.
 
 Source and full design notes:
 [Particle-Academy/prism-harness](https://github.com/Particle-Academy/prism-harness).

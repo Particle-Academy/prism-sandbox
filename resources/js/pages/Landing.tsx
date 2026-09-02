@@ -5,13 +5,14 @@ import { SearchPalette, useSearchPalette } from '../components/SearchPalette';
 
 const PROVIDERS = [
     'ANTHROPIC', 'OPENAI', 'GEMINI', 'VERTEX AI', 'AZURE', 'MISTRAL', 'GROQ', 'OLLAMA',
-    'OPENROUTER', 'DEEPSEEK', 'XAI', 'QWEN', 'REPLICATE', 'REQUESTY', 'VOYAGE AI', 'Z.AI',
+    'OPENROUTER', 'DEEPSEEK', 'XAI', 'QWEN', 'REPLICATE', 'REQUESTY', 'VOYAGE AI', 'ELEVENLABS',
+    'PERPLEXITY', 'Z.AI',
 ];
 
 const FEATURES: { title: string; blurb: string; href?: string; badge?: string }[] = [
     {
         title: 'One API, every provider',
-        blurb: 'Switch between 16 providers — Anthropic, OpenAI, Gemini, Ollama and more — without touching your application code.',
+        blurb: 'Switch between 18 providers — Anthropic, OpenAI, Gemini, Ollama and more — without changing the application-facing request shape.',
     },
     {
         title: 'Fluent text generation',
@@ -110,21 +111,24 @@ function InstallChip() {
     const cmd = 'composer require particle-academy/prism';
 
     return (
-        <button
-            type="button"
-            onClick={() => {
-                navigator.clipboard?.writeText(cmd).then(() => {
-                    setCopied(true);
-                    setTimeout(() => setCopied(false), 1600);
-                });
-            }}
-            className="group mt-8 inline-flex items-center gap-3 rounded-xl border px-4 py-2.5 font-mono text-sm transition-colors"
-            style={{ borderColor: 'var(--k-hairline-2)', color: 'var(--k-ink-2)', background: 'var(--k-bg-1)' }}
-        >
-            <span style={{ color: 'var(--k-mag)' }}>$</span>
-            {cmd}
-            <span className="k-mono transition-colors group-hover:text-[var(--k-cyan)]">{copied ? 'copied ✓' : 'copy'}</span>
-        </button>
+        <div className="mt-8">
+            <p className="k-mono mb-2">PHP / Laravel reference</p>
+            <button
+                type="button"
+                onClick={() => {
+                    navigator.clipboard?.writeText(cmd).then(() => {
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 1600);
+                    });
+                }}
+                className="group inline-flex items-center gap-3 rounded-xl border px-4 py-2.5 font-mono text-sm transition-colors"
+                style={{ borderColor: 'var(--k-hairline-2)', color: 'var(--k-ink-2)', background: 'var(--k-bg-1)' }}
+            >
+                <span style={{ color: 'var(--k-mag)' }}>$</span>
+                {cmd}
+                <span className="k-mono transition-colors group-hover:text-[var(--k-cyan)]">{copied ? 'copied ✓' : 'copy'}</span>
+            </button>
+        </div>
     );
 }
 
@@ -134,14 +138,14 @@ export default function Landing({ version }: { version: string }) {
     return (
         <div className="k-page">
             <Head>
-                <title>Laravel × LLMs</title>
+                <title>Prism — one evolving interface for AI providers</title>
                 <meta
                     head-key="description"
                     name="description"
-                    content="Prism is a Laravel package for integrating Large Language Models — one fluent API across Anthropic, OpenAI, Gemini and 13 more providers. Actively maintained by Particle Academy."
+                    content="Prism is a cross-language provider API ecosystem: a mature PHP/Laravel reference across 18 providers, focused TypeScript and Python ports, and optional satellite capabilities."
                 />
-                <meta property="og:title" content="Prism — Laravel × LLMs" />
-                <meta property="og:description" content="One fluent Laravel API for 16 LLM providers. Text, tools, structured output, streaming, batches." />
+                <meta property="og:title" content="Prism — one evolving interface for AI providers" />
+                <meta property="og:description" content="A mature PHP/Laravel reference, focused TypeScript and Python ports, and optional satellite capabilities." />
                 <meta property="og:type" content="website" />
             </Head>
 
@@ -152,24 +156,25 @@ export default function Landing({ version }: { version: string }) {
             <section className="relative">
                 <HeroGlows />
                 <div className="relative mx-auto max-w-7xl px-6 pt-24 pb-16 sm:pt-32">
-                    <p className="k-mono mb-6">A Laravel package for LLMs · {version}</p>
+                    <p className="k-mono mb-6">PHP reference · TypeScript + Python ports · {version}</p>
                     <h1
                         className="max-w-4xl text-5xl font-extrabold sm:text-7xl"
                         style={{ letterSpacing: '-0.04em', lineHeight: 0.98, color: 'var(--k-ink)' }}
                     >
-                        Laravel <span className="k-grad-text italic">×</span> LLMs,
+                        AI providers,
                         <br />
-                        one fluent <span className="k-grad-text italic">API</span>.
+                        one evolving <span className="k-grad-text italic">interface</span>.
                     </h1>
                     <p className="mt-7 max-w-2xl text-lg" style={{ color: 'var(--k-ink-2)' }}>
-                        Prism gives your Laravel app text generation, tools, structured output, streaming, embeddings, and batch
-                        processing across sixteen AI providers — behind one chainable interface.
+                        Prism is a cross-language provider API ecosystem. PHP and Laravel are the mature reference implementation across eighteen providers;
+                        TypeScript and Python are focused, growing ports of the shared text contract. Core remains the provider API shuttle; agent capabilities stay in optional satellite packages.
                     </p>
                     <InstallChip />
                     <div className="mt-9 flex flex-wrap gap-3">
-                        <Link href="/docs/getting-started/introduction" className="k-btn k-btn--grad">
-                            Get started →
+                        <Link href="/docs/languages/php" className="k-btn k-btn--grad">
+                            Build with PHP →
                         </Link>
+                        <Link href="/docs/packages/language-ports" className="k-btn k-btn--ghost">Explore language ports</Link>
                         <a href="https://github.com/Particle-Academy/prism" className="k-btn k-btn--ghost">
                             GitHub
                         </a>
@@ -177,6 +182,78 @@ export default function Landing({ version }: { version: string }) {
                             Packagist
                         </a>
                     </div>
+                </div>
+            </section>
+
+            {/* Harness — a deliberately standalone section, not another core feature card. */}
+            <section className="k-hairline-top relative overflow-hidden" style={{ background: 'var(--k-bg-1)' }}>
+                <div className="pointer-events-none absolute -right-40 -top-40 size-[34rem] rounded-full bg-cyan-400/10 blur-3xl" aria-hidden />
+                <div className="relative mx-auto max-w-7xl px-6 py-24">
+                    <div className="grid gap-10 lg:grid-cols-[1.2fr_.8fr] lg:items-end">
+                        <Reveal>
+                            <p className="k-mono mb-3">Prism Harness · separate package</p>
+                            <h2 className="max-w-3xl text-4xl font-bold sm:text-6xl" style={{ letterSpacing: '-0.045em', lineHeight: 1, color: 'var(--k-ink)' }}>
+                                Agents that survive <span className="k-grad-text italic">the request.</span>
+                            </h2>
+                            <p className="mt-6 max-w-2xl text-base leading-relaxed" style={{ color: 'var(--k-ink-2)' }}>
+                                Laravel workers boot, serve, and disappear. Harness reconstructs durable sessions from storage, so a later request—or a different queue worker—finds the same thread, selected mode and model, and run state.
+                            </p>
+                        </Reveal>
+                        <Reveal delay={100}>
+                            <div className="k-card p-6 text-sm leading-relaxed" style={{ color: 'var(--k-ink-3)' }}>
+                                <strong style={{ color: 'var(--k-ink)' }}>Shipped:</strong> durable sessions, Eloquent threads, persisted mode/model selection, guarded state stores, exclusive locking, faithful tool-loop history, and a Fancy Flow seam.
+                                <br /><br />
+                                <strong style={{ color: 'var(--k-ink)' }}>Still design:</strong> mode classes, permission-policy orchestration, pending-approval workflows, and nested subagent execution.
+                            </div>
+                        </Reveal>
+                    </div>
+                    <div className="mt-12 grid overflow-hidden rounded-2xl border sm:grid-cols-2 lg:grid-cols-4" style={{ borderColor: 'var(--k-hairline-2)' }}>
+                        {[
+                            ['01', 'Resolve', 'Address a session by participant and scope; no long-lived PHP object required.'],
+                            ['02', 'Rehydrate', 'Recover conversation history and session state in a fresh worker.'],
+                            ['03', 'Lock', 'Serialize overlapping work; a timeout throws instead of quietly running twice.'],
+                            ['04', 'Continue', 'Record the complete exchange, including every tool step, for faithful replay.'],
+                        ].map(([number, title, copy], index) => (
+                            <Reveal key={title} delay={index * 70}>
+                                <div className="h-full p-6 lg:min-h-48" style={{ background: 'var(--k-bg)', borderLeft: index ? '1px solid var(--k-hairline-2)' : undefined }}>
+                                    <span className="k-grad-text font-mono text-sm font-bold">{number}</span>
+                                    <h3 className="mt-6 font-semibold" style={{ color: 'var(--k-ink)' }}>{title}</h3>
+                                    <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--k-ink-3)' }}>{copy}</p>
+                                </div>
+                            </Reveal>
+                        ))}
+                    </div>
+                    <div className="mt-8 flex flex-wrap gap-3">
+                        <Link href="/docs/packages/harness" className="k-btn k-btn--grad">Explore Harness →</Link>
+                        <a href="https://github.com/Particle-Academy/prism-harness" className="k-btn k-btn--ghost">View source</a>
+                    </div>
+                </div>
+            </section>
+
+            {/* Browser and Human+ */}
+            <section className="k-hairline-top">
+                <div className="mx-auto max-w-7xl px-6 py-20">
+                    <Reveal>
+                        <p className="k-mono mb-3">New satellite capabilities</p>
+                        <h2 className="max-w-3xl text-3xl font-bold sm:text-5xl" style={{ letterSpacing: '-0.04em', color: 'var(--k-ink)' }}>
+                            Compose around Harness. <span className="k-grad-text italic">Keep the boundaries visible.</span>
+                        </h2>
+                        <p className="mt-5 max-w-2xl leading-relaxed" style={{ color: 'var(--k-ink-2)' }}>
+                            Browser and Human+ can bind attachments to the same durable Harness identity, but neither is part of Harness or bundled with core.
+                        </p>
+                    </Reveal>
+                    <div className="mt-10 grid gap-5 lg:grid-cols-2">
+                        <Reveal><Link href="/docs/packages/browser" className="k-card block h-full p-7"><p className="k-mono mb-4">prism-browser · first slice</p><h3 className="text-2xl font-bold" style={{ color: 'var(--k-ink)' }}>Guarded open-web automation</h3><p className="mt-4 text-sm leading-relaxed" style={{ color: 'var(--k-ink-3)' }}>Policy-first navigation and typed actions over bounded, provenance-framed observations. Stable package-issued references replace raw selectors and arbitrary JavaScript.</p><p className="k-mono mt-6">Read the boundary →</p></Link></Reveal>
+                        <Reveal delay={100}><Link href="/docs/packages/human-plus" className="k-card block h-full p-7"><p className="k-mono mb-4">prism-human-plus · first slice</p><h3 className="text-2xl font-bold" style={{ color: 'var(--k-ink)' }}>Join the surface as a participant</h3><p className="mt-4 text-sm leading-relaxed" style={{ color: 'var(--k-ink-3)' }}>A PHP agent joins a live Fancy surface through an invitation and relay. The app owns stable handles, staged writes, undo, cursors, and presence; this is not DOM automation.</p><p className="k-mono mt-6">Explore Human+ →</p></Link></Reveal>
+                    </div>
+                </div>
+            </section>
+
+            {/* Language ports */}
+            <section className="k-hairline-top" style={{ background: 'var(--k-bg-1)' }}>
+                <div className="mx-auto grid max-w-7xl gap-10 px-6 py-20 lg:grid-cols-2 lg:items-center">
+                    <Reveal><p className="k-mono mb-3">One contract · more languages</p><h2 className="text-3xl font-bold sm:text-5xl" style={{ letterSpacing: '-0.04em', color: 'var(--k-ink)' }}>Prism is no longer <span className="k-grad-text italic">PHP-only.</span></h2><p className="mt-5 max-w-xl leading-relaxed" style={{ color: 'var(--k-ink-2)' }}>TypeScript and Python ports implement focused Anthropic and OpenAI text slices today. They are version 0.1.0, unpublished, and deliberately smaller than the PHP reference—not claims of full feature parity.</p></Reveal>
+                    <Reveal delay={100}><div className="k-card p-7"><div className="grid gap-5 sm:grid-cols-2"><div><p className="k-mono">TypeScript</p><p className="mt-2 text-sm" style={{ color: 'var(--k-ink-3)' }}>Node 20+, strict types, native promises.</p></div><div><p className="k-mono">Python</p><p className="mt-2 text-sm" style={{ color: 'var(--k-ink-3)' }}>Python 3.10+, zero runtime dependencies.</p></div></div><p className="mt-6 border-t pt-5 text-sm leading-relaxed" style={{ borderColor: 'var(--k-hairline-2)', color: 'var(--k-ink-3)' }}><code>prism-parity</code> keeps the shared text behavior measurable with a language-independent corpus and an existence manifest designed to admit future ports.</p><Link href="/docs/packages/language-ports" className="k-mono mt-5 inline-block">See what is—and is not—in parity →</Link></div></Reveal>
                 </div>
             </section>
 
@@ -244,11 +321,11 @@ export default function Landing({ version }: { version: string }) {
                         </blockquote>
                         <div className="mt-8 grid max-w-3xl gap-4 text-sm sm:grid-cols-3" style={{ color: 'var(--k-ink-2)' }}>
                             <div>
-                                <p className="k-grad-text text-2xl font-extrabold">40+</p>
-                                <p className="k-mono mt-1">community PRs absorbed</p>
+                                <p className="k-grad-text text-2xl font-extrabold">{version.replace(/^v/, '')}</p>
+                                <p className="k-mono mt-1">current core release</p>
                             </div>
                             <div>
-                                <p className="k-grad-text text-2xl font-extrabold">16</p>
+                                <p className="k-grad-text text-2xl font-extrabold">18</p>
                                 <p className="k-mono mt-1">providers supported</p>
                             </div>
                             <div>

@@ -106,7 +106,7 @@ class DocsRepository
 
             if (is_array($sidebar)) {
                 $groups = $sidebar[0]['items'] ?? $sidebar;
-                $nav = $this->normalizeNav($groups);
+                $nav = $this->withoutSuperseded($this->normalizeNav($groups));
 
                 if ($nav !== []) {
                     return $nav;
@@ -115,6 +115,41 @@ class DocsRepository
         }
 
         return $this->navFromDirectories();
+    }
+
+    /**
+     * Drop the upstream sections this site now owns outright.
+     *
+     * The package's sidebar carries its own "Companion Packages" group, and so
+     * does this site — so Harness, MCP, Perplexity and OpenTelemetry each
+     * appeared TWICE in one nav, at two different URLs, while Memory and
+     * Workspace appeared only in the upstream one. A reader could not tell
+     * which was canonical, because nothing said.
+     *
+     * The site wins that argument for a reason already written into
+     * `config/docs.php`: Prism core is a provider API shuttle and stays one, so
+     * documentation for the packages AROUND core is not documentation of core.
+     * Keeping the ecosystem story here means it can cover nine families in
+     * three languages without any of that living in the core package's tree.
+     *
+     * Matched on title rather than on link, because the upstream group is
+     * defined by what it is called; its links move between releases and its
+     * title has not.
+     *
+     * @param  array<int, array{text: string, items: array<int, array{text: string, link: string}>}>  $nav
+     * @return array<int, array{text: string, items: array<int, array{text: string, link: string}>}>
+     */
+    protected function withoutSuperseded(array $nav): array
+    {
+        $superseded = array_map(
+            fn ($title): string => mb_strtolower(trim((string) $title)),
+            (array) config('docs.superseded_package_sections', []),
+        );
+
+        return array_values(array_filter(
+            $nav,
+            fn (array $section): bool => ! in_array(mb_strtolower(trim($section['text'])), $superseded, true),
+        ));
     }
 
     /**

@@ -1,6 +1,6 @@
 # Companion packages
 
-Prism core is a **provider API shuttle**. It speaks to sixteen providers through
+Prism core is a **provider API shuttle**. It speaks to eighteen providers through
 one fluent interface, and that is the whole job — text, structured output,
 streaming, embeddings, tools, images, audio, moderation. Everything it does is
 in service of getting a request to a provider and an answer back.
@@ -30,13 +30,21 @@ not a dependency, not a service provider, not a config file.
 | [`prism-perplexity`](/packages/perplexity) | Perplexity search + embeddings | `v0.1.0` | Published |
 | [`prism-opentelemetry`](/packages/opentelemetry) | Telemetry bridge | `v0.1.1` | Published |
 
+Three more source-complete first slices are not yet registry releases:
+
+| Package | For | Release state |
+| --- | --- | --- |
+| [`prism-browser`](/packages/browser) | Guarded open-web automation | No tag; not on Packagist |
+| [`prism-human-plus`](/packages/human-plus) | Presence in live Fancy surfaces | No tag; not on Packagist |
+| [TypeScript and Python ports](/packages/language-ports) | Shared Anthropic/OpenAI text slices in two more languages | `0.1.0`; marked unpublished |
+
 Every one of them is **pre-1.0**, and the version numbers say so. They follow
 the same rule Prism itself does at this stage: a minor bump can change an API.
 Pin what you install and read the release notes before you move.
 
 ## Still being built
 
-Two more are written and working, and **not yet published to Packagist** — you
+Two other satellites are written and working, and **not yet published to Packagist** — you
 cannot `composer require` them today:
 
 - **`prism-memory`** — persistent context and semantic recall: a vector store, a

@@ -120,14 +120,28 @@ export function KineticNav({ version, onSearch }: { version: string; onSearch?: 
 export function KineticFooter() {
     return (
         <footer className="k-hairline-top mt-24">
-            <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-6 py-10 sm:flex-row">
-                <p className="k-mono">MIT License · created by TJ Miller &amp; the open-source community</p>
-                <p className="k-mono">
-                    maintained by{' '}
-                    <a href="https://github.com/Particle-Academy" className="k-grad-text normal-case tracking-normal">
-                        Particle Academy
-                    </a>
-                </p>
+            <div className="mx-auto max-w-7xl px-6 py-10">
+                <div className="mb-8 flex flex-wrap items-center gap-x-6 gap-y-3">
+                    <span className="k-mono">Build with Prism</span>
+                    <Link href="/docs/languages/php" className="text-sm transition-colors hover:text-[var(--k-cyan)]" style={{ color: 'var(--k-ink-2)' }}>
+                        PHP
+                    </Link>
+                    <Link href="/docs/languages/typescript" className="text-sm transition-colors hover:text-[var(--k-cyan)]" style={{ color: 'var(--k-ink-2)' }}>
+                        TypeScript
+                    </Link>
+                    <Link href="/docs/languages/python" className="text-sm transition-colors hover:text-[var(--k-cyan)]" style={{ color: 'var(--k-ink-2)' }}>
+                        Python
+                    </Link>
+                </div>
+                <div className="flex flex-col justify-between gap-3 border-t pt-8 sm:flex-row" style={{ borderColor: 'var(--k-hairline-2)' }}>
+                    <p className="k-mono">MIT License · created by TJ Miller &amp; the open-source community</p>
+                    <p className="k-mono">
+                        maintained by{' '}
+                        <a href="https://github.com/Particle-Academy" className="k-grad-text normal-case tracking-normal">
+                            Particle Academy
+                        </a>
+                    </p>
+                </div>
             </div>
         </footer>
     );

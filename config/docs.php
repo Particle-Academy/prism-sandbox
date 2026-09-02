@@ -29,14 +29,69 @@ return [
     |
     */
 
+    /*
+    |--------------------------------------------------------------------------
+    | Upstream sections this site supersedes
+    |--------------------------------------------------------------------------
+    |
+    | The package's own sidebar carries a "Companion Packages" group, and so did
+    | this site — so Harness, MCP, Perplexity and OpenTelemetry each appeared
+    | TWICE in one nav at two different URLs, while Memory and Workspace
+    | appeared only upstream. Nothing told a reader which was canonical.
+    |
+    | The site owns the ecosystem story, for the reason stated above: core is a
+    | provider API shuttle, and documenting the packages around it is not
+    | documenting it. Titles are matched case-insensitively; upstream links move
+    | between releases, its group titles do not.
+    |
+    */
+
+    'superseded_package_sections' => [
+        'Companion Packages',
+        'Other Packages',
+    ],
+
     'sections' => [
 
         [
-            'text' => 'Companion packages',
+            'text' => 'Build with Prism',
+            'items' => [
+                ['text' => 'Building with PHP', 'link' => '/languages/php'],
+                ['text' => 'Building with TypeScript', 'link' => '/languages/typescript'],
+                ['text' => 'Building with Python', 'link' => '/languages/python'],
+            ],
+        ],
+
+        /*
+         * The Harness gets a section of its own, not a bullet under
+         * "companion".
+         *
+         * It is the package that makes this an agent platform rather than a
+         * provider shuttle — durable sessions, modes, tools, subagents,
+         * budgets — and filing it beside six integrations understated it to the
+         * point where the whole site read as "just Prism". It is the second
+         * thing a reader should meet, after choosing a language.
+         */
+        [
+            'text' => 'Harness',
+            'items' => [
+                ['text' => 'What the Harness is', 'link' => '/packages/harness'],
+                ['text' => 'Sessions and threads', 'link' => '/harness/sessions'],
+                ['text' => 'Modes, tools and skills', 'link' => '/harness/modes'],
+                ['text' => 'Subagents and budgets', 'link' => '/harness/subagents'],
+            ],
+        ],
+
+        [
+            'text' => 'The ecosystem',
             'items' => [
                 ['text' => 'Overview', 'link' => '/packages/overview'],
-                ['text' => 'Harness', 'link' => '/packages/harness'],
+                ['text' => 'Language ports', 'link' => '/packages/language-ports'],
+                ['text' => 'Browser', 'link' => '/packages/browser'],
+                ['text' => 'Human+', 'link' => '/packages/human-plus'],
                 ['text' => 'MCP', 'link' => '/packages/mcp'],
+                ['text' => 'Memory', 'link' => '/packages/memory'],
+                ['text' => 'Workspace', 'link' => '/packages/workspace'],
                 ['text' => 'Perplexity', 'link' => '/packages/perplexity'],
                 ['text' => 'OpenTelemetry', 'link' => '/packages/opentelemetry'],
             ],
