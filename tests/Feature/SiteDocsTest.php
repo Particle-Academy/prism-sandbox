@@ -145,6 +145,43 @@ class SiteDocsTest extends TestCase
         $this->assertStringContainsString('Core remains the provider API shuttle', $source);
     }
 
+    public function test_every_docs_link_on_the_landing_page_resolves(): void
+    {
+        // The nav is guarded by the test at the top of this file; the LANDING
+        // page was not guarded by anything. It now names all nine families and
+        // carries a Harness call to action, so a page renamed or never written
+        // would ship as a dead link on the first screen a visitor sees.
+        $source = File::get(resource_path('js/pages/Landing.tsx'));
+        $docs = app(DocsRepository::class);
+
+        // Both quote styles: JSX attributes use double quotes, the ECOSYSTEM
+        // array uses single. Matching only one silently checked a third of them.
+        preg_match_all('~[\'"](/docs/[a-z0-9\-/]+)[\'"]~', $source, $matches);
+
+        $links = array_values(array_unique($matches[1]));
+
+        $this->assertGreaterThanOrEqual(10, count($links), 'The landing page should be promoting the ecosystem, not one package.');
+
+        foreach ($links as $link) {
+            $this->assertTrue(
+                $docs->exists(ltrim(str_replace('/docs/', '', $link), '/')),
+                "The landing page links to {$link}, which has no page.",
+            );
+        }
+    }
+
+    public function test_the_landing_page_names_every_family_not_just_core(): void
+    {
+        // What "promote the ecosystem" means, as a check. Browser and Human+
+        // had cards; MCP, Memory, Workspace and OpenTelemetry appeared nowhere
+        // on the page at all.
+        $source = File::get(resource_path('js/pages/Landing.tsx'));
+
+        foreach (['prism-harness', 'prism-workspace', 'prism-memory', 'prism-mcp', 'prism-browser', 'prism-human-plus', 'prism-perplexity', 'prism-opentelemetry'] as $package) {
+            $this->assertStringContainsString($package, $source, "The landing page never mentions {$package}.");
+        }
+    }
+
     public function test_site_pages_join_the_sitemap_search_index_and_llms_txt(): void
     {
         $this->get('/sitemap.xml')->assertOk()->assertSee(url('/docs/packages/overview'), false);

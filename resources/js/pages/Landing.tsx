@@ -3,6 +3,25 @@ import { useEffect, useRef, useState } from 'react';
 import { GradGlyph, KineticFooter, KineticNav, Marquee, Reveal } from '../components/kinetic';
 import { SearchPalette, useSearchPalette } from '../components/SearchPalette';
 
+/**
+ * The nine package families, described by what each one is FOR.
+ *
+ * Kept honest deliberately: `prism-human-plus` has never been tagged and the
+ * TypeScript and Python ports have no releases at all, so nothing here promises
+ * a version that does not exist. The per-package pages carry the detail.
+ */
+const ECOSYSTEM = [
+    { name: 'Harness', package: 'prism-harness', link: '/docs/packages/harness', blurb: 'Durable agent sessions — threads, modes, tool permissions, approvals, subagents and budgets.' },
+    { name: 'Workspace', package: 'prism-workspace', link: '/docs/packages/workspace', blurb: 'A sandboxed disk an agent can write to, behind a path guard tested against 134 escape attempts.' },
+    { name: 'Memory', package: 'prism-memory', link: '/docs/packages/memory', blurb: 'Recall the parts of a long conversation that matter now, against a token budget rather than a count.' },
+    { name: 'MCP', package: 'prism-mcp', link: '/docs/packages/mcp', blurb: 'Speak Model Context Protocol as a client or a server, with tool definitions that survive the round trip.' },
+    { name: 'Browser', package: 'prism-browser', link: '/docs/packages/browser', blurb: 'Guarded open-web automation, with private addresses refused by default rather than by configuration.' },
+    { name: 'Human+', package: 'prism-human-plus', link: '/docs/packages/human-plus', blurb: 'Put a person in the surface as a participant — and keep confirmation tools reserved for them.' },
+    { name: 'Perplexity', package: 'prism-perplexity', link: '/docs/packages/perplexity', blurb: 'The Perplexity Agent API as a first-class provider, including its search filters and cost reporting.' },
+    { name: 'OpenTelemetry', package: 'prism-opentelemetry', link: '/docs/packages/opentelemetry', blurb: 'Export agent runs as spans to any OTel collector, separate from the framework’s own events.' },
+    { name: 'Language ports', package: 'prism-ts · prism-py', link: '/docs/packages/language-ports', blurb: 'The same nine families in TypeScript and Python, and an honest account of where they still differ.' },
+] as const;
+
 const PROVIDERS = [
     'ANTHROPIC', 'OPENAI', 'GEMINI', 'VERTEX AI', 'AZURE', 'MISTRAL', 'GROQ', 'OLLAMA',
     'OPENROUTER', 'DEEPSEEK', 'XAI', 'QWEN', 'REPLICATE', 'REQUESTY', 'VOYAGE AI', 'ELEVENLABS',
@@ -138,14 +157,14 @@ export default function Landing({ version }: { version: string }) {
     return (
         <div className="k-page">
             <Head>
-                <title>Prism — one evolving interface for AI providers</title>
+                <title>Prism — one provider interface, and a harness for agents</title>
                 <meta
                     head-key="description"
                     name="description"
-                    content="Prism is a cross-language provider API ecosystem: a mature PHP/Laravel reference across 18 providers, focused TypeScript and Python ports, and optional satellite capabilities."
+                    content="Prism is a cross-language provider API ecosystem of nine package families: a mature PHP/Laravel reference across 18 providers, a durable agent harness, and focused TypeScript and Python ports."
                 />
-                <meta property="og:title" content="Prism — one evolving interface for AI providers" />
-                <meta property="og:description" content="A mature PHP/Laravel reference, focused TypeScript and Python ports, and optional satellite capabilities." />
+                <meta property="og:title" content="Prism — one provider interface, and a harness for agents" />
+                <meta property="og:description" content="A mature PHP/Laravel reference across 18 providers, a durable agent harness, and seven more optional families — in three languages." />
                 <meta property="og:type" content="website" />
             </Head>
 
@@ -156,14 +175,22 @@ export default function Landing({ version }: { version: string }) {
             <section className="relative">
                 <HeroGlows />
                 <div className="relative mx-auto max-w-7xl px-6 pt-24 pb-16 sm:pt-32">
-                    <p className="k-mono mb-6">PHP reference · TypeScript + Python ports · {version}</p>
+                    <p className="k-mono mb-6">Nine package families · PHP reference · TypeScript + Python ports · {version}</p>
+                    {/*
+                     * TWO promises, because the ecosystem is two things and a
+                     * headline naming only the first is why this page read as
+                     * "just Prism". Core is a provider interface and stays one;
+                     * the Harness is what you build agents on. Saying both here
+                     * is not a widening of core's remit — it is the boundary,
+                     * stated at the top instead of four sections down.
+                     */}
                     <h1
                         className="max-w-4xl text-5xl font-extrabold sm:text-7xl"
                         style={{ letterSpacing: '-0.04em', lineHeight: 0.98, color: 'var(--k-ink)' }}
                     >
-                        AI providers,
+                        One interface for every provider.
                         <br />
-                        one evolving <span className="k-grad-text italic">interface</span>.
+                        A <span className="k-grad-text italic">harness</span> for everything you build on it.
                     </h1>
                     <p className="mt-7 max-w-2xl text-lg" style={{ color: 'var(--k-ink-2)' }}>
                         Prism is a cross-language provider API ecosystem. PHP and Laravel are the mature reference implementation across eighteen providers;
@@ -174,6 +201,9 @@ export default function Landing({ version }: { version: string }) {
                         <Link href="/docs/languages/php" className="k-btn k-btn--grad">
                             Build with PHP →
                         </Link>
+                        {/* The Harness earns a top-line CTA: it is the reason
+                            this is an agent platform and not a client library. */}
+                        <Link href="/docs/packages/harness" className="k-btn k-btn--ghost">Meet the Harness</Link>
                         <Link href="/docs/packages/language-ports" className="k-btn k-btn--ghost">Explore language ports</Link>
                         <a href="https://github.com/Particle-Academy/prism" className="k-btn k-btn--ghost">
                             GitHub
@@ -245,6 +275,41 @@ export default function Landing({ version }: { version: string }) {
                     <div className="mt-10 grid gap-5 lg:grid-cols-2">
                         <Reveal><Link href="/docs/packages/browser" className="k-card block h-full p-7"><p className="k-mono mb-4">prism-browser · first slice</p><h3 className="text-2xl font-bold" style={{ color: 'var(--k-ink)' }}>Guarded open-web automation</h3><p className="mt-4 text-sm leading-relaxed" style={{ color: 'var(--k-ink-3)' }}>Policy-first navigation and typed actions over bounded, provenance-framed observations. Stable package-issued references replace raw selectors and arbitrary JavaScript.</p><p className="k-mono mt-6">Read the boundary →</p></Link></Reveal>
                         <Reveal delay={100}><Link href="/docs/packages/human-plus" className="k-card block h-full p-7"><p className="k-mono mb-4">prism-human-plus · first slice</p><h3 className="text-2xl font-bold" style={{ color: 'var(--k-ink)' }}>Join the surface as a participant</h3><p className="mt-4 text-sm leading-relaxed" style={{ color: 'var(--k-ink-3)' }}>A PHP agent joins a live Fancy surface through an invitation and relay. The app owns stable handles, staged writes, undo, cursors, and presence; this is not DOM automation.</p><p className="k-mono mt-6">Explore Human+ →</p></Link></Reveal>
+                    </div>
+                </div>
+            </section>
+
+            {/*
+             * The whole ecosystem, named.
+             *
+             * Browser and Human+ get cards above because they are the newest
+             * slices; MCP, Memory, Workspace and OpenTelemetry appeared nowhere
+             * on this page at all, which is a strange way to promote an
+             * ecosystem of nine families. One line each, linked, and honest
+             * about which ones are the reference and which are still moving.
+             */}
+            <section className="k-hairline-top">
+                <div className="mx-auto max-w-7xl px-6 py-20">
+                    <Reveal>
+                        <p className="k-mono mb-3">Nine families · one boundary</p>
+                        <h2 className="max-w-3xl text-3xl font-bold sm:text-5xl" style={{ letterSpacing: '-0.04em', color: 'var(--k-ink)' }}>
+                            Core stays small. The <span className="k-grad-text italic">ecosystem</span> does the rest.
+                        </h2>
+                        <p className="mt-5 max-w-2xl leading-relaxed" style={{ color: 'var(--k-ink-2)' }}>
+                            Every one of these is optional and separately versioned. Nothing here is bundled into core, and core does not
+                            depend on any of it — which is what keeps a provider shuttle a provider shuttle.
+                        </p>
+                    </Reveal>
+                    <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {ECOSYSTEM.map((family, index) => (
+                            <Reveal key={family.link} delay={index * 40}>
+                                <Link href={family.link} className="k-card block h-full p-6">
+                                    <p className="k-mono mb-2">{family.package}</p>
+                                    <h3 className="text-lg font-bold" style={{ color: 'var(--k-ink)' }}>{family.name}</h3>
+                                    <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--k-ink-2)' }}>{family.blurb}</p>
+                                </Link>
+                            </Reveal>
+                        ))}
                     </div>
                 </div>
             </section>
