@@ -26,19 +26,16 @@ building a prompt knows how much room it has left; it does not know how many
 memories will fit in that room, and a fixed count answers the wrong question —
 five long memories and five short ones are not interchangeable.
 
-## What it deliberately has not settled
+## What it does not do
 
-The package README keeps a short list of questions it has **not** answered, and
-they are open on purpose rather than closed quietly:
+Recall is **retrieval, not summarisation** — it returns stored material, it does
+not run a model to condense it. If you need a summary, build one from what
+recall gives you.
 
-- what is worth storing, as against everything that was said
-- whether recall should ever run a model, or stay retrieval only
-- what forgetting means for a memory something else was derived from
-
-These are recorded because a memory layer that guesses at them silently is
-harder to trust than one that says which parts are unfinished.
+Forgetting removes a memory. It does not trace and remove anything that was
+derived from it.
 
 - [Source](https://github.com/Particle-Academy/prism-memory)
 - TypeScript and Python ports exist. See
-  [Language ports](/docs/packages/language-ports) for what "port" currently
-  guarantees, and what the cross-language suites have found.
+  [Language ports](/docs/packages/language-ports) for what a port currently
+  guarantees.

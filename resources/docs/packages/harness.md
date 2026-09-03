@@ -5,18 +5,13 @@ persisted provider/model/mode selection, exclusive locking, and a bounded agent
 runtime built on top of Prism, with nested subagents that carry their own
 budgets.
 
-::: warning Pre-1.0 — every planned surface ships, the API can still move
-`prism-harness` is at **`v0.2.1`**. Threads, sessions, modes, skills, tool
-permissions, approvals, subagents, budgets, the event stream and a config doctor
-are all implemented and tested — there is no longer a row in the table below
-that is design rather than code.
+::: warning Pre-1.0 — the API can still change in a minor version
+`prism-harness` is at **`v0.2.1`**. Use it where you can follow a moving
+package.
 
-It is still **pre-1.0**: the API can change in a minor version, tool
-authorization is **off by default**, and the open defects are
-[listed at the bottom of this page](#known-defects).
-
-Use it where you can follow a moving package. Run `harness:doctor` to see what
-your own configuration is actually doing rather than what it looks like it does.
+Two things to know before you start: **tool authorization is off by default**,
+and `php artisan harness:doctor` reports what your configuration actually does
+rather than what it looks like it does.
 :::
 
 ## What it is for
@@ -224,45 +219,26 @@ a worker that dies mid-run does not hold the session shut forever. State is
 re-read inside the lock, because acting on a value fetched before you held it is
 the exact race the lock exists to prevent.
 
-## What is shipped and what is planned
+## What is in the package
 
-The package documents this per row rather than in a banner, because a status
-line four paragraphs above a table does not travel with the row somebody quotes.
+| Concept | What it does |
+| --- | --- |
+| Thread | The durable record of an exchange, appended to rather than replayed |
+| Session | Resolved per request, keyed on participant **and** scope so conversations never merge |
+| State stores | Redis and database behind one contract, with the durable slot guarded |
+| Agent runtime | `Session::send()`, durable run bookkeeping, full-message recording |
+| Modes | A system prompt, a tool allowlist and a step ceiling, defined in config |
+| Permissions | Mode allowlists, plus optional `harness.tool` Gate filtering |
+| Approvals | Tools that require a human before they run, denied by default when unanswered |
+| Subagents | A nested run with a narrowed toolset and its own budget |
+| Event bus | Laravel events over Reverb, separate from Prism telemetry |
 
-| Concept | Status | What it maps to |
-| --- | --- | --- |
-| Thread | **shipped** | Eloquent models here; contract in Prism 0.113 |
-| Session | **shipped** | Resolved per request, keyed on participant + scope |
-| State stores | **shipped** | Redis and database behind one contract, durable slot guarded |
-| Agent runtime | **shipped** | `Session::send()`, durable run bookkeeping, full-message recording |
-| Modes | **shipped** | Config-defined system prompt, tool allowlist, and max-step budget |
-| Permissions | **shipped** | Explicit mode allowlists plus optional `harness.tool` Gate filtering |
-| Subagents | **shipped** | A Prism tool wrapping a nested run with a narrowed toolset and its own budget |
-| Event bus | **shipped** | Laravel events over Reverb, separate from Prism telemetry |
-| Workspace | *elsewhere* | A scoped filesystem disk — that is `prism-workspace` |
+A scoped filesystem for an agent to work in is **not** here — that is
+[Workspace](/docs/packages/workspace).
 
-One of the two design questions this page used to leave open has been settled:
-subagent **step budgets NEST, they do not reset**. A parent limited to eight
-steps that may spawn children each entitled to a fresh eight has no bound at
-all, so a child gets the smaller of what it declares and what the tree has left.
-See [Subagents and budgets](/docs/harness/subagents).
+Read next: [Sessions and threads](/docs/harness/sessions),
+[Modes, tools and skills](/docs/harness/modes), and
+[Subagents and budgets](/docs/harness/subagents).
 
-Still genuinely open: whether **mode** is owned by the session or by the thread.
-
-## Known defects
-
-Open against the package as of `v0.2.1`:
-
-- [**#10**](https://github.com/Particle-Academy/prism-harness/issues/10) —
-  `RunBudget::nestedWithin()` computes a child's budget as what *remains*, while
-  `RunLedger::exhaustion()` compares the ledger's *cumulative* total. The two
-  halves of one rule disagree about what the number means.
-- [**#9**](https://github.com/Particle-Academy/prism-harness/issues/9) — the
-  executable agent runtime, tracked from a consumer's migration.
-
-Two defects this page used to list are now closed: the config is published as
-`prism-harness.php` as ecosystem convention requires, and the thread `position`
-race is fixed.
-
-Source and full design notes:
+Source, issues and design notes:
 [Particle-Academy/prism-harness](https://github.com/Particle-Academy/prism-harness).

@@ -35,7 +35,7 @@ Three more source-complete first slices are not yet registry releases:
 | Package | For | Release state |
 | --- | --- | --- |
 | [`prism-browser`](/packages/browser) | Guarded open-web automation | No tag; not on Packagist |
-| [`prism-human-plus`](/packages/human-plus) | Presence in live Fancy surfaces | No tag; not on Packagist |
+| [`prism-human-plus`](/packages/human-plus) | Presence in live Fancy surfaces | `v0.1.0` tagged; awaiting Packagist submission |
 | [TypeScript and Python ports](/packages/language-ports) | Shared Anthropic/OpenAI text slices in two more languages | `0.1.0`; marked unpublished |
 
 Every one of them is **pre-1.0**, and the version numbers say so. They follow
@@ -49,13 +49,13 @@ cannot `composer require` them today:
 
 - **`prism-memory`** — persistent context and semantic recall: a vector store, a
   `remember`/`recall` pair, and retrieval that fits a token budget. The first
-  slice works end to end. Three questions are still deliberately open, including
-  what forgetting means for a memory derived from another one.
+  slice works end to end. Recall retrieves; it does not summarise, and
+  forgetting does not trace what was derived from a memory.
   ([repo](https://github.com/Particle-Academy/prism-memory))
 - **`prism-workspace`** — a sandboxed, session-scoped place for an agent to keep
   files: a scoped Laravel `Storage` disk behind a path guard, shipped with the
-  134-path adversarial corpus that proves the boundary holds. Files only; code
-  execution is deferred on purpose.
+  134-path adversarial corpus that proves the boundary holds. Files only: the
+  workspace stores what an agent writes, it does not run it.
   ([repo](https://github.com/Particle-Academy/prism-workspace))
 
 A third, **`prism-rag`** (document ingestion, chunking, retrieval), is
@@ -63,16 +63,15 @@ A third, **`prism-rag`** (document ingestion, chunking, retrieval), is
 and **not started**. It is listed here so nobody builds it twice, not because it
 is close.
 
-## What is deliberately not being built
+## What is not here
 
-**A workflow engine.** A graph runtime with durable runs, checkpoints and
-human-approval pauses is app plumbing, not AI — and one already exists in the
-sibling Fancy ecosystem, with an agent node in it. Building a second would put
-Prism on the wrong side of the boundary it just drew, and split the story across
-two brands. The work that is actually needed is the *seam*: making that agent
-node drive a harness session well. That is
-[recorded in the specs](https://github.com/Particle-Academy/prism-parity/blob/main/specs/README.md),
-because the gap is real and somebody will propose filling it again.
+**A workflow engine.** There is no graph runtime, no durable run checkpointing
+and no human-approval pause built into Prism, and none is planned. Durable
+orchestration is application plumbing rather than an AI concern, and the sibling
+Fancy ecosystem already provides one with an agent node.
+
+If you need a workflow, drive a Harness session from that node rather than
+waiting for Prism to grow one.
 
 ## Where the shared rules live
 

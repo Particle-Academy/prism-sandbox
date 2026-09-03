@@ -38,17 +38,13 @@ for an hour can hold more entries than fit comfortably in memory, and a listing
 that has to be fully realised before its first row is read is a listing that
 falls over exactly when the agent has been most productive.
 
-## Status
+## Scope
 
-**Files only. Code execution is deferred, deliberately.** Running what an agent
-wrote is a different security question from storing it, and the package says so
-rather than shipping a half-answer.
-
-The model and the cross-package decisions this package agrees with live in
-[`prism-parity`](https://github.com/Particle-Academy/prism-parity) — this page
-links there rather than restating them.
+**Files only.** The workspace stores what an agent writes; it does not run it.
+There is no code execution surface here, so nothing you put in a workspace
+becomes executable by putting it there.
 
 - [Source](https://github.com/Particle-Academy/prism-workspace)
-- TypeScript and Python ports exist and are exercised by the same corpus. See
-  [Language ports](/docs/packages/language-ports) for what "port" currently
+- TypeScript and Python ports exist and are exercised by the same escape corpus.
+  See [Language ports](/docs/packages/language-ports) for what a port currently
   guarantees.
