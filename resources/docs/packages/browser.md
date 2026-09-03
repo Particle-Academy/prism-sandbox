@@ -3,9 +3,10 @@
 Guarded open-web automation for Prism agents, with the browser treated as a
 security boundary rather than a convenient Playwright wrapper.
 
-::: warning First vertical slice — source only
-The implementation exists and is tested, but it has no tagged release and is
-not on Packagist. Do not present the install command as available yet.
+::: warning Not installable yet — source only
+`prism-browser` has no tagged release and is not on Packagist, so there is no
+`composer require` for it. The implementation exists and is tested; read it at
+[Particle-Academy/prism-browser](https://github.com/Particle-Academy/prism-browser).
 :::
 
 ## What ships

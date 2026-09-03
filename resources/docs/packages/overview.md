@@ -35,7 +35,7 @@ Three more source-complete first slices are not yet registry releases:
 | Package | For | Release state |
 | --- | --- | --- |
 | [`prism-browser`](/packages/browser) | Guarded open-web automation | No tag; not on Packagist |
-| [`prism-human-plus`](/packages/human-plus) | Presence in live Fancy surfaces | `v0.1.0` tagged; awaiting Packagist submission |
+| [`prism-human-plus`](/packages/human-plus) | Presence in live Fancy surfaces | `v0.1.0` |
 | [TypeScript and Python ports](/packages/language-ports) | Shared Anthropic/OpenAI text slices in two more languages | `0.1.0`; marked unpublished |
 
 Every one of them is **pre-1.0**, and the version numbers say so. They follow

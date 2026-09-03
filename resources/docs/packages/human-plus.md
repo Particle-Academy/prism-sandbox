@@ -4,9 +4,12 @@ Participant presence for Prism agents in live Fancy surfaces. An agent joins
 the same controlled, JSON-serializable surface a human sees instead of pulling
 backend levers or impersonating a person through the DOM.
 
-::: warning First vertical slice — source only
-The implementation exists and is tested, but it has no tagged release and is
-not on Packagist. Do not present the install command as available yet.
+```bash
+composer require particle-academy/prism-human-plus
+```
+
+::: warning Pre-1.0 — the API can still change in a minor version
+`prism-human-plus` is at **`v0.1.0`**, its first release. Pin what you install.
 :::
 
 ## What the surface owns
