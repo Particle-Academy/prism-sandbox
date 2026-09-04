@@ -79,6 +79,7 @@ return [
                 ['text' => 'Sessions and threads', 'link' => '/harness/sessions'],
                 ['text' => 'Modes, tools and skills', 'link' => '/harness/modes'],
                 ['text' => 'Subagents and budgets', 'link' => '/harness/subagents'],
+                ['text' => 'Task lists', 'link' => '/harness/tasks'],
             ],
         ],
 
