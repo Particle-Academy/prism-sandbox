@@ -2689,16 +2689,16 @@
         },
         {
             "name": "particle-academy/prism",
-            "version": "v0.115.1",
+            "version": "v0.116.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Particle-Academy/prism.git",
-                "reference": "a746657cf82a09f5338dc9149c0a650be44910ac"
+                "reference": "baa52e68b532b3b6704f1f4e6f059767061f43a0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Particle-Academy/prism/zipball/a746657cf82a09f5338dc9149c0a650be44910ac",
-                "reference": "a746657cf82a09f5338dc9149c0a650be44910ac",
+                "url": "https://api.github.com/repos/Particle-Academy/prism/zipball/baa52e68b532b3b6704f1f4e6f059767061f43a0",
+                "reference": "baa52e68b532b3b6704f1f4e6f059767061f43a0",
                 "shasum": ""
             },
             "require": {
@@ -2718,7 +2718,7 @@
             "require-dev": {
                 "brianium/paratest": "^7.8.4",
                 "laravel/mcp": "^0.6.0",
-                "laravel/pint": "^1.14",
+                "laravel/pint": "1.30.4",
                 "mockery/mockery": "^1.6",
                 "orchestra/testbench": "^10|^11",
                 "pestphp/pest": "^3.0|^4.0",
@@ -2768,7 +2768,7 @@
             "description": "A powerful Laravel package for integrating Large Language Models (LLMs) into your applications. Actively maintained fork of prism-php/prism.",
             "support": {
                 "issues": "https://github.com/Particle-Academy/prism/issues",
-                "source": "https://github.com/Particle-Academy/prism/tree/v0.115.1"
+                "source": "https://github.com/Particle-Academy/prism/tree/v0.116.0"
             },
             "funding": [
                 {
@@ -2776,7 +2776,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-09-02T02:42:01+00:00"
+            "time": "2026-09-05T06:41:52+00:00"
         },
         {
             "name": "phpoption/phpoption",
