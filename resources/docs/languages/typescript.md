@@ -8,10 +8,9 @@ For the shared contract and parity limits, read
 [Language ports](/packages/language-ports). This page covers only the
 TypeScript implementation.
 
-::: warning Source build — not an npm release
-The package manifest is version `0.1.0`, but the parity manifest marks
-`@particle-academy/prism` unpublished. `npm install @particle-academy/prism` is
-therefore not presented here as an available registry install.
+::: warning Install from source
+`@particle-academy/prism` is not on npm yet. Build it from a checkout — the
+steps are just below.
 :::
 
 ## Try it from source
@@ -23,9 +22,8 @@ npm install
 npm run build
 ```
 
-Node 20 or newer is required. After building, another local project can install
-the checkout by filesystem path; publishing and registry installation remain
-unavailable until the manifest's publication state changes.
+Node 20 or newer is required. Once built, another local project can install the
+checkout by filesystem path.
 
 ## First request
 
@@ -50,7 +48,7 @@ contract. Consumers can narrow codes such as `unsupported_provider_action` and
 
 ## Exact current scope
 
-The source and parity manifest contain Anthropic and OpenAI text providers,
+The port ships Anthropic and OpenAI text providers,
 message value objects, provider-tool mapping, serialization, and rehydration.
 The port does **not** currently ship streaming, structured output, embeddings,
 images, audio, moderation, batches, files, or the multi-step tool execution and

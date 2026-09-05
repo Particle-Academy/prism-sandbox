@@ -49,7 +49,7 @@ belongs to the TypeScript port.
 
 ## Current surface
 
-The parity manifest records eighteen providers and these capability families:
+Prism ships eighteen providers and these capability families:
 text, structured output, streaming, embeddings, images, audio, moderation,
 text-to-speech, speech-to-text, fill-in-the-middle, batches, and files. Core
 also implements the tool execution loop, approvals, provider tools, telemetry,

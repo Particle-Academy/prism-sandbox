@@ -1,13 +1,11 @@
 # Language ports
 
 Prism is no longer PHP-only. TypeScript and Python ports exist today, and the
-parity manifest discovers language implementations rather than fixing the
-ecosystem to a closed list.
+ecosystem is open to more languages rather than fixed to a closed list.
 
 ::: warning Focused ports, not full PHP parity
-Both ports are version `0.1.0` and are marked **unpublished** in the current
-`prism-parity` manifest. Their shared implemented slice is Anthropic and OpenAI
-text, not the PHP reference's eighteen-provider capability set.
+Both ports are version `0.1.0` and cover Anthropic and OpenAI text. That is
+deliberately narrower than the PHP reference's eighteen providers.
 :::
 
 ## What exists
@@ -17,26 +15,22 @@ text, not the PHP reference's eighteen-provider capability set.
 | [TypeScript](https://github.com/Particle-Academy/prism-ts) | Node 20+ | `@particle-academy/prism` | Text builder, Anthropic and OpenAI providers, message value objects; native promises and strict types |
 | [Python](https://github.com/Particle-Academy/prism-py) | Python 3.10+ | `prism-ai` | Text builder, Anthropic and OpenAI providers, message value objects; zero runtime dependencies |
 
-The repositories document install commands for their eventual registry
-artifacts, but the parity manifest is authoritative about publication state and
-currently marks both false. Use source checkouts for development until that
-state changes.
+Neither port is published to a registry yet. Install from a source checkout;
+each repository's README has the steps.
 
 ## What parity means here
 
 [`prism-parity`](https://github.com/Particle-Academy/prism-parity) owns a
-language-independent conformance corpus. Corpus `0.1.0` currently contains five
-suites and 49 cases covering the shared text slice: OpenAI request construction,
-response parsing, value-object round trips, coded errors, and JSON container
-identity.
+language-independent conformance corpus: 16 suites and 335 cases that run one
+fixture through all three languages and compare the bytes. They cover request
+construction, response parsing, value-object round trips, coded errors and JSON
+container identity, alongside a security corpus for each package family.
 
 That proves agreement only where a case exists and a port implements the
 surface. It does not imply that TypeScript or Python has streaming, structured
 output, embeddings, media, the tool execution loop, or the PHP provider estate.
-The manifest records those absences explicitly so a planned gap can be told
-apart from unnoticed drift.
+Those absences are recorded deliberately, so a planned gap reads differently
+from an accident.
 
-The manifest and parity checker discover implementations by language. Adding a
-future port extends the same registry, existence checks, loaders, and
-cross-runner contract instead of requiring this page's three-language list to
-become an architectural limit.
+A fourth language would join the same corpus rather than needing a parallel one,
+so the three listed here are where Prism is today, not a ceiling.

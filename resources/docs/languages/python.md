@@ -8,10 +8,9 @@ For the shared contract and parity limits, read
 [Language ports](/packages/language-ports). This page covers only the Python
 implementation.
 
-::: warning Source install — not a PyPI release
-The project manifest is version `0.1.0`, but the parity manifest marks
-`prism-ai` unpublished. `pip install prism-ai` is therefore not presented here
-as an available registry install.
+::: warning Install from source
+`prism-ai` is not on PyPI yet. Install it from a checkout — the steps are just
+below.
 :::
 
 ## Try it from source
@@ -48,7 +47,7 @@ the code rather than the English message.
 
 ## Exact current scope
 
-The source and parity manifest contain Anthropic and OpenAI text providers,
+The port ships Anthropic and OpenAI text providers,
 message value objects, provider-tool mapping, serialization, and rehydration.
 The port does **not** currently ship streaming, structured output, embeddings,
 the multi-step tool execution loop, or the PHP reference's wider provider and
