@@ -6,7 +6,7 @@ runtime built on top of Prism, with nested subagents that carry their own
 budgets.
 
 ::: warning Pre-1.0 — the API can still change in a minor version
-`prism-harness` is at **`v0.2.1`**. Use it where you can follow a moving
+`prism-harness` is at **`v0.7.1`**. Use it where you can follow a moving
 package.
 
 Two things to know before you start: **tool authorization is off by default**,
@@ -219,11 +219,67 @@ a worker that dies mid-run does not hold the session shut forever. State is
 re-read inside the lock, because acting on a value fetched before you held it is
 the exact race the lock exists to prevent.
 
+## The context window
+
+A thread that only ever grows eventually stops fitting. Compaction changes
+**which of its messages the model sees** — never what is stored.
+
+**Nothing compacts by default.** Installing a newer version of this package does
+not start dropping turns out from under you; you choose a strategy, and the
+harness provides the seam rather than the policy.
+
+```php
+// config/prism-harness.php
+'context' => [
+    'keep_recent' => 20,          // a bounded window: free, deterministic
+    // 'summarise_with' => 'claude-haiku-4-5-20251001',
+    // 'summary_words'  => 200,
+],
+```
+
+| Piece | What it does |
+| --- | --- |
+| `CompactionStrategy` | Decides what the model sees. `NoCompaction` (default), `KeepRecentTurns`, `SummarisingCompaction` — or your own |
+| `EvictionSink` | Where evicted turns GO. Handed them before the turn is sent, so the detail is recoverable by the very turn that lost it |
+| `ContextRecall` | Backs a `recall_context` tool, offered to the model only when something can actually answer it |
+| `SummaryBudget` | How a summary's word budget is enforced — `RetryOnce` (default), `AskOnly`, `TruncateTo` |
+
+**Try `keep_recent` first.** It costs nothing and cannot rewrite anything.
+`SummarisingCompaction` bills a model call on every turn that fires, and a
+second one when the summary comes back over budget.
+
+::: danger A summary is a lossy view — bind a sink with it
+["Governance Decay"](https://arxiv.org/pdf/2606.22528) puts summarisation-based
+compaction above 40% safety violations, against 25–30% for truncation, because
+constraints stated early are progressively lost with nothing reporting it.
+Summarising **without** an `EvictionSink` makes that permanent: the summary
+becomes the only record, and a summary cannot be un-summarised.
+:::
+
+### The word budget is a request, not a bound
+
+`summary_words` reaches the model as *"in at most N words"* inside a prompt, and
+a model need not grant a request. Measured live with nothing checking, a stated
+15 words came back at 92 and at 346, and a default of 60 came back at 205 — the
+346 having re-stated every exchange one by one, which is exactly the unbounded
+growth that rewriting the summary is meant to prevent.
+
+So enforcement is a choice you bind, separate from the size you ask for:
+
+```php
+$this->app->bind(SummaryBudget::class, fn () => new TruncateTo);
+```
+
+`RetryOnce` is the default and asks once more when over — it took that 60-word
+budget from 205 words to 61, and it is allowed to miss. `TruncateTo` guarantees
+the bound and can cut mid-thought. `AskOnly` enforces nothing.
+
 ## What is in the package
 
 | Concept | What it does |
 | --- | --- |
 | Thread | The durable record of an exchange, appended to rather than replayed |
+| Context window | Compaction, an eviction sink, and budgeted recall — the view shrinks, the storage does not |
 | Session | Resolved per request, keyed on participant **and** scope so conversations never merge |
 | State stores | Redis and database behind one contract, with the durable slot guarded |
 | Agent runtime | `Session::send()`, durable run bookkeeping, full-message recording |
