@@ -1,7 +1,7 @@
 # Building with Python
 
 `prism-py` is the Python port of Prism's focused text slice, published in source
-under the distribution name `prism-ai` and imported as `prism`. It has zero
+under the distribution name `prism-ai-core` and imported as `prism`. It has zero
 runtime dependencies and requires Python 3.10+.
 
 For the shared contract and parity limits, read
@@ -9,7 +9,7 @@ For the shared contract and parity limits, read
 implementation.
 
 ::: warning Install from source
-`prism-ai` is not on PyPI yet. Install it from a checkout — the steps are just
+`prism-ai-core` is not on PyPI yet. Install it from a checkout — the steps are just
 below.
 :::
 

@@ -13,7 +13,7 @@ deliberately narrower than the PHP reference's eighteen providers.
 | Port | Runtime | Package name | Current scope |
 | --- | --- | --- | --- |
 | [TypeScript](https://github.com/Particle-Academy/prism-ts) | Node 20+ | `@particle-academy/prism` | Text builder, Anthropic and OpenAI providers, message value objects; native promises and strict types |
-| [Python](https://github.com/Particle-Academy/prism-py) | Python 3.10+ | `prism-ai` | Text builder, Anthropic and OpenAI providers, message value objects; zero runtime dependencies |
+| [Python](https://github.com/Particle-Academy/prism-py) | Python 3.10+ | `prism-ai-core` | Text builder, Anthropic and OpenAI providers, message value objects; zero runtime dependencies |
 
 Neither port is published to a registry yet. Install from a source checkout;
 each repository's README has the steps.
