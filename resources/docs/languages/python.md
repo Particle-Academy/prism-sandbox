@@ -1,27 +1,21 @@
 # Building with Python
 
-`prism-py` is the Python port of Prism's focused text slice, published in source
-under the distribution name `prism-ai-core` and imported as `prism`. It has zero
+`prism-ai-core` is the Python port of Prism, imported as `prism`. It has zero
 runtime dependencies and requires Python 3.10+.
 
 For the shared contract and parity limits, read
 [Language ports](/packages/language-ports). This page covers only the Python
 implementation.
 
-::: warning Install from source
-`prism-ai-core` is not on PyPI yet. Install it from a checkout — the steps are just
-below.
-:::
-
-## Try it from source
+## Install
 
 ```bash
-git clone https://github.com/Particle-Academy/prism-py.git
-python -m pip install -e ./prism-py
+pip install prism-ai-core
 ```
 
-The editable install exposes the package from the checked-out source. Use an
-isolated virtual environment for development.
+::: warning Not `prism-ai`
+`prism-ai` on PyPI is an unrelated package. Install `prism-ai-core`.
+:::
 
 ## First request
 
@@ -47,10 +41,16 @@ the code rather than the English message.
 
 ## Exact current scope
 
-The port ships Anthropic and OpenAI text providers,
-message value objects, provider-tool mapping, serialization, and rehydration.
-The port does **not** currently ship streaming, structured output, embeddings,
-the multi-step tool execution loop, or the PHP reference's wider provider and
-media surface. A response that stops on tool calls raises
+The port implements every capability the PHP reference has: text, structured
+output, streaming, embeddings, images, moderation, text to speech, speech to
+text, files, batches and fill-in-the-middle. It ships three providers:
+Anthropic, Mistral and OpenAI.
+
+Not every capability reaches every provider. Images, moderation, text to speech,
+files and batches work with OpenAI only, and fill-in-the-middle works with
+Mistral only.
+
+The port does **not** ship the multi-step tool execution loop or the PHP
+reference's other fifteen providers. A response that stops on tool calls raises
 `tool_loop_not_supported` instead of pretending the loop completed.
 
