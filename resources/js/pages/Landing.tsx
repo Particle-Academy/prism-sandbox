@@ -13,13 +13,13 @@ import { SearchPalette, useSearchPalette } from '../components/SearchPalette';
 const ECOSYSTEM = [
     { name: 'Harness', package: 'prism-harness', link: '/docs/packages/harness', blurb: 'Durable agent sessions — threads, modes, tool permissions, approvals, subagents and budgets.' },
     { name: 'Workspace', package: 'prism-workspace', link: '/docs/packages/workspace', blurb: 'A sandboxed disk an agent can write to, behind a path guard tested against 134 escape attempts.' },
-    { name: 'Memory', package: 'prism-memory', link: '/docs/packages/memory', blurb: 'Recall the parts of a long conversation that matter now, against a token budget rather than a count.' },
+    { name: 'Memory', package: 'prism-memory', link: '/docs/packages/memory', blurb: 'Recall the parts of a long conversation that matter now, sized to the token budget you have left.' },
     { name: 'MCP', package: 'prism-mcp', link: '/docs/packages/mcp', blurb: 'Speak Model Context Protocol as a client or a server, with tool definitions that survive the round trip.' },
-    { name: 'Browser', package: 'prism-browser', link: '/docs/packages/browser', blurb: 'Guarded open-web automation, with private addresses refused by default rather than by configuration.' },
+    { name: 'Browser', package: 'prism-browser', link: '/docs/packages/browser', blurb: 'Guarded open-web automation: an allow-list of hosts and actions, with private addresses refused out of the box.' },
     { name: 'Human+', package: 'prism-human-plus', link: '/docs/packages/human-plus', blurb: 'Put a person in the surface as a participant — and keep confirmation tools reserved for them.' },
     { name: 'Perplexity', package: 'prism-perplexity', link: '/docs/packages/perplexity', blurb: 'The Perplexity Agent API as a first-class provider, including its search filters and cost reporting.' },
     { name: 'OpenTelemetry', package: 'prism-opentelemetry', link: '/docs/packages/opentelemetry', blurb: 'Export agent runs as spans to any OTel collector, separate from the framework’s own events.' },
-    { name: 'Language ports', package: 'prism-ts · prism-py', link: '/docs/packages/language-ports', blurb: 'The same nine families in TypeScript and Python, and an honest account of where they still differ.' },
+    { name: 'Language ports', package: 'prism-ts · prism-py', link: '/docs/packages/language-ports', blurb: 'The same nine families in TypeScript and Python, pinned to one conformance corpus across all three languages.' },
 ] as const;
 
 const PROVIDERS = [
@@ -31,7 +31,7 @@ const PROVIDERS = [
 const FEATURES: { title: string; blurb: string; href?: string; badge?: string }[] = [
     {
         title: 'One API, every provider',
-        blurb: 'Switch between 18 providers — Anthropic, OpenAI, Gemini, Ollama and more — without changing the application-facing request shape.',
+        blurb: 'One request shape across 18 providers — Anthropic, OpenAI, Gemini, Ollama and more. Switch provider, keep your application code.',
     },
     {
         title: 'Fluent text generation',
@@ -194,7 +194,7 @@ export default function Landing({ version }: { version: string }) {
                     </h1>
                     <p className="mt-7 max-w-2xl text-lg" style={{ color: 'var(--k-ink-2)' }}>
                         Prism is a cross-language provider API ecosystem. PHP and Laravel are the mature reference implementation across eighteen providers;
-                        TypeScript and Python are focused, growing ports of the shared text contract. Core remains the provider API shuttle; agent capabilities stay in optional satellite packages.
+                        TypeScript and Python carry the same contract, measured against one shared corpus. Core remains the provider API shuttle; agent capabilities ship as optional satellite packages.
                     </p>
                     <InstallChip />
                     <div className="mt-9 flex flex-wrap gap-3">
@@ -241,7 +241,7 @@ export default function Landing({ version }: { version: string }) {
                         {[
                             ['01', 'Resolve', 'Address a session by participant and scope; no long-lived PHP object required.'],
                             ['02', 'Rehydrate', 'Recover conversation history and session state in a fresh worker.'],
-                            ['03', 'Lock', 'Serialize overlapping work; a timeout throws instead of quietly running twice.'],
+                            ['03', 'Lock', 'Serialize overlapping work; one run finishes before the next starts, and a timeout throws.'],
                             ['04', 'Continue', 'Record the complete exchange, including every tool step, for faithful replay.'],
                         ].map(([number, title, copy], index) => (
                             <Reveal key={title} delay={index * 70}>
@@ -266,15 +266,15 @@ export default function Landing({ version }: { version: string }) {
                     <Reveal>
                         <p className="k-mono mb-3">New satellite capabilities</p>
                         <h2 className="max-w-3xl text-3xl font-bold sm:text-5xl" style={{ letterSpacing: '-0.04em', color: 'var(--k-ink)' }}>
-                            Compose around Harness. <span className="k-grad-text italic">Keep the boundaries visible.</span>
+                            Compose around Harness. <span className="k-grad-text italic">Ship on your own clock.</span>
                         </h2>
                         <p className="mt-5 max-w-2xl leading-relaxed" style={{ color: 'var(--k-ink-2)' }}>
-                            Browser and Human+ can bind attachments to the same durable Harness identity, but neither is part of Harness or bundled with core.
+                            Browser and Human+ bind attachments to the same durable Harness identity. Each installs on its own and carries its own version, so you adopt one the day you need it.
                         </p>
                     </Reveal>
                     <div className="mt-10 grid gap-5 lg:grid-cols-2">
                         <Reveal><Link href="/docs/packages/browser" className="k-card block h-full p-7"><p className="k-mono mb-4">prism-browser · first slice</p><h3 className="text-2xl font-bold" style={{ color: 'var(--k-ink)' }}>Guarded open-web automation</h3><p className="mt-4 text-sm leading-relaxed" style={{ color: 'var(--k-ink-3)' }}>Policy-first navigation and typed actions over bounded, provenance-framed observations. Stable package-issued references replace raw selectors and arbitrary JavaScript.</p><p className="k-mono mt-6">Read the boundary →</p></Link></Reveal>
-                        <Reveal delay={100}><Link href="/docs/packages/human-plus" className="k-card block h-full p-7"><p className="k-mono mb-4">prism-human-plus · first slice</p><h3 className="text-2xl font-bold" style={{ color: 'var(--k-ink)' }}>Join the surface as a participant</h3><p className="mt-4 text-sm leading-relaxed" style={{ color: 'var(--k-ink-3)' }}>A PHP agent joins a live Fancy surface through an invitation and relay. The app owns stable handles, staged writes, undo, cursors, and presence; this is not DOM automation.</p><p className="k-mono mt-6">Explore Human+ →</p></Link></Reveal>
+                        <Reveal delay={100}><Link href="/docs/packages/human-plus" className="k-card block h-full p-7"><p className="k-mono mb-4">prism-human-plus · first slice</p><h3 className="text-2xl font-bold" style={{ color: 'var(--k-ink)' }}>Join the surface as a participant</h3><p className="mt-4 text-sm leading-relaxed" style={{ color: 'var(--k-ink-3)' }}>A PHP agent joins a live Fancy surface through an invitation and relay. The app owns stable handles, staged writes, undo, cursors and presence, and the agent works through them.</p><p className="k-mono mt-6">Explore Human+ →</p></Link></Reveal>
                     </div>
                 </div>
             </section>
@@ -296,8 +296,8 @@ export default function Landing({ version }: { version: string }) {
                             Core stays small. The <span className="k-grad-text italic">ecosystem</span> does the rest.
                         </h2>
                         <p className="mt-5 max-w-2xl leading-relaxed" style={{ color: 'var(--k-ink-2)' }}>
-                            Every one of these is optional and separately versioned. Nothing here is bundled into core, and core does not
-                            depend on any of it — which is what keeps a provider shuttle a provider shuttle.
+                            Install the ones your application needs, each on its own version. Core stays a provider shuttle, so a provider fix
+                            reaches you the day it ships.
                         </p>
                     </Reveal>
                     <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -317,8 +317,8 @@ export default function Landing({ version }: { version: string }) {
             {/* Language ports */}
             <section className="k-hairline-top" style={{ background: 'var(--k-bg-1)' }}>
                 <div className="mx-auto grid max-w-7xl gap-10 px-6 py-20 lg:grid-cols-2 lg:items-center">
-                    <Reveal><p className="k-mono mb-3">One contract · more languages</p><h2 className="text-3xl font-bold sm:text-5xl" style={{ letterSpacing: '-0.04em', color: 'var(--k-ink)' }}>Prism is no longer <span className="k-grad-text italic">PHP-only.</span></h2><p className="mt-5 max-w-xl leading-relaxed" style={{ color: 'var(--k-ink-2)' }}>TypeScript and Python ports implement focused Anthropic and OpenAI text slices today. They are version 0.1.0 and deliberately smaller than the PHP reference — focused slices, not claims of full feature parity.</p></Reveal>
-                    <Reveal delay={100}><div className="k-card p-7"><div className="grid gap-5 sm:grid-cols-2"><div><p className="k-mono">TypeScript</p><p className="mt-2 text-sm" style={{ color: 'var(--k-ink-3)' }}>Node 20+, strict types, native promises.</p></div><div><p className="k-mono">Python</p><p className="mt-2 text-sm" style={{ color: 'var(--k-ink-3)' }}>Python 3.10+, zero runtime dependencies.</p></div></div><p className="mt-6 border-t pt-5 text-sm leading-relaxed" style={{ borderColor: 'var(--k-hairline-2)', color: 'var(--k-ink-3)' }}><code>prism-parity</code> keeps the shared text behavior measurable with a language-independent corpus and an existence manifest designed to admit future ports.</p><Link href="/docs/packages/language-ports" className="k-mono mt-5 inline-block">See what is—and is not—in parity →</Link></div></Reveal>
+                    <Reveal><p className="k-mono mb-3">One contract · more languages</p><h2 className="text-3xl font-bold sm:text-5xl" style={{ letterSpacing: '-0.04em', color: 'var(--k-ink)' }}>Prism speaks <span className="k-grad-text italic">three languages.</span></h2><p className="mt-5 max-w-xl leading-relaxed" style={{ color: 'var(--k-ink-2)' }}>TypeScript and Python ports implement every capability the PHP reference has — text, structured output, streaming, embeddings, media, audio and more — across Anthropic, Mistral and OpenAI. Both install from their own registry.</p></Reveal>
+                    <Reveal delay={100}><div className="k-card p-7"><div className="grid gap-5 sm:grid-cols-2"><div><p className="k-mono">TypeScript</p><p className="mt-2 text-sm" style={{ color: 'var(--k-ink-3)' }}>Node 20+, strict types, native promises.</p></div><div><p className="k-mono">Python</p><p className="mt-2 text-sm" style={{ color: 'var(--k-ink-3)' }}>Python 3.10+, zero runtime dependencies.</p></div></div><p className="mt-6 border-t pt-5 text-sm leading-relaxed" style={{ borderColor: 'var(--k-hairline-2)', color: 'var(--k-ink-3)' }}><code>prism-parity</code> keeps the shared behavior measurable: one language-independent corpus runs the same fixture through all three languages and compares the bytes, and its manifest is built to admit the next port.</p><Link href="/docs/packages/language-ports" className="k-mono mt-5 inline-block">See how parity is measured →</Link></div></Reveal>
                 </div>
             </section>
 
