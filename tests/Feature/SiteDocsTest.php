@@ -137,11 +137,12 @@ class SiteDocsTest extends TestCase
         $source = File::get(resource_path('js/pages/Landing.tsx'));
 
         $this->assertStringContainsString('Agents that survive', $source);
-        $this->assertStringContainsString('Browser and Human+ can bind attachments', $source);
-        $this->assertStringContainsString('Prism is no longer', $source);
+        $this->assertStringContainsString('Browser and Human+ bind attachments', $source);
+        $this->assertStringContainsString('carries its own version', $source);
+        $this->assertStringContainsString('Prism speaks', $source);
         $this->assertStringContainsString('cross-language provider API ecosystem', $source);
         $this->assertStringContainsString('PHP and Laravel are the mature reference', $source);
-        $this->assertStringContainsString('focused, growing ports', $source);
+        $this->assertStringContainsString('every capability the PHP reference has', $source);
         $this->assertStringContainsString('Core remains the provider API shuttle', $source);
     }
 
