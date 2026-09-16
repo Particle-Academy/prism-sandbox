@@ -6,12 +6,12 @@ runtime built on top of Prism, with nested subagents that carry their own
 budgets.
 
 ::: warning Pre-1.0 — the API can still change in a minor version
-`prism-harness` is at **`v0.7.1`**. Use it where you can follow a moving
+`prism-harness` is at **`v0.11.1`**. Use it where you can follow a moving
 package.
 
 Two things to know before you start: **tool authorization is off by default**,
-and `php artisan harness:doctor` reports what your configuration actually does
-rather than what it looks like it does.
+and `php artisan harness:doctor` reports what your configuration does, resolved
+value by resolved value.
 :::
 
 ## What it is for
@@ -33,8 +33,8 @@ composer require particle-academy/prism-harness
 php artisan migrate
 ```
 
-The migrations are **loaded, not merely publishable**, so threads work
-immediately after `migrate` with nothing to publish. They create three tables:
+The migrations are **loaded for you**, so threads work the moment you run
+`migrate`. They create three tables:
 `harness_threads`, `harness_thread_messages` and `harness_session_state`.
 
 Publish the config only when you need to change something in it:
@@ -69,7 +69,7 @@ $response = Prism::text()
 $thread->record($response->messages);   // the full exchange, tool steps included
 ```
 
-`$response->messages` carries every step of a tool loop, not just the final
+`$response->messages` carries every step of a tool loop alongside the final
 answer, so recording a turn is one call — and a run interrupted mid-tool resumes
 from exactly where it stopped.
 
@@ -81,22 +81,20 @@ and a support chat bleeding into a coding session is a bug you find in
 production, so the scope is part of the address rather than a label hung off it.
 
 Resolution uses `firstOrCreate`: a fresh worker asking for the same address
-lands on the same thread instead of starting a new one.
+lands on the same thread.
 
-### The storage format is the package's, not Prism's
+### Threads store a format built for replay
 
-Threads do not persist Prism's `toArray()` output. That method exists to feed
-telemetry and debug output and is free to change for presentational reasons;
-storage cannot be. Two consequences worth knowing:
+The package owns its storage format, so a thread rebuilds exactly as it was
+recorded while Prism's `toArray()` stays free to change for telemetry and debug
+output. Two consequences worth knowing:
 
-- Content parts are stored with their concrete class. Prism's `Media::toArray()`
-  records *where* a file lives but not *what it is* — an image and a document
-  serialise identically — so without this, every attachment would come back as
-  whatever type the reader guessed.
-- Anything that cannot be stored and rebuilt faithfully throws
-  `UnmappableContent` rather than being dropped. A thread is replayed to the
-  model as context, so a silent omission never surfaces as an error; it surfaces
-  much later as a model that has forgotten something.
+- Content parts are stored with their concrete class, so an image comes back an
+  image and a document comes back a document.
+- Content that would lose fidelity on the round trip throws `UnmappableContent`
+  at write time, where you can act on it — a thread is replayed to the model as
+  context, and a gap there surfaces much later as a model that has forgotten
+  something.
 
 ::: danger Thread rows are trusted storage
 Rebuilding an attachment resolves whatever locator was recorded, so a row
@@ -109,7 +107,7 @@ but it sets where the boundary is. **Never let request input write directly into
 ## Sessions
 
 A session is one participant's live runtime: the active mode, the selected
-model, and the thread they are bound to. It is **resolved, never held**.
+model, and the thread they are bound to. It is **resolved per request**.
 
 ```php
 use Prism\Harness\PrismHarness;
@@ -146,16 +144,15 @@ Laravel Gate. Identity-dependent capabilities can register a session-bound
 tool factory, so callbacks resolve against the locked owner session rather than
 process-global state.
 
-::: tip There is no facade
-Resolve `PrismHarness` from the container, as above. The package binds it as a
-singleton and does not register a facade, so `PrismHarness::for(...)` written as
-a static call will not work.
+::: tip Resolve it from the container
+`PrismHarness` is bound as a singleton — inject it or resolve it, as above. It
+ships without a facade, so reach for the container rather than
+`PrismHarness::for(...)`.
 :::
 
-A Laravel request boots, serves and dies, so a session cannot be an object kept
-in memory the way a long-lived Node process can hold one. Every call rebuilds
-one from a store — which is precisely what makes a fresh queue worker see the
-same mode, model and conversation as the web request that set them.
+A Laravel request boots, serves and dies, so every call rebuilds the session
+from a store — which is precisely what makes a fresh queue worker see the same
+mode, model and conversation as the web request that set them.
 
 ### Two slots, because the halves differ
 
@@ -164,9 +161,9 @@ same mode, model and conversation as the web request that set them.
 | `ephemeral` | active mode, selected model, run bookkeeping | falls back to a default |
 | `durable` | threads, pending tool approvals | work is gone |
 
-Both default to `database`, so the package works on install with nothing to set
-up. Redis is the better home for live session state — point the ephemeral half
-at it when you have one:
+Both default to `database`, so the package works the moment you install it.
+Redis is the better home for live session state — point the ephemeral half at it
+when you have one:
 
 ```php
 // config/harness.php
@@ -182,19 +179,18 @@ at it when you have one:
 resolve time.**
 
 The `redis` connection in a typical Laravel app is a *cache* — something is
-entitled to flush it. The package cannot tell from the inside whether yours is
-persistent, so `redis` reports itself volatile by default, and pointing the
-durable slot at it throws `UnsafeStateConfiguration` with both ways out named.
+entitled to flush it. Only you know whether yours is persistent, so `redis`
+reports itself volatile by default, and pointing the durable slot at it throws
+`UnsafeStateConfiguration` with both ways out named.
 
-That is not defensive theatre. Quietly accepting a cache for state that must
-survive a deploy is how a pending tool approval — a half-executed action a human
-was asked to authorise — disappears with nothing in the logs. If your Redis
-really is durable, say so, and it is allowed:
+What that protects is concrete: a pending tool approval is a half-executed
+action a human was asked to authorise, and it has to survive a deploy. If your
+Redis really is durable, say so, and the slot opens:
 
 ```php
 'drivers' => [
     'redis' => [
-        // An assertion about your infrastructure, not a preference.
+        // An assertion about your infrastructure, made deliberately.
         'durable' => true,
     ],
 ],
@@ -209,24 +205,22 @@ while the user sends another message is ordinary. Advance a run inside a lock:
 use Prism\Harness\Sessions\Session;
 
 $session->lock(function (Session $session): void {
-    // whatever must not happen twice
+    // the work that runs once
 });
 ```
 
-`lock()` **throws `SessionLocked` rather than running anyway** on timeout, since
-running anyway would defeat the only thing it is for. Locks carry an expiry, so
-a worker that dies mid-run does not hold the session shut forever. State is
-re-read inside the lock, because acting on a value fetched before you held it is
-the exact race the lock exists to prevent.
+`lock()` **throws `SessionLocked`** on timeout, so the caller learns that
+someone else holds the session. Locks carry an expiry, so a worker that dies
+mid-run releases it. State is re-read inside the lock, so you act on the values
+as they are at the moment you hold it.
 
 ## The context window
 
 A thread that only ever grows eventually stops fitting. Compaction changes
-**which of its messages the model sees** — never what is stored.
+**which of its messages the model sees**, and storage keeps everything.
 
-**Nothing compacts by default.** Installing a newer version of this package does
-not start dropping turns out from under you; you choose a strategy, and the
-harness provides the seam rather than the policy.
+**Compaction is opt-in.** You choose the strategy and the harness provides the
+seam, so the shape of your context stays a decision you made.
 
 ```php
 // config/prism-harness.php
@@ -244,25 +238,25 @@ harness provides the seam rather than the policy.
 | `ContextRecall` | Backs a `recall_context` tool, offered to the model only when something can actually answer it |
 | `SummaryBudget` | How a summary's word budget is enforced — `RetryOnce` (default), `AskOnly`, `TruncateTo` |
 
-**Try `keep_recent` first.** It costs nothing and cannot rewrite anything.
-`SummarisingCompaction` bills a model call on every turn that fires, and a
-second one when the summary comes back over budget.
+**Try `keep_recent` first.** It is free, deterministic, and leaves every stored
+turn exactly as written. `SummarisingCompaction` bills a model call on every
+turn that fires, and a second one when the summary comes back over budget.
 
 ::: danger A summary is a lossy view — bind a sink with it
 ["Governance Decay"](https://arxiv.org/pdf/2606.22528) puts summarisation-based
 compaction above 40% safety violations, against 25–30% for truncation, because
-constraints stated early are progressively lost with nothing reporting it.
-Summarising **without** an `EvictionSink` makes that permanent: the summary
-becomes the only record, and a summary cannot be un-summarised.
+constraints stated early are progressively lost, quietly. Bind an
+`EvictionSink` alongside summarisation and the original turns stay recoverable
+from the moment they leave the window.
 :::
 
-### The word budget is a request, not a bound
+### Ask for a word budget, enforce it with a strategy
 
-`summary_words` reaches the model as *"in at most N words"* inside a prompt, and
-a model need not grant a request. Measured live with nothing checking, a stated
-15 words came back at 92 and at 346, and a default of 60 came back at 205 — the
-346 having re-stated every exchange one by one, which is exactly the unbounded
-growth that rewriting the summary is meant to prevent.
+`summary_words` reaches the model as *"in at most N words"* inside a prompt, so
+it is a request. Measured live, a stated 15 words came back at 92 and at 346,
+and a default of 60 came back at 205 — the 346 having re-stated every exchange
+one by one, which is the unbounded growth that rewriting the summary exists to
+prevent.
 
 So enforcement is a choice you bind, separate from the size you ask for:
 
@@ -272,15 +266,16 @@ $this->app->bind(SummaryBudget::class, fn () => new TruncateTo);
 
 `RetryOnce` is the default and asks once more when over — it took that 60-word
 budget from 205 words to 61, and it is allowed to miss. `TruncateTo` guarantees
-the bound and can cut mid-thought. `AskOnly` enforces nothing.
+the bound and can cut mid-thought. `AskOnly` sends the request and takes what
+comes back.
 
 ## What is in the package
 
 | Concept | What it does |
 | --- | --- |
-| Thread | The durable record of an exchange, appended to rather than replayed |
-| Context window | Compaction, an eviction sink, and budgeted recall — the view shrinks, the storage does not |
-| Session | Resolved per request, keyed on participant **and** scope so conversations never merge |
+| Thread | The durable record of an exchange, appended to as it grows |
+| Context window | Compaction, an eviction sink, and budgeted recall — the view shrinks while storage keeps everything |
+| Session | Resolved per request, keyed on participant **and** scope so each conversation keeps its own address |
 | State stores | Redis and database behind one contract, with the durable slot guarded |
 | Agent runtime | `Session::send()`, durable run bookkeeping, full-message recording |
 | Modes | A system prompt, a tool allowlist and a step ceiling, defined in config |
@@ -289,8 +284,8 @@ the bound and can cut mid-thought. `AskOnly` enforces nothing.
 | Subagents | A nested run with a narrowed toolset and its own budget |
 | Event bus | Laravel events over Reverb, separate from Prism telemetry |
 
-A scoped filesystem for an agent to work in is **not** here — that is
-[Workspace](/docs/packages/workspace).
+A scoped filesystem for an agent to work in lives in
+[Workspace](/docs/packages/workspace), one `composer require` away.
 
 Read next: [Sessions and threads](/docs/harness/sessions),
 [Modes, tools and skills](/docs/harness/modes), and
