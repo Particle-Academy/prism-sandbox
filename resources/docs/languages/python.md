@@ -50,7 +50,7 @@ Not every capability reaches every provider. Images, moderation, text to speech,
 files and batches work with OpenAI only, and fill-in-the-middle works with
 Mistral only.
 
-The port does **not** ship the multi-step tool execution loop or the PHP
-reference's other fifteen providers. A response that stops on tool calls raises
-`tool_loop_not_supported` instead of pretending the loop completed.
+The multi-step tool execution loop and the reference's other fifteen providers
+stay with PHP for now. A response that stops on tool calls raises
+`tool_loop_not_supported`, so your code learns exactly where it stands.
 

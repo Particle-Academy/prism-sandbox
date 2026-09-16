@@ -1,8 +1,8 @@
 # Building with TypeScript
 
-`@particle-academy/prism` is the native TypeScript port of Prism. It uses
-promises, discriminated unions, and strict null checking rather than copying PHP
-syntax into TypeScript.
+`@particle-academy/prism` is the native TypeScript port of Prism, written in
+TypeScript's own idiom: promises, discriminated unions and strict null
+checking.
 
 For the shared contract and parity limits, read
 [Language ports](/packages/language-ports). This page covers only the
@@ -33,8 +33,8 @@ Configuration is explicit first and environment second. `asText()` returns a
 `Promise<TextResponse>`, and the HTTP transport is injectable, so tests can run
 without a socket.
 
-Failures use `PrismError` with a stable `code`; its English `message` is not the
-contract. Consumers can narrow codes such as `unsupported_provider_action` and
+Failures use `PrismError` with a stable `code` — branch on the code, and read
+the English `message` for humans. Consumers can narrow codes such as `unsupported_provider_action` and
 `tool_loop_not_supported` without matching prose.
 
 ## Exact current scope
@@ -48,7 +48,7 @@ Not every capability reaches every provider. Images, moderation, text to speech,
 files and batches work with OpenAI only, and fill-in-the-middle works with
 Mistral only.
 
-The port does **not** ship the multi-step tool execution loop or the PHP
-reference's other fifteen providers. Unsupported work fails with a coded error
-instead of quietly degrading.
+The multi-step tool execution loop and the reference's other fifteen providers
+stay with PHP for now. Anything outside this surface fails with a coded error,
+so your code learns exactly where it stands.
 

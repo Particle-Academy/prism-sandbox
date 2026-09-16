@@ -42,10 +42,9 @@ integration supplies configuration, container resolution, facades, events,
 fakes, and testing assertions. Streaming uses its own event stream rather than
 turning `asText()` into a promise.
 
-PHP exceptions currently identify several Prism failures by exception type and
-message; unlike the ports, the reference does not yet expose the ports' stable
-error-code contract. Do not write PHP code against `PrismError.code`—that class
-belongs to the TypeScript port.
+PHP identifies failures by exception type and message, so branch on the
+exception class here. The stable `code` contract belongs to the TypeScript and
+Python ports; `PrismError.code` is theirs.
 
 ## Current surface
 
@@ -55,7 +54,7 @@ text-to-speech, speech-to-text, fill-in-the-middle, batches, and files. Core
 also implements the tool execution loop, approvals, provider tools, telemetry,
 and the thread contract.
 
-That breadth does not make core an agent framework. Durable sessions,
-workspaces, remote MCP tools, browsing, and Human+ presence remain
-[separate packages](/packages/overview).
+Durable sessions, workspaces, remote MCP tools, browsing and Human+ presence
+build on that breadth from [their own packages](/packages/overview), each on its
+own version.
 
