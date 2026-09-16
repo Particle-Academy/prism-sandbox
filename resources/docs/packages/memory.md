@@ -4,8 +4,8 @@
 
 An agent's useful context outgrows its context window. `prism-harness` gives a
 conversation a thread, and a thread replayed whole is the crudest possible
-memory: it grows without bound, costs tokens linearly, and eventually stops
-fitting.
+memory: every turn costs tokens again, and the thread eventually outgrows the
+window.
 
 This stores what was said and retrieves **only the parts that matter now**.
 
@@ -19,21 +19,19 @@ $memory->remember($response->messages);
 $relevant = $memory->recall('billing address', budget: 1500);
 ```
 
-## Recall takes a budget, not a count
+## Recall takes a token budget
 
-`recall()` is given a token budget rather than "give me the top five". A caller
-building a prompt knows how much room it has left; it does not know how many
-memories will fit in that room, and a fixed count answers the wrong question —
-five long memories and five short ones are not interchangeable.
+`recall()` is given the room you have left in the prompt, and fills it. That is
+the number a caller actually knows — five long memories and five short ones fill
+a prompt very differently, so a budget answers the question a fixed count only
+approximates.
 
-## What it does not do
+## What recall returns
 
-Recall is **retrieval, not summarisation** — it returns stored material, it does
-not run a model to condense it. If you need a summary, build one from what
-recall gives you.
+Stored material, verbatim, ranked to fit the budget. Building a summary from it
+is your call, with the model and the prompt you choose.
 
-Forgetting removes a memory. It does not trace and remove anything that was
-derived from it.
+`forget()` removes the memory you name.
 
 - [Source](https://github.com/Particle-Academy/prism-memory)
 - TypeScript and Python ports exist. See

@@ -8,18 +8,17 @@ tool call, exported over OTLP to
 anything else that speaks OTLP.
 
 ::: tip Status: published
-`v0.1.1` on Packagist. The Prism telemetry events it consumes ship in tagged
+`v0.3.0` on Packagist. The Prism telemetry events it consumes ship in tagged
 Prism releases — see [Telemetry](/advanced/telemetry) for the event stream
-itself, which is useful on its own even if you never install this bridge.
+itself, which is worth subscribing to on its own.
 :::
 
 ## Why it is a separate package
 
-Prism core never depends on OpenTelemetry. Core emits **neutral Laravel events**
-and stops there; this package owns the `open-telemetry/*` dependency and the
-GenAI attribute mapping. So semantic-convention churn — and the OpenTelemetry
-PHP SDK's own release cadence — is a release of *this* package, not a change to
-Prism.
+Core emits **neutral Laravel events**, and this package owns the
+`open-telemetry/*` dependency and the GenAI attribute mapping. So
+semantic-convention churn — and the OpenTelemetry PHP SDK's own release cadence
+— moves at this package's pace, and your Prism upgrades stay about Prism.
 
 ```
 Prism core (events)                 →  this bridge          →  OTLP backend
@@ -39,9 +38,9 @@ composer require particle-academy/prism-opentelemetry
 composer require open-telemetry/sdk open-telemetry/exporter-otlp
 ```
 
-The SDK is a separate install on purpose: the bridge does nothing at all if the
-OpenTelemetry API is absent, so a machine that never wanted tracing does not
-carry the dependency.
+The SDK is a separate install on purpose: the bridge activates when the
+OpenTelemetry API is present, so tracing travels with the machines you want it
+on.
 
 Turn Prism's telemetry on — it is **off by default** and a complete no-op until
 you enable it:

@@ -1,11 +1,11 @@
 # Prism Perplexity
 
-The rest of the Perplexity API — embeddings, direct web search, and the
-endpoints that do not fit Prism's provider abstraction.
+The rest of the Perplexity API — embeddings, direct web search, and the Agent
+API, each reached the way Perplexity actually exposes it.
 
 ::: tip Status: published
-`v0.1.0` on Packagist. Embeddings and search work and are tested. Async deep
-research is planned and not built.
+`v0.2.0` on Packagist. Embeddings, search and the Agent API are tested and in
+use. Async deep research is on the roadmap.
 :::
 
 ## Installation
@@ -15,9 +15,9 @@ composer require particle-academy/prism-perplexity
 ```
 
 That is the whole setup. The package registers under the **same provider key**
-as Prism core, so `using('perplexity', …)` gains capabilities and nothing that
-already worked changes — it extends Prism's Perplexity provider rather than
-replacing it. Existing Perplexity code needs no edits.
+as Prism core, so `using('perplexity', …)` gains capabilities while every
+call you already wrote keeps working — it extends Prism's Perplexity provider in
+place.
 
 Requires PHP 8.2+, Laravel 12.61+ or 13.12+, and `particle-academy/prism` 0.113
 or newer. Your existing `PERPLEXITY_API_KEY` is the one it uses.
@@ -42,10 +42,10 @@ $response->embeddings[0]->embedding;   // float[]
 
 Perplexity has a second endpoint for chunks of **one document**, embedding each
 in light of the others — which is what you want when you have split a document
-for retrieval and would rather every chunk not read as though it arrived alone.
+for retrieval and want each chunk to carry the document around it.
 
-Prism's embeddings abstraction is text-in, vector-out and has no concept of
-"these belong together", so it is reached explicitly rather than inferred:
+Prism's embeddings abstraction is text-in, vector-out, so "these belong
+together" is something you say explicitly:
 
 ```php
 Prism::embeddings()
@@ -55,14 +55,14 @@ Prism::embeddings()
     ->asEmbeddings();
 ```
 
-Vectors come back ordered by the `index` the API returns, not by array position.
+Vectors come back ordered by the `index` the API returns, so match on that index.
 Lining vectors up with the inputs that produced them by position would be a
 silent mismatch the first time a response arrived out of order.
 
 ## Search
 
-Web results with **no model in the loop** — the sources a grounded answer would
-have been built from, without paying for the answer.
+Web results **straight from the index** — the sources a grounded answer would
+have been built from, at the cost of the lookup alone.
 
 ```php
 use Prism\Prism\PrismManager;
@@ -75,17 +75,15 @@ $results = $provider->search('what is prism php', [
 ]);
 ```
 
-This is not a `Prism::` verb, because Prism has no "search" concept — every
-other provider it speaks to answers with a model. Bending a list of web results
-into a completion would throw away the structure that makes it worth having, so
-it is its own method on the provider.
+It is a method on the provider rather than a `Prism::` verb, because the result
+is a list of sources with structure worth keeping — every other Prism verb
+answers with a model.
 
 `search()` also takes an array of queries to run together. Results are plain
-arrays rather than value objects, because Perplexity documents the payload as
-open-ended and a wrapper naming only today's fields would quietly drop
-tomorrow's.
+arrays, so every field Perplexity sends reaches you — including the ones it adds
+after this page was written.
 
-**An empty result list is an answer, not a failure.** It comes back as `[]`.
+**An empty result list is an answer.** It comes back as `[]`.
 
 ## What lives here, and what lives in core
 

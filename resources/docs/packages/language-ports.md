@@ -1,12 +1,13 @@
 # Language ports
 
-Prism is no longer PHP-only. TypeScript and Python ports exist today, and the
-ecosystem is open to more languages rather than fixed to a closed list.
+Prism speaks three languages. TypeScript and Python ports ship today, and the
+ecosystem is built to take more.
 
-::: warning Every capability, three providers
+::: tip Every capability, three providers
 Both ports implement every capability the PHP reference has, with three of its
-eighteen providers: Anthropic, Mistral and OpenAI. Neither runs the multi-step
-tool execution loop.
+eighteen providers: Anthropic, Mistral and OpenAI. The multi-step tool execution
+loop stays with the PHP reference, and a response that stops on tool calls says
+so with a coded error.
 :::
 
 ## What exists
@@ -24,11 +25,10 @@ fixture through all three languages and compare the bytes. They cover request
 construction, response parsing, value-object round trips, coded errors and JSON
 container identity, alongside a security corpus for each package family.
 
-That proves agreement only where a case exists and a port implements the
-surface. It does not imply that TypeScript or Python has the tool execution
-loop or the PHP provider estate.
-Those absences are recorded deliberately, so a planned gap reads differently
-from an accident.
+That proves agreement wherever a case exists and a port implements the surface.
+The tool execution loop and the wider PHP provider estate stay with the
+reference for now, and every such gap is recorded as a decision with a date on
+it.
 
-A fourth language would join the same corpus rather than needing a parallel one,
-so the three listed here are where Prism is today, not a ceiling.
+A fourth language joins the same corpus, so the three here are where Prism is
+today and the list is open.
