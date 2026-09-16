@@ -1,11 +1,14 @@
 # Prism Browser
 
-Guarded open-web automation for Prism agents, with the browser treated as a
-security boundary rather than a convenient Playwright wrapper.
+Guarded open-web automation for Prism agents. The browser is a security
+boundary here, and the package is built as one.
 
-::: warning Not installable yet — source only
-`prism-browser` has no tagged release and is not on Packagist, so there is no
-`composer require` for it. The implementation exists and is tested; read it at
+```bash
+composer require particle-academy/prism-browser
+```
+
+::: tip Pre-1.0 — pin what you install
+`prism-browser` is at **`v0.1.0`**, its first release. Source at
 [Particle-Academy/prism-browser](https://github.com/Particle-Academy/prism-browser).
 :::
 
@@ -16,7 +19,7 @@ action policy, bounded structured observations, durable attachment generations,
 compare-and-swap storage, stale-observation refusal, and an `in_doubt` state for
 an action whose outcome is ambiguous.
 
-The model never supplies CSS, XPath, or arbitrary JavaScript. It acts through a
+The model acts through package-issued element references, resolved through a
 package-issued element reference tied to a short-lived observation. The package
 also ships Prism tool adapters for navigate, observe, act, status, and close.
 
@@ -36,20 +39,21 @@ the network-level enforcement point for public/private address separation,
 redirects, and subresources. The local dogfood override does not claim that DNS
 checks in application code eliminate rebinding races.
 
-::: danger No silent trust upgrade
-Credentials, raw browser checkpoints, downloads, arbitrary selectors, and page
-JavaScript do not belong in model arguments or results. A direct engine binding
-is infrastructure, not a safe model tool.
+::: danger Keep the engine behind the policy
+Credentials, raw browser checkpoints, downloads, arbitrary selectors and page
+JavaScript belong in your infrastructure. A direct engine binding is
+infrastructure too — hand the model the guarded surface, and it keeps every
+check in this page in front of it.
 :::
 
 ## Relationship to Harness and Human+
 
-A browser attachment may be keyed to a durable Harness session, but Harness is
-only a suggested dependency: each package remains installable on its own.
+A browser attachment can be keyed to a durable Harness session. Harness stays a
+suggested dependency, and each package installs on its own.
 
-Human+ is not a browser mode. `prism-human-plus` joins a controlled Fancy
-surface as a visible participant; Browser automates the open web. They may
-coexist without one silently becoming the other.
+Human+ covers the other half: `prism-human-plus` joins a controlled Fancy
+surface as a visible participant, while Browser automates the open web. Run
+both, each in its own lane.
 
 Source: [Particle-Academy/prism-browser](https://github.com/Particle-Academy/prism-browser).
 

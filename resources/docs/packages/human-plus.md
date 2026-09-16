@@ -1,15 +1,15 @@
 # Prism Human+
 
 Participant presence for Prism agents in live Fancy surfaces. An agent joins
-the same controlled, JSON-serializable surface a human sees instead of pulling
-backend levers or impersonating a person through the DOM.
+the same controlled, JSON-serializable surface a human sees, and works through
+the handles that surface already exposes.
 
 ```bash
 composer require particle-academy/prism-human-plus
 ```
 
 ::: warning Pre-1.0 — the API can still change in a minor version
-`prism-human-plus` is at **`v0.1.0`**, its first release. Pin what you install.
+`prism-human-plus` is at **`v0.3.0`**. Pin what you install.
 :::
 
 ## What the surface owns
@@ -28,12 +28,12 @@ client-scoped POST + SSE relay transport.
 
 The participant identity, activity target, priority, and correlation remain
 visible to the host surface. An agent can call bridge tools and submit staged
-proposals, but the package reserves human confirmation callbacks: it does not
-turn an agent proposal into its own approval.
+proposals; human confirmation callbacks stay reserved for the person, so an
+approval always has someone behind it.
 
 Fancy currently supplies the primitives for activity, presence, staged writes,
-and undo. This package does **not** claim generic conflict resolution for two
-concurrent committed edits; that contract remains surface-specific.
+and undo. Conflict resolution for two concurrent committed edits stays
+with the surface, which is the layer that knows what its own edits mean.
 
 ## Trust boundary
 
@@ -42,15 +42,15 @@ definitions can be allowlisted and pinned, and both successful and error
 results are bounded and provenance-framed before a model reads them.
 
 The relay uses a nonempty client identifier so replies are scoped to the joining
-participant. A gone surface and an unauthorized attachment are distinct terminal
-states rather than retry aliases.
+participant. A gone surface and an unauthorized attachment each end in
+their own terminal state, so your recovery path can tell them apart.
 
 ## Relationship to Harness and Browser
 
-A Human+ attachment may bind to the same durable Harness session as other
-capabilities, but Harness is a suggested dependency rather than a hidden
-requirement. Browser remains separate: joining an application-owned surface is
-not open-web automation.
+A Human+ attachment binds to the same durable Harness session as other
+capabilities when you want it to; Harness stays a suggested dependency you opt
+into. Browser covers the open web, Human+ covers an application-owned surface,
+and each stays in its lane.
 
 Source: [Particle-Academy/prism-human-plus](https://github.com/Particle-Academy/prism-human-plus).
 
