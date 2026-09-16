@@ -10,9 +10,10 @@ $session->usingMode('plan')->usingModel('claude-sonnet-5');
 $response = $session->send('Where did we get to?');
 ```
 
-## Resolved, never held
+## Resolved on every request
 
-A Laravel request boots, serves and dies. So a session cannot be an object kept
+A Laravel request boots, serves and dies. So a session lives in a store, rather
+than being an object kept
 in memory the way a long-lived Node process can keep one — every call rebuilds
 it from a store.
 
@@ -22,22 +23,22 @@ four verbs below exist rather than a `new Agent(...)` you hold onto:
 | | |
 |---|---|
 | **Resolve** | address a session by participant *and* scope, so one user can hold several unrelated conversations that never merge |
-| **Rehydrate** | rebuild its state from the store on every request, because nothing survived the last one |
-| **Lock** | run work that must not happen twice, even if the user double-submits or a queue retries |
+| **Rehydrate** | rebuild its state from the store on every request, in whichever worker picks it up |
+| **Lock** | run work exactly once, even if the user double-submits or a queue retries |
 | **Continue** | append to the thread rather than replaying it, so the conversation grows without the prompt growing with it |
 
 ## Scope is part of the address
 
 A session is keyed by participant **and** scope. Without the scope, a user's
 support conversation and their billing conversation are the same thread, and
-the model answers one with the context of the other — which is not a bug you
-notice in testing and is very noticeable in production.
+the model answers one with the context of the other — the kind of bug that
+stays quiet in testing and is very loud in production.
 
 ## Locking
 
 ```php
 $session->lock(function (Session $session) {
-    // whatever must not happen twice
+    // the work that runs once
 });
 ```
 

@@ -8,10 +8,10 @@ A mode may declare subagents, which the parent can call as tools.
 ],
 ```
 
-A subagent is a narrowed agent, not a fresh one — see
+A subagent is a narrowed agent that spends from its parent's budget — see
 [Modes](/docs/harness/modes) for why the narrowing is the point.
 
-## Budgets nest; they do not reset
+## Budgets nest: a child spends from its parent
 
 This is the rule the whole subagent surface rests on, and it only has one
 defensible answer.
@@ -39,18 +39,17 @@ $session->usingMaxSteps(20);
 
 When those two disagree the agent is told one number and cut off at another — it
 plans for the promise, spends the promise, and has its work discarded at the
-smaller limit. That is not a bounded run; it is a wasted one.
+smaller limit. The budget goes, and the answer with it.
 
 The override is itself bounded. `agent.max_steps_ceiling` is the operator's
 word and outranks the caller, because a limit the thing being limited can raise
 without bound is a limit in name only — the same argument the nesting rule makes
 about children.
 
-## Truncation is not completion
+## A truncated run says so
 
-When a run stops at its ceiling the loop returns normally. A caller that reads
-only "the agent returned" cannot tell a finished job from one cut off mid-work,
-and will file the second as the first.
+When a run stops at its ceiling the loop returns normally, so read the pair of
+signals below to tell a finished job from one cut off mid-work.
 
 The tell is the pair: the model still wanted to call a tool **and** no steps
 remained. A run that stopped on the last step having said it was done is a

@@ -20,9 +20,9 @@ A Laravel request boots, serves and dies, so the list cannot live in memory. It
 lives in the session's durable store, and a fresh worker resolving the same
 session sees the same list at the same point.
 
-## It does not decide what a task is
+## You decide what a task is
 
-There is no task model, no schema and no migration. That part is yours.
+Bring your own model, schema and migration — or bring none.
 
 **With no table at all**, `$session->tasks()` gives you a store-backed list that
 works immediately.
@@ -47,7 +47,7 @@ Conventional column names, one override method each.
 
 ## A claim carries a lease
 
-`claim()` is a single call, not "read the next task" followed by "mark it mine".
+`claim()` is a single call that reads the next task and marks it yours together.
 Two workers claiming at once get different tasks, or one gets `null`. Never the
 same task twice.
 
@@ -61,17 +61,17 @@ run's wall-clock budget has left.
 
 ## `release()` requires the worker
 
-Passing the worker is not bookkeeping. A release by anyone other than the current
-holder is refused, and the failure it prevents needs no adversary:
+Passing the worker is what makes a release safe. Only the current holder may
+release a task, and the failure that prevents needs no adversary:
 
 Worker A's lease lapses mid-task. B legitimately reclaims it and starts. A
 finishes and releases — overwriting B's live claim. The task reads `done` while B
 is still working, B's work is discarded, and **B's own release then fails as
 "already terminal"**, so the second worker is blamed for the first one's mistake.
 
-## The agent cannot close its own task
+## Completion is the application's call
 
-By default, completion is the application's call, made from evidence.
+By default, a task closes on evidence your code has seen.
 
 If the model can set its own task to `done`, then "run until the goal is met"
 quietly becomes "run until it decides it is met", and a run that has stalled ends
@@ -95,19 +95,18 @@ task that spawns subagents draws from the same remaining allowance.
 `maxSteps` alone is not a budget: it bounds iterations, and a handful of steps
 each calling an expensive tool sits comfortably inside it.
 
-## What it does not do
+## The shape of the list
 
-It is **not a workflow engine**. Tasks are a flat list with next-item semantics —
-no dependency graph, no scheduling, no retry policy. A failed task stays failed;
-re-queueing it is the application's decision.
+Tasks are a flat list with next-item semantics: claim the next one, release it
+done or failed, repeat. A failed task stays failed, and re-queueing it is your
+call.
 
-If you need dependency-ordered execution, durable checkpoints or
-resume-from-pause, that is
-[`fancy-flow`](https://github.com/Particle-Academy/fancy-flow-php), which the
-harness already bridges to.
+For dependency-ordered execution, durable checkpoints or resume-from-pause,
+reach for [`fancy-flow`](https://github.com/Particle-Academy/fancy-flow-php),
+which the harness already bridges to.
 
-The list is durable state, so a task source backed by a volatile store refuses to
-start rather than losing your list on the next deploy. See
+The list is durable state, so a task source backed by a volatile store refuses
+to start — your list survives the next deploy. See
 [Sessions](/docs/harness/sessions) for that distinction.
 
 - TypeScript and Python ports carry the same contract. See

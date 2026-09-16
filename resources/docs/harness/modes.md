@@ -18,13 +18,12 @@ may read, and a default step ceiling:
 ],
 ```
 
-## A mode is a narrowing, not a costume
+## A mode narrows what a run can reach
 
-The point of a mode is what it *cannot* do. A verifier that can file its own
-finding is a second author rather than a check; a judge that can reach the
-workspace it is scoring can look past the evidence it was given at the artifact
-itself. Both of those stop being checks the moment the mode is widened "just to
-make it easier".
+A mode earns its keep through the reach it withholds. A verifier that can file
+its own finding becomes a second author; a judge that can reach the workspace it
+is scoring can look past the evidence at the artifact itself. Each stays a check
+for as long as its mode stays narrow.
 
 So the tool list is an allow-list, and an empty one is a legitimate and common
 answer.
@@ -41,7 +40,7 @@ actually call it is a second question, and the answer is opt-in:
 Off by default because turning it on without an authorizer would refuse
 everything, and a package that breaks on install teaches people to skip the
 security feature. `harness:doctor` reports what your configuration is actually
-doing rather than what it looks like it does.
+doing, resolved value by resolved value.
 
 ## Approvals
 
