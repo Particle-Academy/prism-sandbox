@@ -90,6 +90,32 @@ class DocsMarkdownTest extends TestCase
         $this->assertStringContainsString('::: tip', $html);
     }
 
+    public function test_a_language_group_labels_each_variant_without_changing_its_highlighter(): void
+    {
+        $html = $this->render(<<<'MD'
+            ::: language-group
+            ```bash [language=php]
+            composer require particle-academy/prism
+            ```
+
+            ```ts
+            await Prism.text().asText();
+            ```
+
+            ```python
+            Prism.text().as_text()
+            ```
+            :::
+            MD);
+
+        $this->assertStringContainsString('data-doc-language="php"', $html);
+        $this->assertStringContainsString('data-doc-language="typescript"', $html);
+        $this->assertStringContainsString('data-doc-language="python"', $html);
+        $this->assertStringContainsString('data-lang="bash"', $html);
+        $this->assertStringNotContainsString('[language=php]', $html);
+        $this->assertSame(3, substr_count($html, 'class="doc-language-code"'));
+    }
+
     public function test_multibyte_content_survives_preprocessing(): void
     {
         // Regression: lines were split on `\R`, which outside UTF mode also

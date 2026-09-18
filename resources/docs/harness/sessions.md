@@ -2,6 +2,7 @@
 
 A session is how a conversation survives the request that started it.
 
+::: language-group
 ```php
 $session = PrismHarness::for($user)->session('support');
 
@@ -9,6 +10,25 @@ $session->usingMode('plan')->usingModel('claude-sonnet-5');
 
 $response = $session->send('Where did we get to?');
 ```
+
+```ts
+const session = harness.for({ type: 'User', id: user.id }).session('support');
+
+await session.usingMode('plan');
+await session.usingModel('claude-sonnet-5');
+
+const response = await runtime.send(session, 'Where did we get to?');
+```
+
+```python
+from prism_harness import Participant
+
+session = harness.for_(Participant("User", user.id)).session("support")
+session.using_mode("plan").using_model("claude-sonnet-5")
+
+response = runtime.send(session, "Where did we get to?")
+```
+:::
 
 ## Resolved on every request
 
@@ -36,11 +56,27 @@ stays quiet in testing and is very loud in production.
 
 ## Locking
 
+::: language-group
 ```php
 $session->lock(function (Session $session) {
     // the work that runs once
 });
 ```
+
+```ts
+await session.lock(async (live) => {
+  // the work that runs once
+});
+```
+
+```python
+def advance(live):
+    # the work that runs once
+    pass
+
+session.lock(advance)
+```
+:::
 
 An agent turn is expensive and frequently side-effectful. Two of them running
 concurrently against one session is the failure this prevents — a double-submit,

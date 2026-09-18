@@ -3,9 +3,19 @@
 Guarded open-web automation for Prism agents. The browser is a security
 boundary here, and the package is built as one.
 
-```bash
+::: language-group
+```bash [language=php]
 composer require particle-academy/prism-browser
 ```
+
+```bash [language=typescript]
+npm install @particle-academy/prism-browser
+```
+
+```bash [language=python]
+pip install prism-ai-browser
+```
+:::
 
 ::: tip Pre-1.0 — pin what you install
 `prism-browser` is at **`v0.1.0`**, its first release. Source at
@@ -22,6 +32,48 @@ an action whose outcome is ambiguous.
 The model acts through package-issued element references, resolved through a
 package-issued element reference tied to a short-lived observation. The package
 also ships Prism tool adapters for navigate, observe, act, status, and close.
+
+## Guard a browser
+
+::: language-group
+```php
+use Prism\Browser\BrowserManager;
+use Prism\Browser\Security\BrowserPolicy;
+
+$policy = new BrowserPolicy(['docs.example.com'], requireHttps: true);
+$browser = new BrowserManager($engine, $store, $policy);
+$attachment = $browser->open($session->key());
+$observation = $browser->navigate(
+    $session->key(),
+    $attachment->id,
+    'https://docs.example.com/start',
+);
+```
+
+```ts
+import { BrowserPolicy, GuardedBrowser } from '@particle-academy/prism-browser';
+
+const policy = new BrowserPolicy({
+  allowedHosts: ['docs.example.com'],
+  allowedActions: ['click', 'scroll'],
+});
+
+const browser = new GuardedBrowser(engine, policy);
+const observation = await browser.navigate('https://docs.example.com/start');
+```
+
+```python
+from prism_browser import ActionKind, BrowserPolicy, GuardedBrowser
+
+policy = BrowserPolicy(
+    allowed_hosts=["docs.example.com"],
+    allowed_actions=[ActionKind.CLICK, ActionKind.SCROLL],
+)
+
+browser = GuardedBrowser(engine, policy)
+observation = browser.navigate("https://docs.example.com/start")
+```
+:::
 
 A version-pinned Playwright sidecar is included as the first engine adapter, but
 the application must bind the engine explicitly; no browser executable becomes
@@ -56,4 +108,3 @@ surface as a visible participant, while Browser automates the open web. Run
 both, each in its own lane.
 
 Source: [Particle-Academy/prism-browser](https://github.com/Particle-Academy/prism-browser).
-

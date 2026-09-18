@@ -31,12 +31,22 @@ Events\Telemetry\GenerationStarted     builds root span        Arize Phoenix,
 
 ## Installation
 
-```bash
+::: language-group
+```bash [language=php]
 composer require particle-academy/prism-opentelemetry
 
 # Plus an OpenTelemetry SDK and an OTLP exporter — transport of your choice.
 composer require open-telemetry/sdk open-telemetry/exporter-otlp
 ```
+
+```bash [language=typescript]
+npm install @particle-academy/prism-opentelemetry
+```
+
+```bash [language=python]
+pip install prism-ai-opentelemetry
+```
+:::
 
 The SDK is a separate install on purpose: the bridge activates when the
 OpenTelemetry API is present, so tracing travels with the machines you want it
@@ -61,11 +71,58 @@ OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:6006   # Phoenix OTLP endpoint
 
 Requires PHP 8.2+ and `particle-academy/prism` 0.111 or newer.
 
+## Instrument a generation
+
+PHP subscribes to Prism's Laravel events when the package is enabled. The two
+zero-dependency ports expose the same subscriber boundary directly so any
+OpenTelemetry SDK can sit behind it.
+
+::: language-group
+```php
+use Prism\Prism\Facades\Prism;
+
+$response = Prism::text()
+    ->using('anthropic', 'claude-sonnet-4-5')
+    ->withPrompt('Summarise the incident.')
+    ->asText(); // the bridge records Prism's emitted telemetry events
+```
+
+```ts
+import { TelemetrySubscriber } from '@particle-academy/prism-opentelemetry';
+
+const telemetry = new TelemetrySubscriber(tracer);
+const context = {
+  traceId: 'run-42',
+  operation: 'text',
+  provider: 'anthropic',
+  model: 'claude-sonnet-4-5',
+};
+
+telemetry.onGenerationStarted(context, prompt);
+telemetry.onGenerationCompleted('run-42', { finishReason: 'stop', output: responseText });
+```
+
+```python
+from prism_opentelemetry import GenerationContext, TelemetrySubscriber
+
+telemetry = TelemetrySubscriber(tracer)
+context = GenerationContext(
+    trace_id="run-42",
+    operation="text",
+    provider="anthropic",
+    model="claude-sonnet-4-5",
+)
+
+telemetry.on_generation_started(context, prompt)
+telemetry.on_generation_completed("run-42", finish_reason="stop", output=response_text)
+```
+:::
+
 ## Configuration
 
-```bash
-php artisan vendor:publish --tag=prism-opentelemetry-config
-```
+PHP applications can publish the optional configuration with
+`php artisan vendor:publish --tag=prism-opentelemetry-config`. The TypeScript
+and Python ports take their options when the subscriber is constructed.
 
 | Key | Env | Default | Does |
 | --- | --- | --- | --- |

@@ -4,6 +4,7 @@ A **Model Context Protocol client** for Prism. Tools published by a third-party
 server, handed to your model as ordinary Prism tools — across a trust boundary
 you can actually see.
 
+::: language-group
 ```php
 use Prism\Mcp\Facades\PrismMcp;
 use Prism\Prism\Facades\Prism;
@@ -17,6 +18,33 @@ Prism::text()
     ->asText();
 ```
 
+```ts
+import { Client, TrustPolicy } from '@particle-academy/prism-mcp';
+
+const github = new Client({
+  server: 'github',
+  transport,
+  trust: TrustPolicy.allowing(['search_repositories']),
+});
+
+const [search] = await github.listTools();
+const result = await github.callTool(search, { query: 'billing module' });
+```
+
+```python
+from prism_mcp import Client, TrustPolicy
+
+github = Client(
+    "github",
+    transport,
+    trust=TrustPolicy.allowing(["search_repositories"]),
+)
+
+search = github.list_tools()[0]
+result = github.call_tool(search, {"query": "billing module"})
+```
+:::
+
 ::: tip Status: first slice, published
 `v0.2.0` on Packagist. The client speaks MCP revision `2026-07-28` over
 Streamable HTTP. stdio transport, OAuth, prompts and resources are on the
@@ -26,10 +54,20 @@ queue.
 
 ## Installation
 
-```bash
+::: language-group
+```bash [language=php]
 composer require particle-academy/prism-mcp
 php artisan vendor:publish --tag=prism-mcp-config
 ```
+
+```bash [language=typescript]
+npm install @particle-academy/prism-mcp
+```
+
+```bash [language=python]
+pip install prism-ai-mcp
+```
+:::
 
 Requires PHP 8.2+, Laravel 12.61+ or 13.12+, and `particle-academy/prism` 0.114
 or newer.
@@ -70,6 +108,7 @@ set.
 *before any request is sent*, so a misconfigured app keeps its silence toward
 that server.
 
+::: language-group
 ```php
 // config/prism-mcp.php
 'servers' => [
@@ -86,6 +125,23 @@ that server.
 ],
 ```
 
+```ts
+const github = new Client({
+  server: 'github',
+  transport,
+  trust: TrustPolicy.allowing(['search_repositories', 'get_file_contents']),
+});
+```
+
+```python
+github = Client(
+    "github",
+    transport,
+    trust=TrustPolicy.allowing(["search_repositories", "get_file_contents"]),
+)
+```
+:::
+
 Or, when you genuinely accept whatever that server publishes today and next week
 — reasonable for one you operate yourself — `'tools' => '*'`.
 
@@ -96,12 +152,28 @@ not to use any*.
 **Pin a definition and only that definition runs.** Record the digest of a
 definition you have actually read, per tool:
 
+::: language-group
 ```php
 'trust' => [
     'tools' => ['search_repositories'],
     'pins' => ['search_repositories' => 'sha256:…'],
 ],
 ```
+
+```ts
+TrustPolicy.allowing(
+  ['search_repositories'],
+  { search_repositories: 'sha256:…' },
+);
+```
+
+```python
+TrustPolicy.allowing(
+    ["search_repositories"],
+    pins={"search_repositories": "sha256:…"},
+)
+```
+:::
 
 The digest covers name, title, description and input schema — everything the
 model will read — and sorts keys recursively, so a server reordering its JSON
@@ -125,6 +197,7 @@ Laravel's `Gate` and for Fancy's feature management, each optional.
 The exploratory form asks for trust just as firmly, because exploring is
 exactly where an exemption would hurt:
 
+::: language-group
 ```php
 $tools = PrismMcp::client('https://mcp.example.com/mcp')
     ->withToken(config('services.example.token'))
@@ -132,6 +205,27 @@ $tools = PrismMcp::client('https://mcp.example.com/mcp')
     ->withTimeout(10)
     ->tools();
 ```
+
+```ts
+const client = new Client({
+  server: 'example',
+  transport, // your HTTP transport for https://mcp.example.com/mcp
+  trust: TrustPolicy.allowing(['search']),
+});
+
+const tools = await client.listTools();
+```
+
+```python
+client = Client(
+    "example",
+    transport,  # your HTTP transport for https://mcp.example.com/mcp
+    trust=TrustPolicy.allowing(["search"]),
+)
+
+tools = client.list_tools()
+```
+:::
 
 `PrismMcp::tools()` returns the tools of every configured server at once. A
 server that refuses **surfaces its exception**, so the tool list your model gets

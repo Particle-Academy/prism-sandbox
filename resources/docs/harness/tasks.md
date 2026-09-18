@@ -4,6 +4,7 @@ An agent given a goal has to keep working across many requests until the goal is
 met. It needs a list of what remains — and that list has to survive the request,
 the worker, a crash and a deploy.
 
+::: language-group
 ```php
 $tasks = $session->tasks();
 
@@ -15,6 +16,28 @@ if ($task !== null) {
     $tasks->release($task, 'worker-1', TaskOutcome::Done);
 }
 ```
+
+```ts
+const tasks = session.tasks();
+const task = await tasks.claim('worker-1'); // one atomic call, or null
+
+if (task !== null) {
+  const response = await runtime.send(session, task.instruction());
+  await tasks.release(task, 'worker-1', 'done');
+}
+```
+
+```python
+from prism_harness import TaskOutcome
+
+tasks = session.tasks()
+task = tasks.claim("worker-1")  # one atomic call, or None
+
+if task is not None:
+    response = runtime.send(session, task.instruction)
+    tasks.release(task, "worker-1", TaskOutcome.DONE)
+```
+:::
 
 A Laravel request boots, serves and dies, so the list cannot live in memory. It
 lives in the session's durable store, and a fresh worker resolving the same
@@ -29,6 +52,7 @@ works immediately.
 
 **With your own model**, add the trait:
 
+::: language-group
 ```php
 use Prism\Harness\Concerns\IsAgentTask;
 
@@ -42,6 +66,33 @@ class Chore extends Model
     }
 }
 ```
+
+```ts
+import type { AgentTask, TaskState } from '@particle-academy/prism-harness';
+
+class ChoreTask implements AgentTask {
+  constructor(private readonly chore: Chore) {}
+
+  id() { return String(this.chore.id); }
+  instruction() { return this.chore.body; }
+  state(): TaskState { return this.chore.state; }
+}
+```
+
+```python
+from prism_harness import AgentTaskMixin, TaskState
+
+class ChoreTask(AgentTaskMixin):
+    def agent_task_id(self) -> str:
+        return str(self.pk)
+
+    def agent_task_instruction(self) -> str:
+        return self.body
+
+    def agent_task_state(self) -> TaskState:
+        return TaskState(self.status)
+```
+:::
 
 Conventional column names, one override method each.
 
@@ -81,10 +132,22 @@ To let an agent close its own work, register `TaskCompletionTool` and authorize
 it through the [tool authorizer](/docs/harness/modes) — the same mechanism that
 gates every other tool. Nothing registers it for you.
 
+::: language-group
 ```php
 $tasks->pending();          // how many remain claimable
 $tasks->find($id);          // resolve an id to a task
 ```
+
+```ts
+await tasks.pending(); // how many remain claimable
+await tasks.find(id);  // resolve an id to a task
+```
+
+```python
+tasks.pending()  # how many remain claimable
+tasks.find(id)   # resolve an id to a task
+```
+:::
 
 ## What bounds the loop
 

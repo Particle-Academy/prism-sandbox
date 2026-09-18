@@ -113,9 +113,9 @@ class SiteDocsTest extends TestCase
     public function test_each_language_has_a_first_class_building_guide_and_footer_link(): void
     {
         $expected = [
-            '/docs/languages/php' => 'Building with PHP',
-            '/docs/languages/typescript' => 'Building with TypeScript',
-            '/docs/languages/python' => 'Building with Python',
+            '/docs/languages/php' => 'Build with Prism',
+            '/docs/languages/typescript' => 'Build with Prism',
+            '/docs/languages/python' => 'Build with Prism',
         ];
 
         foreach ($expected as $uri => $title) {
@@ -129,6 +129,33 @@ class SiteDocsTest extends TestCase
 
         foreach (array_keys($expected) as $uri) {
             $this->assertStringContainsString("href=\"{$uri}\"", $footer);
+        }
+    }
+
+    public function test_every_language_aware_page_carries_all_three_supported_variants(): void
+    {
+        $docs = app(DocsRepository::class);
+
+        foreach ($docs->pages() as $entry) {
+            $page = $docs->page(ltrim($entry['link'], '/'));
+
+            if ($page['languages'] === []) {
+                continue;
+            }
+
+            $this->assertSame(
+                ['php', 'typescript', 'python'],
+                $page['languages'],
+                "{$entry['link']} does not document every supported language.",
+            );
+
+            foreach ($page['languages'] as $language) {
+                $this->assertStringContainsString(
+                    'data-doc-language="'.$language.'"',
+                    $page['html'],
+                    "{$entry['link']} declares {$language} without rendering an example.",
+                );
+            }
         }
     }
 
@@ -257,6 +284,17 @@ class SiteDocsTest extends TestCase
         config(['docs.sections' => [['text' => 'Elsewhere', 'items' => [['text' => 'X', 'link' => '/x']]]]]);
 
         $this->assertNotSame($before, $this->siteKeyFor(app(DocsRepository::class), 'nav'));
+    }
+
+    public function test_a_site_page_cache_key_moves_when_language_routing_changes(): void
+    {
+        $docs = app(DocsRepository::class);
+
+        $before = $this->siteKeyFor($docs, 'languages/php');
+
+        config(['docs.language_defaults.languages/php' => 'python']);
+
+        $this->assertNotSame($before, $this->siteKeyFor(app(DocsRepository::class), 'languages/php'));
     }
 
     public function test_traversal_out_of_the_site_root_is_still_refused(): void

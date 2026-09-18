@@ -2,11 +2,31 @@
 
 A mode may declare subagents, which the parent can call as tools.
 
+::: language-group
 ```php
 'subagents' => [
     new Subagent('verify_claim', 'Check a claim.', 'verifier', new RunBudget(maxSteps: 5)),
 ],
 ```
+
+```ts
+const verifyClaim = new Subagent(
+  'verify_claim',
+  'Check a claim.',
+  'verifier',
+  new RunBudget(5),
+);
+```
+
+```python
+verify_claim = Subagent(
+    "verify_claim",
+    "Check a claim.",
+    "verifier",
+    RunBudget(max_steps=5),
+)
+```
+:::
 
 A subagent is a narrowed agent that spends from its parent's budget — see
 [Modes](/docs/harness/modes) for why the narrowing is the point.
@@ -33,9 +53,21 @@ A mode's `max_steps` is a sensible *default* and a poor universal. A caller
 holding a frozen, approved budget knows the size of the job better than a config
 constant does:
 
+::: language-group
 ```php
 $session->usingMaxSteps(20);
 ```
+
+```ts
+const context = RunContext.root(runId, new RunBudget(20));
+const response = await runtime.send(session, prompt, context);
+```
+
+```python
+context = RunContext.root(run_id, RunBudget(max_steps=20))
+response = runtime.send(session, prompt, context)
+```
+:::
 
 When those two disagree the agent is told one number and cut off at another — it
 plans for the promise, spends the promise, and has its work discarded at the

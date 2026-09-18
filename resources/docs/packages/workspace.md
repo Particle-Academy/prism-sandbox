@@ -2,9 +2,24 @@
 
 `particle-academy/prism-workspace`
 
+::: language-group
+```bash [language=php]
+composer require particle-academy/prism-workspace
+```
+
+```bash [language=typescript]
+npm install @particle-academy/prism-workspace
+```
+
+```bash [language=python]
+pip install prism-ai-workspace
+```
+:::
+
 A sandboxed place for an agent to keep its work: a scoped Laravel `Storage` disk
 with an agent-shaped API over it, and a path guard that is the actual product.
 
+::: language-group
 ```php
 use Prism\Workspace\Facades\PrismWorkspace;
 
@@ -14,6 +29,32 @@ $workspace->write('reports/q1.md', $content);
 $workspace->read('reports/q1.md');
 $workspace->list();                       // a lazy collection
 ```
+
+```ts
+import { Workspace } from '@particle-academy/prism-workspace';
+
+const workspace = new Workspace('/srv/agent-workspaces', session);
+
+await workspace.write('reports/q1.md', content);
+await workspace.read('reports/q1.md');
+
+for await (const entry of workspace.list()) {
+  console.log(entry.path);
+}
+```
+
+```python
+from prism_workspace import SyncWorkspace
+
+workspace = SyncWorkspace("/srv/agent-workspaces", session)
+
+workspace.write("reports/q1.md", content)
+workspace.read("reports/q1.md")
+
+for entry in workspace.list():
+    print(entry.path)
+```
+:::
 
 ## The path guard is the point
 

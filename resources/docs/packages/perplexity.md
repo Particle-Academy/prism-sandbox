@@ -10,9 +10,19 @@ use. Async deep research is on the roadmap.
 
 ## Installation
 
-```bash
+::: language-group
+```bash [language=php]
 composer require particle-academy/prism-perplexity
 ```
+
+```bash [language=typescript]
+npm install @particle-academy/prism-perplexity
+```
+
+```bash [language=python]
+pip install prism-ai-perplexity
+```
+:::
 
 That is the whole setup. The package registers under the **same provider key**
 as Prism core, so `using('perplexity', …)` gains capabilities while every
@@ -27,6 +37,7 @@ or newer. Your existing `PERPLEXITY_API_KEY` is the one it uses.
 Prism core throws `unsupportedProviderAction` for Perplexity embeddings. With
 this installed:
 
+::: language-group
 ```php
 use Prism\Prism\Facades\Prism;
 
@@ -38,6 +49,29 @@ $response = Prism::embeddings()
 $response->embeddings[0]->embedding;   // float[]
 ```
 
+```ts
+import { embeddings, fetchTransport } from '@particle-academy/prism-perplexity';
+
+const http = fetchTransport({ apiKey: process.env.PERPLEXITY_API_KEY! });
+const response = await embeddings(http, {
+  model: 'text-embedding-v1',
+  inputs: ['The quick brown fox'],
+});
+
+response.embeddings[0]; // number[]
+```
+
+```python
+import os
+from prism_perplexity import embeddings, urllib_transport
+
+http = urllib_transport(os.environ["PERPLEXITY_API_KEY"])
+response = embeddings(http, "text-embedding-v1", ["The quick brown fox"])
+
+response.embeddings[0]  # list[float]
+```
+:::
+
 ### Contextualized embeddings
 
 Perplexity has a second endpoint for chunks of **one document**, embedding each
@@ -47,6 +81,7 @@ for retrieval and want each chunk to carry the document around it.
 Prism's embeddings abstraction is text-in, vector-out, so "these belong
 together" is something you say explicitly:
 
+::: language-group
 ```php
 Prism::embeddings()
     ->using('perplexity', 'text-embedding-v1')
@@ -54,6 +89,24 @@ Prism::embeddings()
     ->withProviderOptions(['contextualized' => true])
     ->asEmbeddings();
 ```
+
+```ts
+await embeddings(http, {
+  model: 'text-embedding-v1',
+  inputs: chunks,
+  contextualized: true,
+});
+```
+
+```python
+embeddings(
+    http,
+    "text-embedding-v1",
+    chunks,
+    contextualized=True,
+)
+```
+:::
 
 Vectors come back ordered by the `index` the API returns, so match on that index.
 Lining vectors up with the inputs that produced them by position would be a
@@ -64,6 +117,7 @@ silent mismatch the first time a response arrived out of order.
 Web results **straight from the index** — the sources a grounded answer would
 have been built from, at the cost of the lookup alone.
 
+::: language-group
 ```php
 use Prism\Prism\PrismManager;
 
@@ -74,6 +128,26 @@ $results = $provider->search('what is prism php', [
     'search_domain_filter' => ['github.com'],
 ]);
 ```
+
+```ts
+import { search } from '@particle-academy/prism-perplexity';
+
+const results = await search(http, 'what is prism php', {
+  max_results: 5,
+  search_domain_filter: ['github.com'],
+});
+```
+
+```python
+from prism_perplexity import search
+
+results = search(
+    http,
+    "what is prism php",
+    {"max_results": 5, "search_domain_filter": ["github.com"]},
+)
+```
+:::
 
 It is a method on the provider rather than a `Prism::` verb, because the result
 is a list of sources with structure worth keeping — every other Prism verb

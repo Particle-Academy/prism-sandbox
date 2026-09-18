@@ -2,13 +2,24 @@
 
 A **mode** is what an agent is allowed to be, for a stretch of a conversation.
 
+::: language-group
 ```php
 $session->usingMode('research');
 ```
 
+```ts
+await session.usingMode('research');
+```
+
+```python
+session.using_mode("research")
+```
+:::
+
 Each mode declares its own system prompt, the tools it may call, the skills it
 may read, and a default step ceiling:
 
+::: language-group
 ```php
 'research' => [
     'system_prompt' => PromptFile::content('research'),
@@ -17,6 +28,33 @@ may read, and a default step ceiling:
     'max_steps' => 6,
 ],
 ```
+
+```ts
+const modes = new ModeRegistry({
+  modes: {
+    research: {
+      system_prompt: researchPrompt,
+      tools: ['search_web', 'fact_check'],
+      skills: [],
+      max_steps: 6,
+    },
+  },
+});
+```
+
+```python
+modes = ModeRegistry({
+    "modes": {
+        "research": {
+            "system_prompt": research_prompt,
+            "tools": ["search_web", "fact_check"],
+            "skills": [],
+            "max_steps": 6,
+        }
+    }
+})
+```
+:::
 
 ## A mode narrows what a run can reach
 
@@ -33,9 +71,19 @@ answer.
 Declaring a tool in a mode makes it *offerable*. Whether a given session may
 actually call it is a second question, and the answer is opt-in:
 
+::: language-group
 ```php
 'authorize_tools' => env('HARNESS_AUTHORIZE_TOOLS', false),
 ```
+
+```ts
+const authorizer = new ToolAuthorizer({ enabled: false });
+```
+
+```python
+authorizer = ToolAuthorizer(enabled=False)
+```
+:::
 
 Off by default because turning it on without an authorizer would refuse
 everything, and a package that breaks on install teaches people to skip the
@@ -46,9 +94,28 @@ doing, resolved value by resolved value.
 
 A mode can require a human before specific tools run:
 
+::: language-group
 ```php
 'requires_approval' => ['workspace_delete'],
 ```
+
+```ts
+const modes = new ModeRegistry({
+  modes: { research: { system_prompt: researchPrompt, requires_approval: ['workspace_delete'] } },
+});
+```
+
+```python
+modes = ModeRegistry({
+    "modes": {
+        "research": {
+            "system_prompt": research_prompt,
+            "requires_approval": ["workspace_delete"],
+        }
+    }
+})
+```
+:::
 
 Prism denies by default when no approval answer is found, so an unattended run
 cannot slip past the gate by simply not being asked.

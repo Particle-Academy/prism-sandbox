@@ -28,7 +28,7 @@ class DocsRepository
      * and llms.txt down with a 500 when `external` was added to nav entries.
      * Bump this whenever a cached structure changes.
      */
-    private const SCHEMA = 3;
+    private const SCHEMA = 4;
 
     private ?string $siteFingerprint = null;
 
@@ -224,7 +224,7 @@ class DocsRepository
     }
 
     /**
-     * @return array{title: string, html: string, toc: array<int, array{id: string, text: string, level: int}>, prev: ?array{text: string, link: string}, next: ?array{text: string, link: string}, section: ?string}
+     * @return array{title: string, html: string, toc: array<int, array{id: string, text: string, level: int}>, prev: ?array{text: string, link: string}, next: ?array{text: string, link: string}, section: ?string, languages: array<int, string>, defaultLanguage: ?string}
      */
     public function page(string $path): array
     {
@@ -239,10 +239,17 @@ class DocsRepository
             [$html, $toc] = $this->anchorHeadings($html);
             $html = $this->rewriteLinks($html);
 
+            preg_match_all('/data-doc-language="(php|typescript|python)"/', $html, $matches);
+            $languages = array_values(array_intersect(
+                ['php', 'typescript', 'python'],
+                array_unique($matches[1] ?? []),
+            ));
+            $defaultLanguage = $this->defaultLanguage($path, $languages);
+
             $title = $this->titleFor($path, $html);
             [$prev, $next, $section] = $this->siblings($path);
 
-            return compact('title', 'html', 'toc', 'prev', 'next', 'section');
+            return compact('title', 'html', 'toc', 'prev', 'next', 'section', 'languages', 'defaultLanguage');
         });
     }
 
@@ -279,9 +286,10 @@ class DocsRepository
     protected function pageFile(string $path): string
     {
         $path = trim(str_replace(['..', '\\'], '', $path), '/');
+        $sourcePath = (string) config("docs.page_aliases.$path", $path);
 
         foreach ($this->roots() as $root) {
-            $file = $root.'/'.$path.'.md';
+            $file = $root.'/'.$sourcePath.'.md';
 
             if (is_file($file)) {
                 return $file;
@@ -290,7 +298,23 @@ class DocsRepository
 
         // Nothing matched. Hand back the package path so a miss still reads as
         // "the release does not document this", which is what it is.
-        return $this->basePath().'/'.$path.'.md';
+        return $this->basePath().'/'.$sourcePath.'.md';
+    }
+
+    /**
+     * @param  array<int, string>  $languages
+     */
+    protected function defaultLanguage(string $path, array $languages): ?string
+    {
+        if ($languages === []) {
+            return null;
+        }
+
+        $preferred = config('docs.language_defaults.'.trim($path, '/'));
+
+        return is_string($preferred) && in_array($preferred, $languages, true)
+            ? $preferred
+            : $languages[0];
     }
 
     protected function isSiteFile(string $file): bool
@@ -322,9 +346,10 @@ class DocsRepository
     /**
      * A short digest of every site-owned docs input.
      *
-     * Covers the declared nav as well as the files, so reordering a section
-     * without touching a page still invalidates. Memoised because sitemap and
-     * llms.txt ask for several cached structures in one request.
+     * Covers all docs configuration as well as the files, so reordering a
+     * section or changing a language alias/default without touching a page
+     * still invalidates. Memoised because sitemap and llms.txt ask for several
+     * cached structures in one request.
      */
     protected function siteFingerprint(): string
     {
@@ -332,7 +357,7 @@ class DocsRepository
             return $this->siteFingerprint;
         }
 
-        $parts = [(string) json_encode(config('docs.sections', []))];
+        $parts = [(string) json_encode(config('docs', []))];
 
         foreach ($this->siteFiles() as $file) {
             $parts[] = $file.':'.(string) filemtime($file).':'.(string) filesize($file);
@@ -432,6 +457,7 @@ class DocsRepository
         $out = [];
         $open = [];
         $fenced = false;
+        $languageFence = null;
 
         // Split on the three line endings CommonMark recognises, spelled out.
         // `\R` looks like the tidier choice and is a trap: outside UTF mode it
@@ -439,9 +465,44 @@ class DocsRepository
         // plenty of UTF-8 sequences — ✅ among them — so the provider support
         // table came back cut mid-character and CommonMark rejected the input.
         foreach (preg_split("/\r\n|\n|\r/", $markdown) ?: [] as $line) {
-            if (preg_match('/^ {0,3}(`{3,}|~{3,})/', $line) === 1) {
-                $fenced = ! $fenced;
+            if (preg_match('/^ {0,3}(`{3,}|~{3,})([a-zA-Z0-9_-]*)/', $line, $fence) === 1) {
+                if (! $fenced) {
+                    $language = null;
+
+                    if (end($open) === 'language-group') {
+                        $language = $this->normalizeCodeLanguage($fence[2] ?? '');
+
+                        // Shell, JSON and configuration examples still vary by
+                        // package language. An explicit marker chooses the
+                        // variant while leaving syntax highlighting truthful.
+                        if (preg_match('/[ \t]+\[language=(php|typescript|python)\][ \t]*$/i', $line, $variant) === 1) {
+                            $language = $this->normalizeCodeLanguage($variant[1]);
+                            $line = (string) preg_replace('/[ \t]+\[language=(php|typescript|python)\][ \t]*$/i', '', $line);
+                        }
+                    }
+
+                    if ($language !== null) {
+                        $out[] = '<div class="doc-language-code" data-doc-language="'.$language.'">';
+                        $out[] = '';
+                        $languageFence = $language;
+                    }
+
+                    $fenced = true;
+                    $out[] = $line;
+
+                    continue;
+                }
+
                 $out[] = $line;
+
+                $fenced = false;
+
+                if ($languageFence !== null) {
+                    $out[] = '';
+                    $out[] = '</div>';
+                    $out[] = '';
+                    $languageFence = null;
+                }
 
                 continue;
             }
@@ -456,6 +517,15 @@ class DocsRepository
                 // Unwrapped: each fence inside keeps its own [label], which the
                 // code-label pass turns into a chip.
                 $open[] = 'code-group';
+
+                continue;
+            }
+
+            if (preg_match('/^::: ?language-group[ \t]*$/', $line) === 1) {
+                // Each fence becomes a data-labelled block. React owns one
+                // page-level language value, so changing it updates every
+                // example at once without duplicating the surrounding prose.
+                $open[] = 'language-group';
 
                 continue;
             }
@@ -486,6 +556,16 @@ class DocsRepository
         }
 
         return implode("\n", $out);
+    }
+
+    protected function normalizeCodeLanguage(string $language): ?string
+    {
+        return match (strtolower($language)) {
+            'php' => 'php',
+            'ts', 'tsx', 'typescript' => 'typescript',
+            'py', 'python' => 'python',
+            default => null,
+        };
     }
 
     /**

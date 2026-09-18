@@ -28,20 +28,29 @@ yes.
 
 ## Installation
 
-```bash
+::: language-group
+```bash [language=php]
 composer require particle-academy/prism-harness
 php artisan migrate
 ```
+
+```bash [language=typescript]
+npm install @particle-academy/prism-harness
+```
+
+```bash [language=python]
+pip install prism-ai-harness
+```
+:::
 
 The migrations are **loaded for you**, so threads work the moment you run
 `migrate`. They create three tables:
 `harness_threads`, `harness_thread_messages` and `harness_session_state`.
 
-Publish the config only when you need to change something in it:
-
-```bash
-php artisan vendor:publish --tag=harness-config
-```
+PHP applications can publish the config with
+`php artisan vendor:publish --tag=harness-config` when they need to change it.
+The zero-dependency ports take drivers and mode configuration in their
+constructors.
 
 Requires PHP 8.2+, Laravel 12.61+ or 13.12+, and `particle-academy/prism` 0.113
 or newer.
@@ -53,6 +62,7 @@ interface Prism reads history from — and this package provides the Eloquent
 implementation, so `withThread()` reads the conversation out of your database
 instead of you rebuilding a message array on every request.
 
+::: language-group
 ```php
 use Prism\Harness\Models\Thread;
 use Prism\Prism\Enums\Provider;
@@ -68,6 +78,27 @@ $response = Prism::text()
 
 $thread->record($response->messages);   // the full exchange, tool steps included
 ```
+
+```ts
+const session = harness.for({ type: 'User', id: user.id }).session('support');
+
+const response = await runtime.send(session, 'And after that?');
+
+// runtime.send records the full exchange, including tool steps.
+const messages = await session.thread().messages();
+```
+
+```python
+from prism_harness import Participant
+
+session = harness.for_(Participant("User", user.id)).session("support")
+
+response = runtime.send(session, "And after that?")
+
+# runtime.send records the full exchange, including tool steps.
+messages = session.thread().messages()
+```
+:::
 
 `$response->messages` carries every step of a tool loop alongside the final
 answer, so recording a turn is one call — and a run interrupted mid-tool resumes
@@ -109,6 +140,7 @@ but it sets where the boundary is. **Never let request input write directly into
 A session is one participant's live runtime: the active mode, the selected
 model, and the thread they are bound to. It is **resolved per request**.
 
+::: language-group
 ```php
 use Prism\Harness\PrismHarness;
 
@@ -120,6 +152,28 @@ $session->thread();   // the durable conversation for this address
 $session->mode();     // 'plan' — read back from the store, in any worker
 ```
 
+```ts
+const session = harness.for({ type: 'User', id: user.id }).session('support');
+
+await session.usingMode('plan');
+await session.usingModel('claude-sonnet-4-5');
+
+session.thread();     // the durable conversation for this address
+await session.mode(); // 'plan' — read back from the store, in any worker
+```
+
+```python
+from prism_harness import Participant
+
+session = harness.for_(Participant("User", user.id)).session("support")
+
+session.using_mode("plan").using_model("claude-sonnet-4-5")
+
+session.thread()  # the durable conversation for this address
+session.mode()    # "plan" — read back from the store, in any worker
+```
+:::
+
 ### Running the durable agent
 
 `send()` resolves the session's configured mode, provider, model, system
@@ -127,6 +181,7 @@ prompt, and explicit tool allowlist, then performs the Prism run while holding
 the session lock. It records every returned message and leaves durable run
 bookkeeping on both success and failure.
 
+::: language-group
 ```php
 $result = $session
     ->usingProvider('anthropic')
@@ -137,6 +192,25 @@ $result = $session
 echo $result->text();
 $session->run(); // run id, state, provider, model, finish reason
 ```
+
+```ts
+await session.usingProvider('anthropic');
+await session.usingModel('claude-sonnet-4-5');
+await session.usingMode('support');
+
+const result = await runtime.send(session, 'Help with my order');
+console.log(result.text);
+```
+
+```python
+session.using_provider("anthropic")
+session.using_model("claude-sonnet-4-5")
+session.using_mode("support")
+
+result = runtime.send(session, "Help with my order")
+print(result.text)
+```
+:::
 
 Modes are config-defined in this first runtime slice. Tool names are selected
 by the active mode; applications can additionally enable the `harness.tool`
@@ -165,6 +239,7 @@ Both default to `database`, so the package works the moment you install it.
 Redis is the better home for live session state — point the ephemeral half at it
 when you have one:
 
+::: language-group
 ```php
 // config/harness.php
 'stores' => [
@@ -172,6 +247,31 @@ when you have one:
     'durable'   => 'database',
 ],
 ```
+
+```ts
+import { FileSessionStore, MemorySessionStore, PrismHarness } from '@particle-academy/prism-harness';
+
+const harness = new PrismHarness({
+  drivers: {
+    memory: () => new MemorySessionStore(),
+    files: () => new FileSessionStore('./storage/harness'),
+  },
+  stores: { ephemeral: 'memory', durable: 'files' },
+});
+```
+
+```python
+from prism_harness import FileSessionStore, MemorySessionStore, PrismHarness
+
+harness = PrismHarness(
+    drivers={
+        "memory": MemorySessionStore,
+        "files": lambda: FileSessionStore("./storage/harness"),
+    },
+    stores={"ephemeral": "memory", "durable": "files"},
+)
+```
+:::
 
 ### Why the durable slot is guarded
 
@@ -187,6 +287,7 @@ What that protects is concrete: a pending tool approval is a half-executed
 action a human was asked to authorise, and it has to survive a deploy. If your
 Redis really is durable, say so, and the slot opens:
 
+::: language-group
 ```php
 'drivers' => [
     'redis' => [
@@ -196,11 +297,31 @@ Redis really is durable, say so, and the slot opens:
 ],
 ```
 
+```ts
+const harness = new PrismHarness({
+  drivers: { redis: () => durableRedisStore },
+  stores: { ephemeral: 'redis', durable: 'redis' },
+});
+
+// durableRedisStore.durability() must return 'durable'.
+```
+
+```python
+harness = PrismHarness(
+    drivers={"redis": lambda: durable_redis_store},
+    stores={"ephemeral": "redis", "durable": "redis"},
+)
+
+# durable_redis_store.durability() must return "durable".
+```
+:::
+
 ### Concurrency
 
 Two workers can hold the same session at once — a queued job finishing a run
 while the user sends another message is ordinary. Advance a run inside a lock:
 
+::: language-group
 ```php
 use Prism\Harness\Sessions\Session;
 
@@ -208,6 +329,21 @@ $session->lock(function (Session $session): void {
     // the work that runs once
 });
 ```
+
+```ts
+await session.lock(async (live) => {
+  // the work that runs once
+});
+```
+
+```python
+def advance(live):
+    # the work that runs once
+    pass
+
+session.lock(advance)
+```
+:::
 
 `lock()` **throws `SessionLocked`** on timeout, so the caller learns that
 someone else holds the session. Locks carry an expiry, so a worker that dies
@@ -222,6 +358,7 @@ A thread that only ever grows eventually stops fitting. Compaction changes
 **Compaction is opt-in.** You choose the strategy and the harness provides the
 seam, so the shape of your context stays a decision you made.
 
+::: language-group
 ```php
 // config/prism-harness.php
 'context' => [
@@ -230,6 +367,17 @@ seam, so the shape of your context stays a decision you made.
     // 'summary_words'  => 200,
 ],
 ```
+
+```ts
+// Context compaction is not yet exposed by @particle-academy/prism-harness.
+// Keep the complete thread, or compact it in the model-client boundary.
+```
+
+```python
+# Context compaction is not yet exposed by prism-ai-harness.
+# Keep the complete thread, or compact it in the model-client boundary.
+```
+:::
 
 | Piece | What it does |
 | --- | --- |
@@ -260,9 +408,19 @@ prevent.
 
 So enforcement is a choice you bind, separate from the size you ask for:
 
+::: language-group
 ```php
 $this->app->bind(SummaryBudget::class, fn () => new TruncateTo);
 ```
+
+```ts
+// SummaryBudget is currently a PHP-only extension point.
+```
+
+```python
+# SummaryBudget is currently a PHP-only extension point.
+```
+:::
 
 `RetryOnce` is the default and asks once more when over — it took that 60-word
 budget from 205 words to 61, and it is allowed to miss. `TruncateTo` guarantees

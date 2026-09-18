@@ -284,6 +284,20 @@
     color: var(--k-ink-2);
 }
 
+/* Language variants are rendered together so the surrounding explanation has
+   exactly one source. The page-level MultiSwitch changes this one attribute,
+   and every example follows it. PHP remains visible in no-JS output because it
+   is the reference implementation and the first declared variant. */
+.doc-prose .doc-language-code {
+    display: none;
+}
+
+.doc-prose[data-language='php'] .doc-language-code[data-doc-language='php'],
+.doc-prose[data-language='typescript'] .doc-language-code[data-doc-language='typescript'],
+.doc-prose[data-language='python'] .doc-language-code[data-doc-language='python'] {
+    display: block;
+}
+
 .doc-prose table {
     width: 100%;
     border-collapse: collapse;

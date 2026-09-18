@@ -51,6 +51,29 @@ return [
         'Other Packages',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | One guide, three language entry points
+    |--------------------------------------------------------------------------
+    |
+    | These URLs remain first-class entry points for links and search, but they
+    | deliberately resolve to one Markdown source. The prose cannot drift by
+    | language; only the selected code example changes.
+    |
+    */
+
+    'page_aliases' => [
+        'languages/php' => 'languages/overview',
+        'languages/typescript' => 'languages/overview',
+        'languages/python' => 'languages/overview',
+    ],
+
+    'language_defaults' => [
+        'languages/php' => 'php',
+        'languages/typescript' => 'typescript',
+        'languages/python' => 'python',
+    ],
+
     'sections' => [
 
         [

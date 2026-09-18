@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
-import { cn } from '@particle-academy/react-fancy';
+import { MultiSwitch, cn } from '@particle-academy/react-fancy';
 import { useEffect, useState } from 'react';
 import { KineticNav } from '../../components/kinetic';
 import { SearchPalette, useSearchPalette } from '../../components/SearchPalette';
@@ -7,6 +7,7 @@ import { SearchPalette, useSearchPalette } from '../../components/SearchPalette'
 type NavItem = { text: string; link: string };
 type NavGroup = { text: string; items: NavItem[] };
 type TocEntry = { id: string; text: string; level: number };
+type DocLanguage = 'php' | 'typescript' | 'python';
 type Page = {
     title: string;
     html: string;
@@ -14,14 +15,40 @@ type Page = {
     prev: { text: string; link: string } | null;
     next: { text: string; link: string } | null;
     section: string | null;
+    languages: DocLanguage[];
+    defaultLanguage: DocLanguage | null;
 };
+
+const languageOptions: { label: string; value: DocLanguage }[] = [
+    { label: 'PHP', value: 'php' },
+    { label: 'TypeScript', value: 'typescript' },
+    { label: 'Python', value: 'python' },
+];
+
+const languageStorageKey = 'prism-docs-language';
 
 export default function Show({ page, nav, path, version }: { page: Page; nav: NavGroup[]; path: string; version: string }) {
     const { open, setOpen } = useSearchPalette();
     const [menuOpen, setMenuOpen] = useState(false);
+    const [language, setLanguage] = useState<DocLanguage>(page.defaultLanguage ?? page.languages[0] ?? 'php');
     const current = '/' + path;
 
     useEffect(() => setMenuOpen(false), [path]);
+
+    useEffect(() => {
+        if (page.languages.length === 0) return;
+
+        const stored = window.localStorage.getItem(languageStorageKey) as DocLanguage | null;
+        const next = page.defaultLanguage ?? (stored && page.languages.includes(stored) ? stored : page.languages[0]);
+
+        setLanguage(next);
+        window.localStorage.setItem(languageStorageKey, next);
+    }, [page.defaultLanguage, page.languages, path]);
+
+    const selectLanguage = (next: DocLanguage) => {
+        setLanguage(next);
+        window.localStorage.setItem(languageStorageKey, next);
+    };
 
     const description = page.title + ' — Prism documentation (' + version + '), the Laravel package for LLMs.';
 
@@ -104,7 +131,26 @@ export default function Show({ page, nav, path, version }: { page: Page; nav: Na
                 {/* Content */}
                 <main className="min-w-0 flex-1 py-10">
                     {page.section && <p className="k-mono mb-4">{page.section}</p>}
-                    <article className="doc-prose" dangerouslySetInnerHTML={{ __html: page.html }} />
+                    {page.languages.length > 1 && (
+                        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b pb-4" style={{ borderColor: 'var(--k-hairline)' }}>
+                            <div>
+                                <p className="text-sm font-semibold" style={{ color: 'var(--k-ink)' }}>
+                                    Code language
+                                </p>
+                                <p className="text-xs" style={{ color: 'var(--k-ink-3)' }}>
+                                    Updates every example on this page.
+                                </p>
+                            </div>
+                            <MultiSwitch
+                                aria-label="Code language"
+                                size="sm"
+                                list={languageOptions.filter((option) => page.languages.includes(option.value))}
+                                value={language}
+                                onValueChange={selectLanguage}
+                            />
+                        </div>
+                    )}
+                    <article className="doc-prose" data-language={language} dangerouslySetInnerHTML={{ __html: page.html }} />
 
                     <nav className="k-hairline-top mt-14 flex justify-between gap-4 pt-6 text-sm">
                         {page.prev ? (
