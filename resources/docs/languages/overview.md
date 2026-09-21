@@ -88,5 +88,5 @@ speech, files and batches work with OpenAI in the ports, and
 fill-in-the-middle works with Mistral. Unsupported actions fail explicitly.
 
 TypeScript and Python failures carry a stable machine-readable `code`. PHP
-applications branch on exception type. Read the message for people, not for
-control flow.
+applications branch on exception type. Error messages are intended for display
+and diagnostics; do not use their wording for control flow.

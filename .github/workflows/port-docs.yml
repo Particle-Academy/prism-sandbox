@@ -1,0 +1,75 @@
+name: Port docs
+
+# The TypeScript and Python examples in resources/docs/ports are the only
+# documentation here that nothing else compiles. The PHP pages come from the
+# installed package and are exercised by its own suite; these are written by
+# hand against two libraries that move in their own repositories, so without
+# this job they rot silently and a reader copies an example that has not worked
+# for weeks.
+#
+# It checks the ports' MAIN branches rather than their released versions, so an
+# example the ports are about to break fails here while the change is still
+# somebody's open branch.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # The ports move without touching this repository, so the weekly run is what
+  # catches an example THEY broke rather than one a change here did.
+  schedule:
+    - cron: '0 6 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  examples:
+    name: Port examples compile and import
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      # Under the workspace, not beside it: actions/checkout refuses a path
+      # outside GITHUB_WORKSPACE. The checker takes both roots as arguments, so
+      # a contributor keeps their siblings and CI keeps .ports/ without either
+      # layout being special-cased in the script.
+      - uses: actions/checkout@v4
+        with:
+          repository: Particle-Academy/prism-ts
+          path: .ports/prism-ts
+          persist-credentials: false
+
+      - uses: actions/checkout@v4
+        with:
+          repository: Particle-Academy/prism-py
+          path: .ports/prism-py
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # The checker typechecks against prism-ts's OWN typescript and @types, so
+      # the port's dependencies are installed rather than a copy pulled in here
+      # that could differ from what the port compiles with.
+      - name: Install the TypeScript port's dependencies
+        working-directory: .ports/prism-ts
+        run: npm ci
+
+      - uses: actions/setup-python@v5
+        with:
+          # The Python half of the checker needs 3.11+ for contextlib.chdir.
+          # The port itself supports 3.10; this is the runner's floor, not the
+          # package's. It reads the port from source and installs nothing.
+          python-version: '3.12'
+
+      # No provider requests: TypeScript is typechecked, and the Python
+      # examples run under an audit hook that refuses socket access. This needs
+      # no key and cannot bill anyone.
+      - name: Check the port examples
+        run: node scripts/check-port-docs.mjs .ports/prism-ts .ports/prism-py

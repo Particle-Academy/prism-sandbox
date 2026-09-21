@@ -7,18 +7,18 @@ tool call, exported over OTLP to
 [Arize Phoenix](https://github.com/Arize-ai/phoenix), Jaeger, Tempo, Grafana or
 anything else that speaks OTLP.
 
-::: tip Status: published
-`v0.3.0` on Packagist. The Prism telemetry events it consumes ship in tagged
-Prism releases — see [Telemetry](/advanced/telemetry) for the event stream
-itself, which is worth subscribing to on its own.
+::: tip PHP telemetry events
+See [Telemetry](/advanced/telemetry) for the PHP generation event stream.
+TypeScript and Python use the subscriber API shown below.
 :::
 
-## Why it is a separate package
+## Integration
 
-Core emits **neutral Laravel events**, and this package owns the
-`open-telemetry/*` dependency and the GenAI attribute mapping. So
-semantic-convention churn — and the OpenTelemetry PHP SDK's own release cadence
-— moves at this package's pace, and your Prism upgrades stay about Prism.
+In PHP, the bridge subscribes to Laravel events emitted by Prism. TypeScript
+and Python expose subscriber methods that your application calls at generation,
+step and tool boundaries. Supply a tracer connected to your OpenTelemetry SDK.
+
+The PHP event flow is:
 
 ```
 Prism core (events)                 →  this bridge          →  OTLP backend
@@ -48,18 +48,15 @@ pip install prism-ai-opentelemetry
 ```
 :::
 
-The SDK is a separate install on purpose: the bridge activates when the
-OpenTelemetry API is present, so tracing travels with the machines you want it
-on.
+Install and configure an OpenTelemetry SDK and exporter for your runtime.
 
-Turn Prism's telemetry on — it is **off by default** and a complete no-op until
-you enable it:
+For PHP, enable Prism telemetry; it is disabled by default:
 
 ```dotenv
 PRISM_TELEMETRY_ENABLED=true
 ```
 
-Then point the OpenTelemetry SDK at your collector:
+Configure the PHP OpenTelemetry SDK to export to your collector:
 
 ```dotenv
 OTEL_PHP_AUTOLOAD_ENABLED=true
@@ -69,7 +66,8 @@ OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:6006   # Phoenix OTLP endpoint
 ```
 
-Requires PHP 8.2+ and `particle-academy/prism` 0.111 or newer.
+The PHP package requires PHP 8.2+ and `particle-academy/prism` 0.111 or newer.
+The Artisan and PHP autoload settings above do not apply to TypeScript or Python.
 
 ## Instrument a generation
 
@@ -118,7 +116,7 @@ telemetry.on_generation_completed("run-42", finish_reason="stop", output=respons
 ```
 :::
 
-## Configuration
+## PHP configuration
 
 PHP applications can publish the optional configuration with
 `php artisan vendor:publish --tag=prism-opentelemetry-config`. The TypeScript
@@ -135,10 +133,8 @@ and Python ports take their options when the subscriber is constructed.
 The bridge reads span **metadata** only — tokens, timing, model, finish reason.
 It never puts prompt or completion text on a span.
 
-Whether that content is present on the events at all is governed upstream by
-Prism's own `prism.telemetry.capture_content` flag, which is off by default.
-Two switches, deliberately: the one that decides whether sensitive text is
-captured belongs next to the thing that captures it, not in whichever exporter
-happens to be installed.
+In PHP, `prism.telemetry.capture_content` controls whether Prism includes prompt
+and completion text in its events. It is off by default and is independent of
+the bridge's metadata-only span policy.
 
 Source: [Particle-Academy/prism-opentelemetry](https://github.com/Particle-Academy/prism-opentelemetry).

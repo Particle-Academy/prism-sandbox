@@ -17,6 +17,7 @@ type Page = {
     section: string | null;
     languages: DocLanguage[];
     defaultLanguage: DocLanguage | null;
+    variants: Partial<Record<DocLanguage, { html: string; toc: TocEntry[] }>>;
 };
 
 const languageOptions: { label: string; value: DocLanguage }[] = [
@@ -32,25 +33,39 @@ export default function Show({ page, nav, path, version }: { page: Page; nav: Na
     const [menuOpen, setMenuOpen] = useState(false);
     const [language, setLanguage] = useState<DocLanguage>(page.defaultLanguage ?? page.languages[0] ?? 'php');
     const current = '/' + path;
+    const content = page.variants?.[language] ?? page;
 
     useEffect(() => setMenuOpen(false), [path]);
 
     useEffect(() => {
         if (page.languages.length === 0) return;
 
-        const stored = window.localStorage.getItem(languageStorageKey) as DocLanguage | null;
+        let stored: DocLanguage | null = null;
+        try {
+            stored = window.localStorage.getItem(languageStorageKey) as DocLanguage | null;
+        } catch {
+            // Storage can be unavailable; language selection still works in memory.
+        }
         const next = page.defaultLanguage ?? (stored && page.languages.includes(stored) ? stored : page.languages[0]);
 
         setLanguage(next);
-        window.localStorage.setItem(languageStorageKey, next);
+        try {
+            window.localStorage.setItem(languageStorageKey, next);
+        } catch {
+            // The selected examples do not depend on persistence being available.
+        }
     }, [page.defaultLanguage, page.languages, path]);
 
     const selectLanguage = (next: DocLanguage) => {
         setLanguage(next);
-        window.localStorage.setItem(languageStorageKey, next);
+        try {
+            window.localStorage.setItem(languageStorageKey, next);
+        } catch {
+            // The selected examples do not depend on persistence being available.
+        }
     };
 
-    const description = page.title + ' — Prism documentation (' + version + '), the Laravel package for LLMs.';
+    const description = page.title + ' — Prism documentation (' + version + ') for PHP, TypeScript and Python.';
 
     return (
         <div className="k-page">
@@ -138,7 +153,7 @@ export default function Show({ page, nav, path, version }: { page: Page; nav: Na
                                     Code language
                                 </p>
                                 <p className="text-xs" style={{ color: 'var(--k-ink-3)' }}>
-                                    Updates every example on this page.
+                                    View this guide and its examples in your language.
                                 </p>
                             </div>
                             <MultiSwitch
@@ -150,7 +165,7 @@ export default function Show({ page, nav, path, version }: { page: Page; nav: Na
                             />
                         </div>
                     )}
-                    <article className="doc-prose" data-language={language} dangerouslySetInnerHTML={{ __html: page.html }} />
+                    <article className="doc-prose" data-language={language} dangerouslySetInnerHTML={{ __html: content.html }} />
 
                     <nav className="k-hairline-top mt-14 flex justify-between gap-4 pt-6 text-sm">
                         {page.prev ? (
@@ -176,11 +191,11 @@ export default function Show({ page, nav, path, version }: { page: Page; nav: Na
 
                 {/* TOC */}
                 <aside className="sticky top-[57px] hidden h-[calc(100vh-57px)] w-52 shrink-0 overflow-y-auto py-10 xl:block">
-                    {page.toc.length > 1 && (
+                    {content.toc.length > 1 && (
                         <>
                             <p className="k-mono mb-3">On this page</p>
                             <ul className="space-y-1.5 text-[0.8rem]">
-                                {page.toc.map((entry) => (
+                                {content.toc.map((entry) => (
                                     <li key={entry.id} style={{ paddingLeft: entry.level === 3 ? '0.9rem' : 0 }}>
                                         <a href={'#' + entry.id} className="transition-colors hover:text-[var(--k-cyan)]" style={{ color: 'var(--k-ink-3)' }}>
                                             {entry.text}

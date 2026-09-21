@@ -1,8 +1,7 @@
 # Task lists
 
-An agent given a goal has to keep working across many requests until the goal is
-met. It needs a list of what remains — and that list has to survive the request,
-the worker, a crash and a deploy.
+Task lists track work across agent runs. Tasks and claims are stored durably
+so another worker can continue after a restart or deployment.
 
 ::: language-group
 ```php
@@ -39,18 +38,19 @@ if task is not None:
 ```
 :::
 
-A Laravel request boots, serves and dies, so the list cannot live in memory. It
-lives in the session's durable store, and a fresh worker resolving the same
-session sees the same list at the same point.
+In PHP, TypeScript and Python, the list lives in the session's durable store.
+A fresh worker resolving the same session sees the same list at the same point,
+including after a process restart or deployment.
 
-## You decide what a task is
+## Task definitions
 
-Bring your own model, schema and migration — or bring none.
+Use the built-in store-backed list or adapt your application's task model.
 
-**With no table at all**, `$session->tasks()` gives you a store-backed list that
-works immediately.
+The session's `tasks()` method gives you a store-backed list without requiring
+a separate task table.
 
-**With your own model**, add the trait:
+For your own model, PHP offers an Eloquent trait, TypeScript an `AgentTask`
+interface, and Python an `AgentTaskMixin`:
 
 ::: language-group
 ```php
@@ -94,43 +94,36 @@ class ChoreTask(AgentTaskMixin):
 ```
 :::
 
-Conventional column names, one override method each.
+Map your model's identifier, instruction and state to the task contract. The
+PHP trait supplies conventional column names with override methods.
 
 ## A claim carries a lease
 
-`claim()` is a single call that reads the next task and marks it yours together.
-Two workers claiming at once get different tasks, or one gets `null`. Never the
-same task twice.
+`claim()` atomically selects and leases the next available task. Concurrent
+claims return different tasks, or `null` when none is available. A task can be
+claimed again after its lease expires.
 
 Every claim expires. If a worker dies holding a task, the lease lapses and the
-task becomes claimable again — returning to `todo`, never to `failed`. **A worker
-dying is not the task failing**, and marking it failed would burn a retry that
-never ran.
+task becomes claimable again with state `todo`. A worker failure does not
+automatically mark the task as failed.
 
 A worker may extend its own lease while it still holds it, bounded by what the
 run's wall-clock budget has left.
 
 ## `release()` requires the worker
 
-Passing the worker is what makes a release safe. Only the current holder may
-release a task, and the failure that prevents needs no adversary:
-
-Worker A's lease lapses mid-task. B legitimately reclaims it and starts. A
-finishes and releases — overwriting B's live claim. The task reads `done` while B
-is still working, B's work is discarded, and **B's own release then fails as
-"already terminal"**, so the second worker is blamed for the first one's mistake.
+Only the worker holding the current lease may release a task. Releases from
+an expired or different holder are rejected, preventing a previous worker from
+overwriting a newer claim.
 
 ## Completion is the application's call
 
-By default, a task closes on evidence your code has seen.
-
-If the model can set its own task to `done`, then "run until the goal is met"
-quietly becomes "run until it decides it is met", and a run that has stalled ends
-by declaring victory.
+By default, application code decides when a task is complete. Validate the
+result before marking it done.
 
 To let an agent close its own work, register `TaskCompletionTool` and authorize
-it through the [tool authorizer](/docs/harness/modes) — the same mechanism that
-gates every other tool. Nothing registers it for you.
+it through the [tool authorizer](/docs/harness/modes). It is not registered
+automatically.
 
 ::: language-group
 ```php
@@ -149,16 +142,15 @@ tasks.find(id)   # resolve an id to a task
 ```
 :::
 
-## What bounds the loop
+## Run limits
 
-The existing [`RunBudget`](/docs/harness/subagents) — cost, turns and wall-clock.
-There is no second limit to configure, and budgets nest rather than reset, so a
-task that spawns subagents draws from the same remaining allowance.
+Task execution uses [`RunBudget`](/docs/harness/subagents) for cost, turn and
+wall-clock limits. Subagents draw from the parent run's remaining budget.
 
-`maxSteps` alone is not a budget: it bounds iterations, and a handful of steps
-each calling an expensive tool sits comfortably inside it.
+`maxSteps` limits iterations. Configure cost and wall-clock limits as well when
+individual steps may be expensive or slow.
 
-## The shape of the list
+## Task ordering
 
 Tasks are a flat list with next-item semantics: claim the next one, release it
 done or failed, repeat. A failed task stays failed, and re-queueing it is your
@@ -166,10 +158,10 @@ call.
 
 For dependency-ordered execution, durable checkpoints or resume-from-pause,
 reach for [`fancy-flow`](https://github.com/Particle-Academy/fancy-flow-php),
-which the harness already bridges to.
+through the PHP Harness integration. That integration is separate from the
+task-list contract shared by all three languages.
 
-The list is durable state, so a task source backed by a volatile store refuses
-to start — your list survives the next deploy. See
+Task sources require durable storage and reject volatile stores. See
 [Sessions](/docs/harness/sessions) for that distinction.
 
 - TypeScript and Python ports carry the same contract. See

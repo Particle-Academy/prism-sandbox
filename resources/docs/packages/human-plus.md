@@ -18,15 +18,16 @@ pip install prism-ai-human-plus
 ```
 :::
 
-::: warning Pre-1.0 — the API can still change in a minor version
-`prism-human-plus` is at **`v0.3.0`**. Pin what you install.
+::: warning Versioning
+The language packages are versioned independently. Before 1.0, minor releases
+may include API changes. Pin your dependency and review release notes before upgrading.
 :::
 
 ## What the surface owns
 
 The Fancy application owns the running surface, stable handles, staged writes,
 undo, presence, cursors, and the MCP tools that express its actions. This
-package lets a PHP agent enter through an explicit invitation and relay
+package lets an agent enter through an explicit invitation and relay
 transport as a named participant.
 
 It ships participant and surface value objects, attachment lifecycle states,
@@ -111,16 +112,15 @@ attachment = human_plus.attach(
 ```
 :::
 
-## Human+ means coexistence
+## Shared interaction
 
 The participant identity, activity target, priority, and correlation remain
 visible to the host surface. An agent can call bridge tools and submit staged
-proposals; human confirmation callbacks stay reserved for the person, so an
-approval always has someone behind it.
+proposals. Human confirmation callbacks cannot be invoked by the agent.
 
 Fancy currently supplies the primitives for activity, presence, staged writes,
 and undo. Conflict resolution for two concurrent committed edits stays
-with the surface, which is the layer that knows what its own edits mean.
+with the host application.
 
 ## Trust boundary
 
@@ -137,6 +137,6 @@ their own terminal state, so your recovery path can tell them apart.
 A Human+ attachment binds to the same durable Harness session as other
 capabilities when you want it to; Harness stays a suggested dependency you opt
 into. Browser covers the open web, Human+ covers an application-owned surface,
-and each stays in its lane.
+and the packages can be used independently.
 
 Source: [Particle-Academy/prism-human-plus](https://github.com/Particle-Academy/prism-human-plus).

@@ -1,7 +1,7 @@
 # Prism Browser
 
-Guarded open-web automation for Prism agents. The browser is a security
-boundary here, and the package is built as one.
+Prism Browser provides browser automation with explicit host and action
+policies, bounded observations and session-scoped attachments.
 
 ::: language-group
 ```bash [language=php]
@@ -17,20 +17,19 @@ pip install prism-ai-browser
 ```
 :::
 
-::: tip Pre-1.0 — pin what you install
-`prism-browser` is at **`v0.1.0`**, its first release. Source at
+::: tip Versioning
+Pin the package version for your language and review release notes when upgrading. Source at
 [Particle-Academy/prism-browser](https://github.com/Particle-Academy/prism-browser).
 :::
 
-## What ships
+## Features
 
 `prism-browser` provides a provider-neutral engine contract, explicit host and
 action policy, bounded structured observations, durable attachment generations,
 compare-and-swap storage, stale-observation refusal, and an `in_doubt` state for
 an action whose outcome is ambiguous.
 
-The model acts through package-issued element references, resolved through a
-package-issued element reference tied to a short-lived observation. The package
+The model acts through element references tied to a short-lived observation. The package
 also ships Prism tool adapters for navigate, observe, act, status, and close.
 
 ## Guard a browser
@@ -75,27 +74,26 @@ observation = browser.navigate("https://docs.example.com/start")
 ```
 :::
 
-A version-pinned Playwright sidecar is included as the first engine adapter, but
-the application must bind the engine explicitly; no browser executable becomes
-an invisible default dependency of a Laravel install.
+The PHP package includes a version-pinned Playwright sidecar adapter. Configure
+the engine explicitly; installing the package does not install a browser automatically.
 
-## The boundary
+## Access policy
 
-Every page is attacker-authored text delivered to the model. Observations are
+Treat page content as untrusted input. Observations are
 therefore size-bounded and framed with source provenance. Applications declare
 which HTTPS hosts and action kinds are allowed before an engine receives the
 request, and consequential actions use Prism's approval mechanism.
 
 Production deployments must supply `PRISM_BROWSER_EGRESS_PROXY`. That proxy is
 the network-level enforcement point for public/private address separation,
-redirects, and subresources. The local dogfood override does not claim that DNS
-checks in application code eliminate rebinding races.
+redirects, and subresources in the PHP sidecar integration. Application-level
+DNS checks alone do not prevent DNS rebinding; configure equivalent egress
+controls for other engine integrations.
 
 ::: danger Keep the engine behind the policy
-Credentials, raw browser checkpoints, downloads, arbitrary selectors and page
-JavaScript belong in your infrastructure. A direct engine binding is
-infrastructure too — hand the model the guarded surface, and it keeps every
-check in this page in front of it.
+Expose the guarded browser API to the model. Keep credentials, raw checkpoints,
+downloads, arbitrary selectors and page JavaScript behind application-controlled
+interfaces. Direct engine access bypasses the policy checks.
 :::
 
 ## Relationship to Harness and Human+
@@ -105,6 +103,6 @@ suggested dependency, and each package installs on its own.
 
 Human+ covers the other half: `prism-human-plus` joins a controlled Fancy
 surface as a visible participant, while Browser automates the open web. Run
-both, each in its own lane.
+both when your application needs both forms of interaction.
 
 Source: [Particle-Academy/prism-browser](https://github.com/Particle-Academy/prism-browser).

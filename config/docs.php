@@ -74,6 +74,32 @@ return [
         'languages/python' => 'python',
     ],
 
+    // Port guides adapt the release's PHP topics to the actual port APIs.
+    // Paths not listed here use resources/docs/ports/<page path>.md.
+    'port_guides' => [
+        'core-concepts/schemas' => 'ports/core-concepts/structured-output',
+        'input-modalities/audio' => 'ports/core-concepts/audio',
+        'advanced/telemetry' => 'packages/opentelemetry',
+        'providers/deepseek' => 'ports/providers/unsupported',
+        'providers/elevenlabs' => 'ports/providers/unsupported',
+        'providers/gemini' => 'ports/providers/unsupported',
+        'providers/groq' => 'ports/providers/unsupported',
+        'providers/ollama' => 'ports/providers/unsupported',
+        'providers/openrouter' => 'ports/providers/unsupported',
+        'providers/perplexity' => 'ports/providers/unsupported',
+        'providers/qwen' => 'ports/providers/unsupported',
+        'providers/replicate' => 'ports/providers/unsupported',
+        'providers/requesty' => 'ports/providers/unsupported',
+        'providers/voyageai' => 'ports/providers/unsupported',
+        'providers/xai' => 'ports/providers/unsupported',
+        'providers/z' => 'ports/providers/unsupported',
+        'providers/vertex' => 'ports/providers/unsupported',
+        'companion-packages/harness' => 'packages/harness',
+        'companion-packages/mcp' => 'packages/mcp',
+        'companion-packages/memory' => 'packages/memory',
+        'companion-packages/workspace' => 'packages/workspace',
+    ],
+
     'sections' => [
 
         [

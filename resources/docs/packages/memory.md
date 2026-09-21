@@ -16,12 +16,9 @@ pip install prism-ai-memory
 ```
 :::
 
-An agent's useful context outgrows its context window. `prism-harness` gives a
-conversation a thread, and a thread replayed whole is the crudest possible
-memory: every turn costs tokens again, and the thread eventually outgrows the
-window.
-
-This stores what was said and retrieves **only the parts that matter now**.
+Prism Memory stores context and retrieves relevant records for a model request.
+Use it with a Harness thread or independently to select context without sending
+the complete conversation on every turn.
 
 ::: language-group
 ```php
@@ -88,19 +85,18 @@ relevant = recall(
 ```
 :::
 
-## Recall takes a token budget
+## Recall limits
 
-`recall()` is given the room you have left in the prompt, and fills it. That is
-the number a caller actually knows — five long memories and five short ones fill
-a prompt very differently, so a budget answers the question a fixed count only
-approximates.
+The PHP example limits recall with a token budget. The TypeScript and Python
+examples configure the result count and relevance/recency weighting through
+`RecallSettings`. Account for the size of the selected records when assembling
+the final prompt.
 
 ## What recall returns
 
-Stored material, verbatim, ranked to fit the budget. Building a summary from it
-is your call, with the model and the prompt you choose.
-
-`forget()` removes the memory you name.
+Recall returns stored content ranked by the configured retrieval policy. It
+does not summarize that content. Summarization, if required, is a separate
+application step. In PHP, `forget()` removes the specified memory.
 
 - [Source](https://github.com/Particle-Academy/prism-memory)
 - TypeScript and Python ports exist. See

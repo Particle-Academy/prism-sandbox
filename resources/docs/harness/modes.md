@@ -1,6 +1,6 @@
 # Modes, tools and skills
 
-A **mode** is what an agent is allowed to be, for a stretch of a conversation.
+A mode defines the instructions, tools and limits used for an agent run.
 
 ::: language-group
 ```php
@@ -56,20 +56,16 @@ modes = ModeRegistry({
 ```
 :::
 
-## A mode narrows what a run can reach
+## Tool allowlists
 
-A mode earns its keep through the reach it withholds. A verifier that can file
-its own finding becomes a second author; a judge that can reach the workspace it
-is scoring can look past the evidence at the artifact itself. Each stays a check
-for as long as its mode stays narrow.
-
-So the tool list is an allow-list, and an empty one is a legitimate and common
-answer.
+Include only the tools the mode needs. An empty allowlist is valid and creates
+a mode with no tools. Separate modes can give research, editing and verification
+runs different permissions.
 
 ## Tool authorization is off by default
 
-Declaring a tool in a mode makes it *offerable*. Whether a given session may
-actually call it is a second question, and the answer is opt-in:
+The mode's allowlist determines which tools are available. Enable tool
+authorization to apply additional session-specific access checks:
 
 ::: language-group
 ```php
@@ -85,10 +81,10 @@ authorizer = ToolAuthorizer(enabled=False)
 ```
 :::
 
-Off by default because turning it on without an authorizer would refuse
-everything, and a package that breaks on install teaches people to skip the
-security feature. `harness:doctor` reports what your configuration is actually
-doing, resolved value by resolved value.
+Configure an authorization policy before enabling these checks. PHP's
+`harness:doctor` reports its resolved configuration.
+TypeScript and Python configure the authorizer directly; Laravel Gate and
+Artisan are not required by those packages.
 
 ## Approvals
 
@@ -117,15 +113,12 @@ modes = ModeRegistry({
 ```
 :::
 
-Prism denies by default when no approval answer is found, so an unattended run
-cannot slip past the gate by simply not being asked.
+Tools requiring approval are denied when no approval decision is available.
 
-Where a human is genuinely part of the surface — approving, confirming,
-participating — see [Human+](/docs/packages/human-plus), which reserves
-confirmation tools for the person and not the agent.
+For shared human/agent interfaces, see [Human+](/docs/packages/human-plus).
+Its confirmation tools are reserved for human participants.
 
 ## Skills
 
-Skills are instructions offered to the agent without copying them into its
-workspace. The agent reads a skill; it does not receive a folder it can then
-modify and re-read as though it were fact.
+Skills provide reusable instructions to the agent. Keep skill sources separate
+from agent-writable workspace files so a run cannot modify its own instructions.

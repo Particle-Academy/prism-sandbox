@@ -1,10 +1,14 @@
 # Sessions and threads
 
-A session is how a conversation survives the request that started it.
+A session is how a conversation survives the request that started it, in PHP,
+TypeScript or Python. PHP integrates with Laravel; the other packages do not
+require it.
 
 ::: language-group
 ```php
-$session = PrismHarness::for($user)->session('support');
+use Prism\Harness\PrismHarness;
+
+$session = app(PrismHarness::class)->for($user)->session('support');
 
 $session->usingMode('plan')->usingModel('claude-sonnet-5');
 
@@ -32,55 +36,50 @@ response = runtime.send(session, "Where did we get to?")
 
 ## Resolved on every request
 
-A Laravel request boots, serves and dies. So a session lives in a store, rather
-than being an object kept
-in memory the way a long-lived Node process can keep one — every call rebuilds
-it from a store.
-
-That is the constraint the whole package is shaped around, and it is why the
-four verbs below exist rather than a `new Agent(...)` you hold onto:
+Requests can reach different workers, and even a long-lived Node.js or Python
+process eventually restarts. Session state lives in a store so the next worker
+can continue the conversation. This applies across all three languages and
+does not depend on a particular web framework:
 
 | | |
 |---|---|
 | **Resolve** | address a session by participant *and* scope, so one user can hold several unrelated conversations that never merge |
 | **Rehydrate** | rebuild its state from the store on every request, in whichever worker picks it up |
-| **Lock** | run work exactly once, even if the user double-submits or a queue retries |
-| **Continue** | append to the thread rather than replaying it, so the conversation grows without the prompt growing with it |
+| **Lock** | serialize concurrent changes to the session; use application-level idempotency for repeated jobs and side effects |
+| **Continue** | append the new exchange to the stored thread and supply the relevant history to the next run |
 
 ## Scope is part of the address
 
-A session is keyed by participant **and** scope. Without the scope, a user's
-support conversation and their billing conversation are the same thread, and
-the model answers one with the context of the other — the kind of bug that
-stays quiet in testing and is very loud in production.
+A session is keyed by participant and scope. Use separate scopes for unrelated
+conversations, such as support and billing, to keep their histories separate.
 
 ## Locking
 
 ::: language-group
 ```php
 $session->lock(function (Session $session) {
-    // the work that runs once
+    // update session state while holding the lock
 });
 ```
 
 ```ts
 await session.lock(async (live) => {
-  // the work that runs once
+  // update session state while holding the lock
 });
 ```
 
 ```python
 def advance(live):
-    # the work that runs once
+    # update session state while holding the lock
     pass
 
 session.lock(advance)
 ```
 :::
 
-An agent turn is expensive and frequently side-effectful. Two of them running
-concurrently against one session is the failure this prevents — a double-submit,
-a queue retrying a job whose first attempt is still in flight, two browser tabs.
+Locking serializes session changes from concurrent workers. It does not prevent
+sequential retries from repeating an action; use idempotency controls for
+external side effects.
 
 ## Threads
 

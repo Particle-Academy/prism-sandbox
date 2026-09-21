@@ -1,8 +1,7 @@
 # Prism MCP
 
-A **Model Context Protocol client** for Prism. Tools published by a third-party
-server, handed to your model as ordinary Prism tools — across a trust boundary
-you can actually see.
+A Model Context Protocol client for PHP, TypeScript and Python. Discover and
+call server tools with explicit trust policies, definition pinning and bounded results.
 
 ::: language-group
 ```php
@@ -45,11 +44,9 @@ result = github.call_tool(search, {"query": "billing module"})
 ```
 :::
 
-::: tip Status: first slice, published
-`v0.2.0` on Packagist. The client speaks MCP revision `2026-07-28` over
-Streamable HTTP. stdio transport, OAuth, prompts and resources are on the
-roadmap in the package README, each with the reasoning behind its place in the
-queue.
+::: tip Transport support
+The PHP client supports MCP revision `2026-07-28` over Streamable HTTP.
+Consult the selected language package's README for its transport and protocol support.
 :::
 
 ## Installation
@@ -69,44 +66,24 @@ pip install prism-ai-mcp
 ```
 :::
 
-Requires PHP 8.2+, Laravel 12.61+ or 13.12+, and `particle-academy/prism` 0.114
-or newer.
+The PHP package requires PHP 8.2+, Laravel 12.61+ or 13.12+, and
+`particle-academy/prism` 0.114 or newer. TypeScript and Python configure the
+client and transport directly and do not require Laravel.
 
-This package declares `replace: prism-php/relay`, so Composer will refuse to
-install it alongside Relay. That is deliberate — it is Relay's successor.
+The PHP package replaces `prism-php/relay` and cannot be installed alongside it.
 
-## The part to read: what you are trusting
+## Trust policy
 
-Connecting to an MCP server hands a third party a pen. Its text becomes part of
-your model's **instructions**, and your model then **acts on what comes back**.
+Tool names, descriptions, input schemas, annotations and results are supplied
+by the server. Treat them as untrusted input: they can contain prompt injection
+and can change between calls. Limit the tools available to each run and review
+definitions before allowing them. A compromised server can influence the model's
+use of other tools in the same run.
 
-The tool's name, its description, every parameter description, the enum values in
-its input schema, its annotations, and every result it returns are all authored by
-whoever operates that server — and all of them reach the model as text it treats
-as authoritative.
+## Configure allowed tools
 
-Two things make this unlike other untrusted input a Laravel app already handles
-well:
-
-- **A model reads it as instruction.** You escape input before it reaches HTML
-  and bind it before it reaches SQL. Text that reaches a language model shares
-  one channel with its instructions, so the equivalent escape does not exist.
-- **It can change under you.** A tool your team wrote changes when somebody
-  deploys. A tool a third party publishes changes whenever they like, between two
-  calls. A server can publish a benign `search`, wait to be adopted, then rewrite
-  its description — a rug pull, and a one-time review covers only the moment you
-  read it.
-
-An injected instruction reaches past that server, too. Once the model is
-following it, every **other** tool in the same run is in range: your database
-tools, your mail tools. A compromised MCP server is a foothold in the whole tool
-set.
-
-## What the package does about it
-
-**You name what the model may see.** A server with no `trust` block refuses —
-*before any request is sent*, so a misconfigured app keeps its silence toward
-that server.
+Declare a trust policy before connecting. A missing trust policy causes an
+error before any request is sent.
 
 ::: language-group
 ```php
@@ -142,15 +119,13 @@ github = Client(
 ```
 :::
 
-Or, when you genuinely accept whatever that server publishes today and next week
-— reasonable for one you operate yourself — `'tools' => '*'`.
+In PHP, `'tools' => '*'` allows every tool the server publishes, including future
+additions. Use it only when that level of trust is appropriate. An empty
+allowlist is rejected as a configuration error.
 
-An **empty** allowlist gets its own, louder refusal: it looks configured while
-handing the model zero tools, and a toolless run reads as *the model choosing
-not to use any*.
+## Pin tool definitions
 
-**Pin a definition and only that definition runs.** Record the digest of a
-definition you have actually read, per tool:
+Record the digest of each reviewed tool definition:
 
 ::: language-group
 ```php
@@ -176,26 +151,22 @@ TrustPolicy.allowing(
 :::
 
 The digest covers name, title, description and input schema — everything the
-model will read — and sorts keys recursively, so a server reordering its JSON
-does not read as a rewritten tool. It is the defence against a rug pull that
-holds up, because it turns on noticing change — something a check can do
-reliably.
+model will read — with recursively sorted keys. Reordering JSON keys does not
+change the digest. A definition that no longer matches its pin is rejected.
 
-**Results are bounded, framed, and filterable.** Over `max_result_bytes`
-(256 KB by default) a call is **refused, not truncated** — a silently cut result
-reads to a model as a complete one. Results are wrapped in a delimiter naming the
-source server, with a per-call random nonce so a server that learns the delimiter
-cannot close it early. The error path gets identical treatment, because
-`isError: true` is the same channel from an attacker's point of view.
+## Result limits and authorization
 
-**A gate decides who may run what.** Trust decides which tools the model is *told
-about*; a gate decides whether a given actor may *run* one. Adapters ship for
-Laravel's `Gate` and for Fancy's feature management, each optional.
+PHP's `max_result_bytes` defaults to 256 KB. Oversized results are rejected
+rather than truncated. Results identify their source server and use per-call
+delimiters. The same controls apply to successful and error results.
+
+Trust controls which tools are exposed; authorization controls which tools an
+actor may execute. The PHP package includes optional Laravel Gate and Fancy
+feature-management adapters.
 
 ## Ad hoc connections
 
-The exploratory form asks for trust just as firmly, because exploring is
-exactly where an exemption would hurt:
+Ad hoc connections also require an explicit trust policy:
 
 ::: language-group
 ```php
@@ -228,8 +199,7 @@ tools = client.list_tools()
 :::
 
 `PrismMcp::tools()` returns the tools of every configured server at once. A
-server that refuses **surfaces its exception**, so the tool list your model gets
-is the tool list your application configured.
+server failure propagates as an exception rather than returning a partial tool list.
 
 ::: danger A server URL must never come from user input
 `PrismMcp::client($url)` fetches whatever you point it at, and this package does
@@ -238,23 +208,12 @@ you run a local MCP server. The SSRF boundary is therefore yours: server URLs
 belong in config or an operator-controlled setting, never in a request parameter.
 :::
 
-## What the guarantees rest on
+## Security limitations
 
-Every guarantee here traces back to something you declared: the servers you
-trusted, the tools you allowed, the digests you pinned, the size cap you set and
-the gate you bound. That is the property worth having — the trust is a decision
-you made, a definition changes in front of you, and the blast radius is bounded
-in size, in permission, and in which tools were ever offered.
-
-Two things stay outside those bounds, and are worth saying plainly. Results are
-framed rather than filtered: a determined server can still put an instruction in
-a result that the model follows, and pattern-matching for injection would ship a
-promise that fails quietly. Annotations such as `readOnlyHint: true` are claims
-by the server, so trusting a server's `search` tool stops at the tool — what
-`search` returns is still third-party text.
-
-For a genuinely adversarial server, network controls and process isolation are
-the answer, and they always were.
+Result framing does not eliminate prompt injection. Server annotations such as
+`readOnlyHint: true` are descriptive claims, not enforced permissions. Apply
+network restrictions and process isolation where required, and keep sensitive
+tools out of runs that do not need them.
 
 Source and the full trust-boundary write-up:
 [Particle-Academy/prism-mcp](https://github.com/Particle-Academy/prism-mcp).

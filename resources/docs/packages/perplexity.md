@@ -1,11 +1,11 @@
 # Prism Perplexity
 
-The rest of the Perplexity API — embeddings, direct web search, and the Agent
-API, each reached the way Perplexity actually exposes it.
+Prism Perplexity provides access to Perplexity embeddings, web search and Agent
+API operations. Packages are available for PHP, TypeScript and Python.
 
-::: tip Status: published
-`v0.2.0` on Packagist. Embeddings, search and the Agent API are tested and in
-use. Async deep research is on the roadmap.
+::: tip Versioning
+The language packages are versioned independently. Review the selected
+package's release notes for endpoint support before upgrading.
 :::
 
 ## Installation
@@ -24,18 +24,18 @@ pip install prism-ai-perplexity
 ```
 :::
 
-That is the whole setup. The package registers under the **same provider key**
-as Prism core, so `using('perplexity', …)` gains capabilities while every
-call you already wrote keeps working — it extends Prism's Perplexity provider in
-place.
+In PHP, the package extends Prism's existing `perplexity` provider registration.
+TypeScript and Python expose functions that take a configured HTTP transport;
+they do not register a Perplexity provider in core.
 
-Requires PHP 8.2+, Laravel 12.61+ or 13.12+, and `particle-academy/prism` 0.113
-or newer. Your existing `PERPLEXITY_API_KEY` is the one it uses.
+The PHP package requires PHP 8.2+, Laravel 12.61+ or 13.12+, and
+`particle-academy/prism` 0.113 or newer. Configure `PERPLEXITY_API_KEY` in your
+server environment.
 
 ## Embeddings
 
-Prism core throws `unsupportedProviderAction` for Perplexity embeddings. With
-this installed:
+Generate embeddings through the PHP provider extension or the port's
+`embeddings` function:
 
 ::: language-group
 ```php
@@ -74,12 +74,9 @@ response.embeddings[0]  # list[float]
 
 ### Contextualized embeddings
 
-Perplexity has a second endpoint for chunks of **one document**, embedding each
-in light of the others — which is what you want when you have split a document
-for retrieval and want each chunk to carry the document around it.
-
-Prism's embeddings abstraction is text-in, vector-out, so "these belong
-together" is something you say explicitly:
+Contextualized embeddings represent chunks from one document using the
+surrounding document context. Enable this option when the supplied chunks
+belong to the same document:
 
 ::: language-group
 ```php
@@ -108,14 +105,12 @@ embeddings(
 ```
 :::
 
-Vectors come back ordered by the `index` the API returns, so match on that index.
-Lining vectors up with the inputs that produced them by position would be a
-silent mismatch the first time a response arrived out of order.
+Use the response index to associate each vector with its input; response
+arrival order may differ from input order.
 
 ## Search
 
-Web results **straight from the index** — the sources a grounded answer would
-have been built from, at the cost of the lookup alone.
+Retrieve web search results without requesting a generated answer.
 
 ::: language-group
 ```php
@@ -149,9 +144,8 @@ results = search(
 ```
 :::
 
-It is a method on the provider rather than a `Prism::` verb, because the result
-is a list of sources with structure worth keeping — every other Prism verb
-answers with a model.
+PHP exposes search as a provider method. TypeScript and Python expose a
+standalone function.
 
 `search()` also takes an array of queries to run together. Results are plain
 arrays, so every field Perplexity sends reaches you — including the ones it adds
@@ -159,7 +153,7 @@ after this page was written.
 
 **An empty result list is an answer.** It comes back as `[]`.
 
-## What lives here, and what lives in core
+## PHP integration
 
 | | Where |
 | --- | --- |
@@ -169,15 +163,12 @@ after this page was written.
 | Search API | here |
 | Async deep research | planned |
 
-The split follows the abstraction. Core carries what fits "prompt in, answer
-out"; anything that is a genuinely different operation lives out here rather
-than distorting core to fit it.
+This table describes the PHP integration. For TypeScript and Python, use the
+satellite's exported functions for supported Perplexity operations.
 
 ## Errors
 
-Perplexity's agent surface returns failures inside an HTTP 200. This package
-assumes the same is possible on every endpoint and branches on the response body
-— an empty vector set or an empty result list read as a valid answer is worse
-than an exception.
+The client checks response bodies for API failures, including failures returned
+with HTTP 200. Handle these exceptions separately from a valid empty search result.
 
 Source: [Particle-Academy/prism-perplexity](https://github.com/Particle-Academy/prism-perplexity).

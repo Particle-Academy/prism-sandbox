@@ -28,7 +28,7 @@ class DocsRepository
      * and llms.txt down with a 500 when `external` was added to nav entries.
      * Bump this whenever a cached structure changes.
      */
-    private const SCHEMA = 4;
+    private const SCHEMA = 5;
 
     private ?string $siteFingerprint = null;
 
@@ -220,16 +220,22 @@ class DocsRepository
 
     public function exists(string $path): bool
     {
+        // Port sources are fragments of public guides, not separate pages.
+        if (str_starts_with(trim(str_replace(['..', '\\'], '', $path), '/'), 'ports/')) {
+            return false;
+        }
+
         return is_file($this->pageFile($path));
     }
 
     /**
-     * @return array{title: string, html: string, toc: array<int, array{id: string, text: string, level: int}>, prev: ?array{text: string, link: string}, next: ?array{text: string, link: string}, section: ?string, languages: array<int, string>, defaultLanguage: ?string}
+     * @return array{title: string, html: string, toc: array<int, array{id: string, text: string, level: int}>, prev: ?array{text: string, link: string}, next: ?array{text: string, link: string}, section: ?string, languages: array<int, string>, defaultLanguage: ?string, variants: array<string, array{html: string, toc: array}>}
      */
     public function page(string $path): array
     {
         $file = $this->pageFile($path);
-        $key = $this->isSiteFile($file) ? $this->siteCacheKey("page:$path") : $this->cacheKey("page:$path");
+        // Package pages also carry site-owned port examples.
+        $key = $this->siteCacheKey("page:$path");
 
         return Cache::rememberForever($key, function () use ($file, $path): array {
             $markdown = (string) file_get_contents($file);
@@ -244,12 +250,27 @@ class DocsRepository
                 ['php', 'typescript', 'python'],
                 array_unique($matches[1] ?? []),
             ));
-            $defaultLanguage = $this->defaultLanguage($path, $languages);
-
             $title = $this->titleFor($path, $html);
             [$prev, $next, $section] = $this->siblings($path);
 
-            return compact('title', 'html', 'toc', 'prev', 'next', 'section', 'languages', 'defaultLanguage');
+            $portFile = $this->portFile($path);
+            $variants = [];
+
+            if (is_file($portFile)) {
+                $portHtml = $this->converter()->convert($this->preprocess((string) file_get_contents($portFile)))->getContent();
+                // Shared guides (schemas, unavailable providers) keep the page's identity.
+                $portHtml = (string) preg_replace_callback('/<h1>.*?<\/h1>/s', fn (): string => '<h1>'.e($title).'</h1>', $portHtml, 1);
+                [$portHtml, $portToc] = $this->anchorHeadings($portHtml);
+                $portHtml = $this->rewriteLinks($portHtml);
+                $variants = [
+                    'typescript' => ['html' => $portHtml, 'toc' => $portToc],
+                    'python' => ['html' => $portHtml, 'toc' => $portToc],
+                ];
+                $languages = ['php', 'typescript', 'python'];
+            }
+            $defaultLanguage = $this->defaultLanguage($path, $languages);
+
+            return compact('title', 'html', 'toc', 'prev', 'next', 'section', 'languages', 'defaultLanguage', 'variants');
         });
     }
 
@@ -269,6 +290,10 @@ class DocsRepository
                 }
 
                 $markdown = (string) file_get_contents($file);
+                $portFile = $this->portFile($item['link']);
+                if (is_file($portFile)) {
+                    $markdown .= "\n".(string) file_get_contents($portFile);
+                }
                 $text = $this->plainText($markdown);
 
                 $index[] = [
@@ -281,6 +306,14 @@ class DocsRepository
 
             return $index;
         });
+    }
+
+    protected function portFile(string $path): string
+    {
+        $path = trim(str_replace(['..', '\\'], '', $path), '/');
+        $source = (string) config('docs.port_guides.'.$path, 'ports/'.$path);
+
+        return $this->sitePath().'/'.$source.'.md';
     }
 
     protected function pageFile(string $path): string
@@ -314,7 +347,7 @@ class DocsRepository
 
         return is_string($preferred) && in_array($preferred, $languages, true)
             ? $preferred
-            : $languages[0];
+            : null;
     }
 
     protected function isSiteFile(string $file): bool

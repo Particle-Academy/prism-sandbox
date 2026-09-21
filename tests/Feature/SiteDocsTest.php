@@ -132,14 +132,26 @@ class SiteDocsTest extends TestCase
         }
     }
 
-    public function test_every_language_aware_page_carries_all_three_supported_variants(): void
+    public function test_only_explicit_language_entry_points_override_the_readers_preference(): void
+    {
+        $docs = app(DocsRepository::class);
+
+        foreach (['php', 'typescript', 'python'] as $language) {
+            $this->assertSame($language, $docs->page('languages/'.$language)['defaultLanguage']);
+        }
+
+        $this->assertNull($docs->page('packages/harness')['defaultLanguage']);
+        $this->assertNull($docs->page('harness/tasks')['defaultLanguage']);
+    }
+
+    public function test_every_page_with_code_carries_all_three_supported_languages(): void
     {
         $docs = app(DocsRepository::class);
 
         foreach ($docs->pages() as $entry) {
             $page = $docs->page(ltrim($entry['link'], '/'));
 
-            if ($page['languages'] === []) {
+            if (! str_contains($page['html'], '<pre')) {
                 continue;
             }
 
@@ -150,12 +162,62 @@ class SiteDocsTest extends TestCase
             );
 
             foreach ($page['languages'] as $language) {
+                if ($page['variants'] !== []) {
+                    if ($language === 'php') {
+                        $this->assertStringContainsString('<pre', $page['html']);
+                    } else {
+                        $this->assertNotEmpty($page['variants'][$language]['html']);
+                    }
+
+                    continue;
+                }
                 $this->assertStringContainsString(
                     'data-doc-language="'.$language.'"',
                     $page['html'],
                     "{$entry['link']} declares {$language} without rendering an example.",
                 );
             }
+        }
+    }
+
+    public function test_main_docs_have_real_port_examples_and_php_reference_content(): void
+    {
+        $docs = app(DocsRepository::class);
+
+        foreach (['getting-started/introduction', 'getting-started/installation', 'getting-started/configuration',
+            'core-concepts/text-generation', 'core-concepts/streaming-output', 'core-concepts/structured-output',
+            'core-concepts/embeddings', 'core-concepts/image-generation', 'core-concepts/moderation',
+            'core-concepts/audio', 'core-concepts/files', 'core-concepts/batch', 'core-concepts/testing',
+            'core-concepts/tools-function-calling', 'core-concepts/schemas',
+            'input-modalities/images', 'input-modalities/documents', 'input-modalities/audio', 'input-modalities/video',
+            'advanced/error-handling', 'advanced/custom-providers', 'advanced/rate-limits',
+            'advanced/provider-interoperability', 'advanced/telemetry',
+            'providers/openai', 'providers/anthropic', 'providers/mistral'] as $path) {
+            $page = $docs->page($path);
+            $this->assertSame(['php', 'typescript', 'python'], $page['languages'], $path);
+            $this->assertNotEmpty($page['html'], $path);
+            foreach (['typescript', 'python'] as $language) {
+                $this->assertStringContainsString('data-doc-language="'.$language.'"', $page['variants'][$language]['html'], $path);
+                $this->assertNotEmpty($page['variants'][$language]['toc'], $path);
+            }
+        }
+    }
+
+    public function test_port_sources_are_not_duplicate_public_pages(): void
+    {
+        $this->get('/docs/ports/core-concepts/text-generation')->assertNotFound();
+    }
+
+    public function test_port_guides_state_unsupported_features_instead_of_showing_php_as_a_translation(): void
+    {
+        $docs = app(DocsRepository::class);
+        foreach (['core-concepts/prism-server' => 'Laravel', 'core-concepts/human-in-the-loop' => 'do not expose',
+            'providers/gemini' => 'not a built-in provider'] as $path => $reason) {
+            $page = $docs->page($path);
+            $this->assertSame(['php', 'typescript', 'python'], $page['languages']);
+            $this->assertStringContainsString($reason, $page['variants']['python']['html']);
+            $this->assertStringContainsString('<h1>'.e($page['title']).'</h1>', $page['variants']['python']['html']);
+            $this->assertStringNotContainsString('data-lang="php"', $page['variants']['python']['html']);
         }
     }
 
