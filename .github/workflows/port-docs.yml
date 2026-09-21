@@ -54,6 +54,24 @@ jobs:
         with:
           node-version: 22
 
+      # Gating what is ACTUALLY installed, which is not this repo. The install
+      # below is the PORT's dependency tree, so the check is pointed at the
+      # port's manifest — `--repo .` here would approve prism-sandbox's
+      # dependencies while npm ci ran somebody else's lifecycle scripts on this
+      # runner. The port gates itself in its own CI too; this is the copy that
+      # stands where this install happens.
+      - name: Fetch the third-party allowlist
+        uses: actions/checkout@v4
+        with:
+          repository: Particle-Academy/.github
+          path: .third-party-allowlist
+          persist-credentials: false
+
+      - name: Third-party dependency allowlist (the TypeScript port)
+        run: |
+          node .third-party-allowlist/third-party/check.mjs --repo .ports/prism-ts
+          node -e "require('node:fs').rmSync('.third-party-allowlist',{recursive:true,force:true})"
+
       # The checker typechecks against prism-ts's OWN typescript and @types, so
       # the port's dependencies are installed rather than a copy pulled in here
       # that could differ from what the port compiles with.
