@@ -51,9 +51,27 @@ try {
     process.exitCode = 1;
   } else console.log(`TypeScript: ${files.length} examples typecheck against the port source.`);
 
+  // PLACEHOLDER CREDENTIALS, NOT THE REAL ONES. An example that reads
+  // `os.environ["OPENAI_API_KEY"]` passes on a laptop that has the key exported
+  // and raises KeyError in CI, which is the one thing a check must never do:
+  // give a different answer depending on who runs it. It caught itself this way
+  // — green locally, red on the first CI run.
+  //
+  // Overriding rather than inheriting also keeps a live provider key out of
+  // arbitrary example code. The runner blocks sockets, so nothing can be sent;
+  // handing the key over anyway would rely on that block for secrecy rather
+  // than for its actual job.
+  const placeholders = Object.fromEntries(
+    [...new Set(
+      snippets
+        .filter(s => s.language === 'python')
+        .flatMap(s => [...s.code.matchAll(/os\.environ(?:\.get\(|\[)\s*["']([A-Z0-9_]+)["']/g)].map(m => m[1])),
+    )].map(name => [name, `placeholder-${name.toLowerCase().replaceAll('_', '-')}`]),
+  );
+
   const python = spawnSync('python', [join(root, 'scripts/check-port-docs.py'), pyRoot], {
     input: JSON.stringify(snippets.filter(s => s.language === 'python')),
-    encoding: 'utf8', env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1' },
+    encoding: 'utf8', env: { ...process.env, ...placeholders, PYTHONDONTWRITEBYTECODE: '1' },
   });
   process.stdout.write(python.stdout ?? '');
   process.stderr.write(python.stderr ?? '');

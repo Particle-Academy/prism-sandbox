@@ -35,6 +35,12 @@ example checker uses sibling `prism-ts` and `prism-py` source checkouts and
 requires Python 3.11+ for its runner; it does not change package requirements.
 Both roots can be passed as arguments if your checkouts are elsewhere.
 
+Examples that read an environment variable receive a placeholder value, not the
+one in your shell. A configuration example reading `OPENAI_API_KEY` otherwise
+passes on a machine that has the key exported and fails where it is absent, and
+a check that answers differently depending on who runs it reports nothing. Write
+examples against the variables the page documents; the runner supplies them.
+
 The `Port docs` workflow runs the example checker on every push and pull
 request, and weekly against the ports' `main` branches. The weekly run is the
 one that reports an example a port broke rather than one a change here did.
