@@ -67,6 +67,11 @@ jobs:
           path: .third-party-allowlist
           persist-credentials: false
 
+      # DO NOT "simplify" this to `--repo .`. The path is the only thing tying
+      # this gate to the tree it guards, and nothing checks that it is the right
+      # one: `--repo .` beside an `npm ci` reads as correctly gated to every
+      # tool and to most readers, while approving prism-sandbox's dependencies
+      # and installing prism-ts's.
       - name: Third-party dependency allowlist (the TypeScript port)
         run: |
           node .third-party-allowlist/third-party/check.mjs --repo .ports/prism-ts
