@@ -63,14 +63,19 @@ jobs:
 
       - name: Commit & push if the lock changed
         run: |
-          if git diff --quiet -- composer.lock; then
-            echo "Prism already at the latest release — nothing to do."
+          # HEAD is the lock before the update. Transitive changes are wanted,
+          # but must not be labelled as a Prism version bump when it stayed put.
+          BEFORE=$(mktemp)
+          trap 'rm -f "$BEFORE"' EXIT
+          git show HEAD:composer.lock > "$BEFORE"
+          MESSAGE=$(php scripts/prism-lock-message.php "$BEFORE" composer.lock)
+          if [ -z "$MESSAGE" ]; then
+            echo "Composer lock unchanged — nothing to do."
             exit 0
           fi
-          NEW=$(jq -r '.packages[] | select(.name=="particle-academy/prism") | .version' composer.lock)
-          echo "Bumped Prism to ${NEW}."
+          echo "$MESSAGE"
           git config user.name  'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add composer.lock
-          git commit -m "chore: track latest prism (${NEW})"
+          git commit -m "$MESSAGE"
           git push
