@@ -194,7 +194,7 @@ export default function Landing({ version }: { version: string }) {
                     </h1>
                     <p className="mt-7 max-w-2xl text-lg" style={{ color: 'var(--k-ink-2)' }}>
                         Prism is a cross-language provider API ecosystem. PHP and Laravel are the mature reference implementation across eighteen providers;
-                        TypeScript and Python carry the same contract, measured against one shared corpus. Core remains the provider API shuttle; agent capabilities ship as optional satellite packages.
+                        TypeScript and Python carry the same contract, measured against one shared corpus. Build agents that carry conversations across requests, recall relevant context, and work with files, browsers and shared interfaces.
                     </p>
                     <InstallChip />
                     <div className="mt-9 flex flex-wrap gap-3">
@@ -269,7 +269,7 @@ export default function Landing({ version }: { version: string }) {
                             Compose around Harness. <span className="k-grad-text italic">Ship on your own clock.</span>
                         </h2>
                         <p className="mt-5 max-w-2xl leading-relaxed" style={{ color: 'var(--k-ink-2)' }}>
-                            Browser and Human+ bind attachments to the same durable Harness identity. Each installs on its own and carries its own version, so you adopt one the day you need it.
+                            Browser and Human+ bind attachments to the same durable Harness identity, so a page an agent opened and a document a human approved resolve to one thread and one owner. Add either to a running application and existing sessions keep their history.
                         </p>
                     </Reveal>
                     <div className="mt-10 grid gap-5 lg:grid-cols-2">
@@ -293,11 +293,11 @@ export default function Landing({ version }: { version: string }) {
                     <Reveal>
                         <p className="k-mono mb-3">Nine families · one boundary</p>
                         <h2 className="max-w-3xl text-3xl font-bold sm:text-5xl" style={{ letterSpacing: '-0.04em', color: 'var(--k-ink)' }}>
-                            Core stays small. The <span className="k-grad-text italic">ecosystem</span> does the rest.
+                            Build agents with <span className="k-grad-text italic">memory</span>, tools and a place to work.
                         </h2>
                         <p className="mt-5 max-w-2xl leading-relaxed" style={{ color: 'var(--k-ink-2)' }}>
-                            Install the ones your application needs, each on its own version. Core stays a provider shuttle, so a provider fix
-                            reaches you the day it ships.
+                            Bring durable sessions, memory, file workspaces and connected tools to your application. Apply provider fixes as they ship
+                            while keeping those capabilities in place.
                         </p>
                     </Reveal>
                     <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

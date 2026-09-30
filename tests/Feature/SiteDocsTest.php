@@ -227,12 +227,12 @@ class SiteDocsTest extends TestCase
 
         $this->assertStringContainsString('Agents that survive', $source);
         $this->assertStringContainsString('Browser and Human+ bind attachments', $source);
-        $this->assertStringContainsString('carries its own version', $source);
+        $this->assertStringContainsString('one thread and one owner', $source);
         $this->assertStringContainsString('Prism speaks', $source);
         $this->assertStringContainsString('cross-language provider API ecosystem', $source);
         $this->assertStringContainsString('PHP and Laravel are the mature reference', $source);
         $this->assertStringContainsString('every capability the PHP reference has', $source);
-        $this->assertStringContainsString('Core remains the provider API shuttle', $source);
+        $this->assertStringContainsString('Build agents that carry conversations across requests', $source);
     }
 
     public function test_every_docs_link_on_the_landing_page_resolves(): void
