@@ -307,16 +307,16 @@
         },
         {
             "name": "doctrine/lexer",
-            "version": "3.0.2",
+            "version": "3.0.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/lexer.git",
-                "reference": "e96fe45e92a54233726014a7cc7340abf29bb14c"
+                "reference": "71d305eaa6480d3d3460c7d053d1da7749fa9cca"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/lexer/zipball/e96fe45e92a54233726014a7cc7340abf29bb14c",
-                "reference": "e96fe45e92a54233726014a7cc7340abf29bb14c",
+                "url": "https://api.github.com/repos/doctrine/lexer/zipball/71d305eaa6480d3d3460c7d053d1da7749fa9cca",
+                "reference": "71d305eaa6480d3d3460c7d053d1da7749fa9cca",
                 "shasum": ""
             },
             "require": {
@@ -362,7 +362,7 @@
             ],
             "support": {
                 "issues": "https://github.com/doctrine/lexer/issues",
-                "source": "https://github.com/doctrine/lexer/tree/3.0.2"
+                "source": "https://github.com/doctrine/lexer/tree/3.0.3"
             },
             "funding": [
                 {
@@ -378,7 +378,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-06-14T20:44:06+00:00"
+            "time": "2026-10-01T06:59:29+00:00"
         },
         {
             "name": "dragonmantank/cron-expression",
@@ -2699,16 +2699,16 @@
         },
         {
             "name": "particle-academy/prism",
-            "version": "v0.130.0",
+            "version": "v0.131.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Particle-Academy/prism.git",
-                "reference": "b4d67da2816946a62769317251a1d7771549dbe9"
+                "reference": "84f7ca4ada14c769a1bd60d3025c590c57a88455"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Particle-Academy/prism/zipball/b4d67da2816946a62769317251a1d7771549dbe9",
-                "reference": "b4d67da2816946a62769317251a1d7771549dbe9",
+                "url": "https://api.github.com/repos/Particle-Academy/prism/zipball/84f7ca4ada14c769a1bd60d3025c590c57a88455",
+                "reference": "84f7ca4ada14c769a1bd60d3025c590c57a88455",
                 "shasum": ""
             },
             "require": {
@@ -2775,7 +2775,7 @@
             "description": "A powerful Laravel package for integrating Large Language Models (LLMs) into your applications. Actively maintained fork of prism-php/prism.",
             "support": {
                 "issues": "https://github.com/Particle-Academy/prism/issues",
-                "source": "https://github.com/Particle-Academy/prism/tree/v0.130.0"
+                "source": "https://github.com/Particle-Academy/prism/tree/v0.131.0"
             },
             "funding": [
                 {
@@ -2783,7 +2783,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-09-24T21:44:15+00:00"
+            "time": "2026-09-30T16:16:29+00:00"
         },
         {
             "name": "phpoption/phpoption",
