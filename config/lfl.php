@@ -51,7 +51,9 @@ return [
     */
 
     'api' => [
-        'enabled' => true,
+        // The site uses LFL in-process only. Disable its unused HTTP readers,
+        // including the awards endpoint which does not enforce profile privacy.
+        'enabled' => false,
         'writes' => env('LFL_API_WRITES', false),
         'allow_setup_over_http' => env('LFL_API_ALLOW_SETUP_OVER_HTTP', false),
         'prefix' => 'api/lfl',
