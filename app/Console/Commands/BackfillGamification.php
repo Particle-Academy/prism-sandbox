@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Contributor;
 use App\Support\AwardOutcome;
+use App\Support\ContributionLimits;
 use App\Support\ContributorResolver;
 use App\Support\XpAwarder;
 use Generator;
@@ -151,7 +152,8 @@ class BackfillGamification extends Command
                 if (data_get($issue, 'pull_request') !== null) {
                     continue;
                 }
-                $this->award($resolver, data_get($issue, 'user'), 'issue-xp', 'issue', data_get($issue, 'node_id'), 'Opened issue '.data_get($issue, 'html_url'));
+                $this->award($resolver, data_get($issue, 'user'), 'issue-xp', 'issue', data_get($issue, 'node_id'), 'Opened issue '.data_get($issue, 'html_url'),
+                    ContributionLimits::context($repo, data_get($issue, 'created_at')));
             }
         });
 
@@ -160,7 +162,8 @@ class BackfillGamification extends Command
         // Inline review comments across the repo (review-comment id space).
         $this->section($repo, 'review comments', function () use ($http, $resolver, $repo): void {
             foreach ($this->paginate($http, "/repos/{$repo}/pulls/comments") as $comment) {
-                $this->award($resolver, data_get($comment, 'user'), 'pr-comment-xp', 'review-comment', data_get($comment, 'id'), 'Commented on a pull request '.data_get($comment, 'html_url'));
+                $this->award($resolver, data_get($comment, 'user'), 'pr-comment-xp', 'review-comment', data_get($comment, 'id'), 'Commented on a pull request '.data_get($comment, 'html_url'),
+                    ContributionLimits::context($repo, data_get($comment, 'created_at'), null, data_get($comment, 'pull_request_url', data_get($comment, 'html_url'))));
             }
         });
 
@@ -171,7 +174,7 @@ class BackfillGamification extends Command
         // here aborted the whole repo and silently skipped every commit.
         $this->section($repo, 'stargazers', function () use ($http, $resolver, $repo): void {
             foreach ($this->paginate($http, "/repos/{$repo}/stargazers") as $star) {
-                $this->award($resolver, $star, 'star-xp', 'star', data_get($star, 'id'), 'Starred the repository');
+                $this->award($resolver, $star, 'star-xp', 'star', data_get($star, 'id'), 'Starred the repository', ContributionLimits::context($repo));
             }
         });
 
@@ -186,10 +189,12 @@ class BackfillGamification extends Command
             $node = data_get($pr, 'node_id');
             $url = data_get($pr, 'html_url');
 
-            $this->award($resolver, $user, 'pr-submitted-xp', 'pr-opened', $node, 'Opened pull request '.$url);
+            $this->award($resolver, $user, 'pr-submitted-xp', 'pr-opened', $node, 'Opened pull request '.$url,
+                ContributionLimits::context($repo, data_get($pr, 'created_at'), data_get($pr, 'number')));
 
             if (data_get($pr, 'merged_at') !== null) {
-                $merged = $this->award($resolver, $user, 'pr-accepted-xp', 'pr-merged', $node, 'Merged pull request '.$url);
+                $merged = $this->award($resolver, $user, 'pr-accepted-xp', 'pr-merged', $node, 'Merged pull request '.$url,
+                    ContributionLimits::context($repo, data_get($pr, 'merged_at'), data_get($pr, 'number')));
                 if ($merged) {
                     $this->grantFirstPr($resolver, $user);
                 }
@@ -201,12 +206,14 @@ class BackfillGamification extends Command
             }
 
             foreach ($this->paginate($http, "/repos/{$repo}/pulls/{$number}/reviews") as $review) {
-                $this->award($resolver, data_get($review, 'user'), 'pr-review-xp', 'review', data_get($review, 'id'), 'Reviewed a pull request '.data_get($review, 'html_url'));
+                $this->award($resolver, data_get($review, 'user'), 'pr-review-xp', 'review', data_get($review, 'id'), 'Reviewed a pull request '.data_get($review, 'html_url'),
+                    ContributionLimits::context($repo, data_get($review, 'submitted_at'), $number));
             }
 
             // Conversation comments on the PR (issue-comment id space — matches the webhook's `comment:` key).
             foreach ($this->paginate($http, "/repos/{$repo}/issues/{$number}/comments") as $comment) {
-                $this->award($resolver, data_get($comment, 'user'), 'pr-comment-xp', 'comment', data_get($comment, 'id'), 'Commented on a pull request '.data_get($comment, 'html_url'));
+                $this->award($resolver, data_get($comment, 'user'), 'pr-comment-xp', 'comment', data_get($comment, 'id'), 'Commented on a pull request '.data_get($comment, 'html_url'),
+                    ContributionLimits::context($repo, data_get($comment, 'created_at'), $number));
             }
         }
     }
@@ -317,6 +324,8 @@ class BackfillGamification extends Command
                 'commit',
                 data_get($commit, 'sha'),
                 'Landed commit '.substr((string) data_get($commit, 'sha'), 0, 7).' '.data_get($commit, 'html_url'),
+                // Match live processing-day enforcement; git dates are forgeable.
+                ContributionLimits::context($repo),
             );
         }
     }
@@ -326,7 +335,7 @@ class BackfillGamification extends Command
      * checks eligibility (no rows written); otherwise it delegates to the shared,
      * idempotent XpAwarder. A missing dedup subject (id/node_id) is skipped.
      */
-    private function award(ContributorResolver $resolver, mixed $user, string $metric, string $keyPrefix, mixed $id, string $reason): bool
+    private function award(ContributorResolver $resolver, mixed $user, string $metric, string $keyPrefix, mixed $id, string $reason, ?array $context = null): bool
     {
         $id = is_scalar($id) ? (string) $id : '';
         if ($id === '') {
@@ -360,6 +369,7 @@ class BackfillGamification extends Command
             (int) config("gamification.metrics.$metric.xp", 0),
             $reason,
             "$keyPrefix:$id",
+            context: $context,
         );
 
         // This line is why the enum exists. It used to read `$ok ? awarded++ :
@@ -369,6 +379,7 @@ class BackfillGamification extends Command
             AwardOutcome::Awarded => $this->awarded++,
             AwardOutcome::Duplicate => $this->skip('already awarded'),
             AwardOutcome::Ineligible => $this->skip('not eligible'),
+            AwardOutcome::Limited => $this->skip('contribution cap'),
             AwardOutcome::Failed => $this->failedAward(),
         };
 

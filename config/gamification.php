@@ -64,6 +64,18 @@ return [
     // The weighted metric-level-group that rolls the silos into one score.
     'group' => 'contributions',
 
+    // PROVISIONAL enforcement defaults, awaiting the owner's scoring-policy ruling.
+    // Counts awarded events, not XP. Daily caps use the event's UTC date when
+    // assigned by GitHub; commits use the processing day because git dates are
+    // author-controlled. PR caps combine comments/reviews across contributors
+    // over the PR's lifetime; opening/merge credit is outside that PR bucket.
+    // Zero stops awards in that scope; it does not disable enforcement.
+    'limits' => [
+        'per_contributor_day' => (int) env('XP_EVENTS_PER_CONTRIBUTOR_DAY', 20),
+        'per_pr' => (int) env('XP_INTERACTIONS_PER_PR', 40),
+        'pr_metrics' => ['pr-comment-xp', 'pr-review-xp'],
+    ],
+
     // How long a single GitHub object's award is de-duplicated (seconds).
     // One year — a redelivered/replayed webhook can never double-count.
     'dedup_seconds' => (int) env('XP_DEDUP_SECONDS', 31_536_000),

@@ -28,6 +28,7 @@ class XpAwarder
         string $reason,
         string $dedupKey,
         ?int $dedupSeconds = null,
+        ?array $context = null,
     ): AwardOutcome {
         if (! $contributor instanceof Contributor || $amount <= 0) {
             return AwardOutcome::Ineligible;
@@ -41,7 +42,7 @@ class XpAwarder
             // propagate to a retryable failure, never "not previously awarded".
             $legacyAward = self::alreadyAwarded($contributor, $metric, $dedupKey);
 
-            $outcome = DB::transaction(function () use ($contributor, $metric, $amount, $reason, $dedupKey, $legacyAward, &$wasFirstEver): AwardOutcome {
+            $outcome = DB::transaction(function () use ($contributor, $metric, $amount, $reason, $dedupKey, $legacyAward, $context, &$wasFirstEver): AwardOutcome {
                 $locked = Contributor::query()->whereKey($contributor->getKey())->lockForUpdate()->firstOrFail();
 
                 if ($locked->isOptedOut()) {
@@ -50,6 +51,12 @@ class XpAwarder
 
                 if (self::claimQuery($locked, $metric, $dedupKey)->exists()) {
                     return AwardOutcome::Duplicate;
+                }
+
+                // Decisions and counters share this transaction with XP/audit.
+                // A rejected event stays rejected even when reconciliation runs later.
+                if (! $legacyAward && ! ContributionLimits::allow($locked, $metric, $dedupKey, $context)) {
+                    return AwardOutcome::Limited;
                 }
 
                 DB::table('xp_award_claims')->insert([

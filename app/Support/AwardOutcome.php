@@ -38,6 +38,9 @@ enum AwardOutcome: string
     /** Already awarded, per the cache or the durable event log. Never retry. */
     case Duplicate = 'duplicate';
 
+    /** Persistently refused by a contribution cap; backfill must not restore it. */
+    case Limited = 'limited';
+
     /** The award threw. The cooldown is deliberately unset so a redelivery retries. */
     case Failed = 'failed';
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Webhooks;
 
 use App\Models\Contributor;
+use App\Support\ContributionLimits;
 use App\Support\ContributorResolver;
 use App\Support\XpAwarder;
 use App\Support\XpAwardFailure;
@@ -112,6 +113,7 @@ class GitHubWebhookController
             $this->xp('issue-xp'),
             'Opened issue '.data_get($payload, 'issue.html_url'),
             'issue:'.data_get($payload, 'issue.node_id'),
+            $this->context($payload, data_get($payload, 'issue.created_at')),
         );
     }
 
@@ -129,6 +131,7 @@ class GitHubWebhookController
             $this->contributor(data_get($payload, 'comment.user')),
             'comment:'.data_get($payload, 'comment.id'),
             data_get($payload, 'comment.html_url'),
+            $this->context($payload, data_get($payload, 'comment.created_at'), data_get($payload, 'issue.number')),
         );
     }
 
@@ -145,10 +148,11 @@ class GitHubWebhookController
             $this->contributor(data_get($payload, 'comment.user')),
             'review-comment:'.data_get($payload, 'comment.id'),
             data_get($payload, 'comment.html_url'),
+            $this->context($payload, data_get($payload, 'comment.created_at'), data_get($payload, 'pull_request.number'), data_get($payload, 'comment.pull_request_url')),
         );
     }
 
-    protected function awardComment(?Contributor $contributor, string $dedupKey, ?string $url): bool
+    protected function awardComment(?Contributor $contributor, string $dedupKey, ?string $url, array $context): bool
     {
         return $this->award(
             $contributor,
@@ -156,6 +160,7 @@ class GitHubWebhookController
             $this->xp('pr-comment-xp'),
             'Commented on a pull request'.($url !== null ? ' '.$url : ''),
             $dedupKey,
+            $context,
         );
     }
 
@@ -176,6 +181,7 @@ class GitHubWebhookController
             $this->xp('pr-review-xp'),
             'Reviewed a pull request'.($url !== null ? ' '.$url : ''),
             'review:'.data_get($payload, 'review.id'),
+            $this->context($payload, data_get($payload, 'review.submitted_at'), data_get($payload, 'pull_request.number'), $url),
         );
     }
 
@@ -229,6 +235,8 @@ class GitHubWebhookController
                 $this->xp('commit-xp'),
                 'Landed commit '.substr($sha, 0, 7),
                 'commit:'.$sha,
+                // Git dates are author-controlled, so cannot choose a quota day.
+                $this->context($payload, null),
             ) || $awarded;
         }
 
@@ -252,6 +260,7 @@ class GitHubWebhookController
             $this->xp('star-xp'),
             'Starred the repository',
             'star:'.data_get($sender, 'id'),
+            $this->context($payload, data_get($payload, 'starred_at')),
         );
     }
 
@@ -266,11 +275,13 @@ class GitHubWebhookController
         $url = data_get($payload, 'pull_request.html_url');
 
         if ($action === 'opened') {
-            return $this->award($contributor, 'pr-submitted-xp', $this->xp('pr-submitted-xp'), 'Opened pull request '.$url, 'pr-opened:'.$nodeId);
+            return $this->award($contributor, 'pr-submitted-xp', $this->xp('pr-submitted-xp'), 'Opened pull request '.$url, 'pr-opened:'.$nodeId,
+                $this->context($payload, data_get($payload, 'pull_request.created_at'), data_get($payload, 'pull_request.number')));
         }
 
         if ($action === 'closed' && data_get($payload, 'pull_request.merged') === true) {
-            $awarded = $this->award($contributor, 'pr-accepted-xp', $this->xp('pr-accepted-xp'), 'Merged pull request '.$url, 'pr-merged:'.$nodeId);
+            $awarded = $this->award($contributor, 'pr-accepted-xp', $this->xp('pr-accepted-xp'), 'Merged pull request '.$url, 'pr-merged:'.$nodeId,
+                $this->context($payload, data_get($payload, 'pull_request.merged_at'), data_get($payload, 'pull_request.number')));
 
             if ($awarded && $contributor instanceof Contributor && ! $contributor->hasAchievement('first-pr')) {
                 try {
@@ -295,15 +306,20 @@ class GitHubWebhookController
         return app(ContributorResolver::class)->resolve($githubUser);
     }
 
-    protected function award(?Contributor $contributor, string $metric, int $amount, string $reason, string $dedupKey): bool
+    protected function award(?Contributor $contributor, string $metric, int $amount, string $reason, string $dedupKey, ?array $context = null): bool
     {
-        $outcome = XpAwarder::award($contributor, $metric, $amount, $reason, $dedupKey);
+        $outcome = XpAwarder::award($contributor, $metric, $amount, $reason, $dedupKey, context: $context);
 
         if ($outcome->retryable()) {
             throw new XpAwardFailure;
         }
 
         return $outcome->awarded();
+    }
+
+    private function context(array $payload, mixed $occurredAt, mixed $prNumber = null, mixed $prUrl = null): array
+    {
+        return ContributionLimits::context((string) data_get($payload, 'repository.full_name'), $occurredAt, $prNumber, $prUrl);
     }
 
     protected function xp(string $metric): int
