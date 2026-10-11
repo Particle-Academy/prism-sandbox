@@ -23,8 +23,7 @@ use Throwable;
  * — through the SAME award path ({@see XpAwarder} + {@see ContributorResolver}),
  * using the SAME metric names and dedup keys. Because awards are idempotent by
  * dedup key, it is safe to run repeatedly and safe to run alongside the live
- * webhook: no contribution is ever double-counted (given a persistent cache
- * store, which the dedup relies on across runs).
+ * webhook: durable unique claims survive cache clears and serialize awards.
  */
 class BackfillGamification extends Command
 {
@@ -44,12 +43,15 @@ class BackfillGamification extends Command
 
     private int $skipped = 0;
 
+    private bool $awardFailed = false;
+
     /** @var array<string, int> reason => count, so the summary can explain itself */
     private array $skipReasons = [];
 
     public function handle(ContributorResolver $resolver): int
     {
         $this->dry = (bool) $this->option('dry-run');
+        $this->awardFailed = false;
         // config() (not env()) so the token still resolves under config:cache.
         $token = (string) ($this->option('token') ?: config('services.github.token') ?: '');
 
@@ -100,7 +102,7 @@ class BackfillGamification extends Command
             $this->line(sprintf('  %-26s %d', $reason, $count));
         }
 
-        return self::SUCCESS;
+        return $this->awardFailed ? self::FAILURE : self::SUCCESS;
     }
 
     /**
@@ -367,10 +369,16 @@ class BackfillGamification extends Command
             AwardOutcome::Awarded => $this->awarded++,
             AwardOutcome::Duplicate => $this->skip('already awarded'),
             AwardOutcome::Ineligible => $this->skip('not eligible'),
-            AwardOutcome::Failed => $this->skip('award FAILED — retryable, cooldown left unset'),
+            AwardOutcome::Failed => $this->failedAward(),
         };
 
         return $outcome->awarded();
+    }
+
+    private function failedAward(): void
+    {
+        $this->awardFailed = true;
+        $this->skip('award FAILED — retryable, cooldown left unset');
     }
 
     private function grantFirstPr(ContributorResolver $resolver, mixed $user): void

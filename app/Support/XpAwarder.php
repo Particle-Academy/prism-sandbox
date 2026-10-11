@@ -3,26 +3,21 @@
 namespace App\Support;
 
 use App\Models\Contributor;
+use Illuminate\Database\Query\Builder;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use LaravelFunLab\Facades\LFL;
 use LaravelFunLab\Models\EventLog;
+use RuntimeException;
 use Throwable;
 
 /**
- * Idempotent, fail-safe wrapper around LFL::award() for GitHub contributions.
- *
- * XP must never break the webhook, so every failure is swallowed.
- *
- * De-duplication is keyed on the GitHub object identity and checked in two
- * layers. The cache is a FAST PATH, not the record: it is disposable, and a
- * `cache:clear` during a deploy used to wipe every cooldown, so the next
- * backfill re-awarded events that had already been granted and inflated
- * everyone's XP. The authority is LFL's own event log, which persists the
- * dedup key in `context.meta.dedup` for every award it lands.
- *
- * A cooldown is only set once an award actually lands, so a transient failure
- * can still be retried on redelivery.
+ * A durable unique claim, XP and its audit event commit together. The contributor
+ * row serializes awards across metrics; the unique index arbitrates duplicate
+ * events even when two deliveries saw the same stale legacy dedup lookup.
+ * Cache entries are disposable hints and never authorize or suppress an award.
  */
 class XpAwarder
 {
@@ -34,96 +29,118 @@ class XpAwarder
         string $dedupKey,
         ?int $dedupSeconds = null,
     ): AwardOutcome {
-        if (! $contributor instanceof Contributor || $contributor->isOptedOut()) {
+        if (! $contributor instanceof Contributor || $amount <= 0) {
             return AwardOutcome::Ineligible;
         }
 
-        if ($amount <= 0) {
-            return AwardOutcome::Ineligible;
-        }
-
-        $dedupSeconds ??= (int) config('gamification.dedup_seconds', 31_536_000);
-        $cacheKey = "xp:{$contributor->id}:{$metric}:{$dedupKey}";
-
-        if (Cache::has($cacheKey)) {
-            return AwardOutcome::Duplicate;
-        }
-
-        // Cache miss is not proof this is new — it is also what a cache:clear
-        // looks like. Fall through to the durable record before awarding, and
-        // repopulate the fast path so the next check is cheap again.
-        if (self::alreadyAwarded($contributor, $metric, $dedupKey)) {
-            Cache::put($cacheKey, true, $dedupSeconds);
-
-            return AwardOutcome::Duplicate;
-        }
-
-        $wasFirstEver = $contributor->getTotalXp() === 0;
+        $wasFirstEver = false;
 
         try {
-            LFL::award($metric)
-                ->to($contributor)
-                ->amount($amount)
-                ->because($reason)
-                ->from('github')
-                ->withMeta(['dedup' => $dedupKey])
-                ->save();
-        } catch (Throwable $e) {
-            // Leave the cooldown unset so a redelivery retries once the taxonomy
-            // is seeded / the transient cause clears.
-            Log::warning('XP award failed', [
-                'metric' => $metric,
-                'dedup' => $dedupKey,
-                'error' => $e->getMessage(),
-            ]);
+            // Preserve pre-migration dedup history. This read is advisory: a
+            // stale false cannot defeat the transaction's unique claim. Errors
+            // propagate to a retryable failure, never "not previously awarded".
+            $legacyAward = self::alreadyAwarded($contributor, $metric, $dedupKey);
 
-            return AwardOutcome::Failed;
+            $outcome = DB::transaction(function () use ($contributor, $metric, $amount, $reason, $dedupKey, $legacyAward, &$wasFirstEver): AwardOutcome {
+                $locked = Contributor::query()->whereKey($contributor->getKey())->lockForUpdate()->firstOrFail();
+
+                if ($locked->isOptedOut()) {
+                    return AwardOutcome::Ineligible;
+                }
+
+                if (self::claimQuery($locked, $metric, $dedupKey)->exists()) {
+                    return AwardOutcome::Duplicate;
+                }
+
+                DB::table('xp_award_claims')->insert([
+                    'contributor_id' => $locked->getKey(),
+                    'metric' => $metric,
+                    'event_hash' => hash('sha256', $dedupKey),
+                    'event_key' => $dedupKey,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                if ($legacyAward) {
+                    return AwardOutcome::Duplicate;
+                }
+
+                $wasFirstEver = $locked->getTotalXp() === 0;
+                LFL::award($metric)
+                    ->to($locked)
+                    ->amount($amount)
+                    ->because($reason)
+                    ->from('github')
+                    ->withMeta(['dedup' => $dedupKey])
+                    ->save();
+
+                // Fail closed if event dispatch/logging is disabled or fails.
+                // The synchronous LFL audit insertion is in this same transaction.
+                if (! self::alreadyAwarded($locked, $metric, $dedupKey)) {
+                    throw new RuntimeException('XP audit event was not persisted');
+                }
+
+                return AwardOutcome::Awarded;
+            }, 3);
+        } catch (UniqueConstraintViolationException $e) {
+            // Only call a conflict a duplicate if a committed matching claim
+            // exists after rollback. Other uniqueness/storage errors must retry.
+            try {
+                if (! self::claimQuery($contributor, $metric, $dedupKey)->exists()) {
+                    return self::failed($metric, $e);
+                }
+                $outcome = AwardOutcome::Duplicate;
+            } catch (Throwable $lookupError) {
+                return self::failed($metric, $lookupError);
+            }
+        } catch (Throwable $e) {
+            return self::failed($metric, $e);
         }
 
-        Cache::put($cacheKey, true, $dedupSeconds);
-
-        if ($wasFirstEver) {
+        if ($outcome === AwardOutcome::Awarded || $outcome === AwardOutcome::Duplicate) {
             try {
-                LFL::grant('first-contribution')->to($contributor)->because('First tracked contribution')->save();
-            } catch (Throwable) {
-                // Achievement is best-effort; never fail the award over it.
+                Cache::put("xp:{$contributor->id}:{$metric}:{$dedupKey}", true,
+                    $dedupSeconds ?? (int) config('gamification.dedup_seconds', 31_536_000));
+            } catch (Throwable $e) {
+                // The durable outcome is already committed; cache failure cannot undo it.
+                Log::warning('XP dedup cache unavailable', ['error_class' => $e::class]);
             }
         }
 
-        return AwardOutcome::Awarded;
+        if ($outcome === AwardOutcome::Awarded && $wasFirstEver) {
+            try {
+                LFL::grant('first-contribution')->to($contributor)->because('First tracked contribution')->save();
+            } catch (Throwable) {
+                // Achievement remains best-effort after the committed XP award.
+            }
+        }
+
+        return $outcome;
     }
 
-    /**
-     * Whether this exact contribution has already been awarded, according to
-     * the durable record rather than the cache.
-     *
-     * LFL writes every landed award to its event log and stores the dedup key
-     * we pass via withMeta() at `context.meta.dedup`, alongside the metric
-     * slug. That survives a cache flush, a redeploy, and a fresh cache store,
-     * which is the whole point of consulting it.
-     */
+    private static function claimQuery(Contributor $contributor, string $metric, string $dedupKey): Builder
+    {
+        return DB::table('xp_award_claims')
+            ->where('contributor_id', $contributor->getKey())
+            ->where('metric', $metric)
+            ->where('event_hash', hash('sha256', $dedupKey));
+    }
+
     protected static function alreadyAwarded(Contributor $contributor, string $metric, string $dedupKey): bool
     {
-        try {
-            return EventLog::query()
-                ->where('event_type', 'xp_awarded')
-                ->where('awardable_type', $contributor->getMorphClass())
-                ->where('awardable_id', $contributor->getKey())
-                ->where('context->gamed_metric_slug', $metric)
-                ->where('context->meta->dedup', $dedupKey)
-                ->exists();
-        } catch (Throwable $e) {
-            // Never let a dedup lookup break a webhook. Reporting "not yet
-            // awarded" risks a duplicate; reporting "already awarded" would
-            // silently drop a real contribution. A duplicate is the lesser
-            // harm and is visible, so fail open and record why.
-            Log::warning('XP dedup lookup failed', [
-                'metric' => $metric,
-                'dedup' => $dedupKey,
-                'error' => $e->getMessage(),
-            ]);
+        return EventLog::query()
+            ->where('event_type', 'xp_awarded')
+            ->where('awardable_type', $contributor->getMorphClass())
+            ->where('awardable_id', $contributor->getKey())
+            ->where('context->gamed_metric_slug', $metric)
+            ->where('context->meta->dedup', $dedupKey)
+            ->exists();
+    }
 
-            return false;
-        }
+    private static function failed(string $metric, Throwable $e): AwardOutcome
+    {
+        Log::warning('XP award failed', ['metric' => $metric, 'error_class' => $e::class]);
+
+        return AwardOutcome::Failed;
     }
 }
