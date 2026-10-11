@@ -27,6 +27,18 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Trust the deploy proxy so signed URLs / OAuth redirects use HTTPS.
         $middleware->trustProxies(at: '*');
+
+        // INERT restricted alternative. Keep it disabled until the operator
+        // verifies the ingress IPs/CIDRs, which forwarding headers it overwrites
+        // or strips, and that clients cannot reach this app around that ingress.
+        // Then fill the allowlist and REPLACE the wildcard call above. Trust
+        // only verified headers; add forwarded host only if required and sanitized.
+        // $middleware->trustProxies(
+        //     at: [/* verified ingress IPs/CIDRs */],
+        //     headers: Request::HEADER_X_FORWARDED_FOR
+        //         | Request::HEADER_X_FORWARDED_PROTO
+        //         | Request::HEADER_X_FORWARDED_PORT,
+        // );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Log\Logger;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -15,6 +16,8 @@ use Tests\TestCase;
 
 class DemoErrorPrivacyTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_provider_error_details_reach_neither_the_response_nor_the_log(): void
     {
         $this->withoutExceptionHandling();

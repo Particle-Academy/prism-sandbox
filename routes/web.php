@@ -21,9 +21,8 @@ Route::post('/webhooks/github', GitHubWebhookController::class)->name('webhooks.
 // here — sixteen provider credentials, real spend, live generations — now
 // lives in prism-labs, which is never deployed.
 //
-// Throttled well under the provider's published free limits, because that
-// quota is shared across everything using the key: exhausting it is denial of
-// service for every visitor after you.
+// Per-client throttle plus a database-backed provider-wide request budget in
+// the controller: multiple clients cannot individually spend the shared quota.
 Route::get('/demo', [DemoController::class, 'show'])->name('demo');
 Route::post('/demo', [DemoController::class, 'run'])->middleware('throttle:5,1')->name('demo.run');
 
