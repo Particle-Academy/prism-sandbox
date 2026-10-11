@@ -24,6 +24,7 @@
         "@inertiajs/react": "^3.7.0",
         "@particle-academy/fancy-echarts": "^6.1.0",
         "@particle-academy/fancy-inertia": "^0.11.0",
+        "@particle-academy/fancy-pixel": "0.3.0",
         "@particle-academy/fancy-pwa": "^0.2.0",
         "@particle-academy/fancy-query": "^0.8.0",
         "@particle-academy/fancy-screens": "^0.7.1",

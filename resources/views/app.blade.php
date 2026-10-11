@@ -24,11 +24,9 @@
 <body class="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
     @inertia
 
-    {{-- Fancy Pixel: production-only visitor heuristics badge (Particle Academy). --}}
+    {{-- Production-only pixel: executable code is pinned and bundled by Vite. --}}
     @production
-        @verbatim
-        <script src="https://unpkg.com/@particle-academy/fancy-pixel/dist/fancy-pixel.global.min.js" data-site="gegxb2ehq3vl" data-style="badge" data-mode="floating" data-endpoint="https://ui.particle.academy/heuristics"></script>
-        @endverbatim
+        @vite('resources/js/fancy-pixel.ts')
     @endproduction
 </body>
 </html>
