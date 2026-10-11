@@ -7,12 +7,14 @@ namespace App\Http\Controllers;
 use App\Docs\DocsRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Prism\Prism\Enums\Provider;
 use Prism\Prism\Exceptions\PrismException;
-use Prism\Prism\Prism;
+use Prism\Prism\Facades\Prism;
 
 /**
  * A small public demonstration of Prism.
@@ -81,9 +83,15 @@ final class DemoController extends Controller
                 ->withPrompt($input['prompt'])
                 ->asText();
         } catch (PrismException $e) {
-            // The provider's message can carry request details, and this is a
-            // public endpoint. Log the real one; return a flat description.
-            report($e);
+            // Allowlist diagnostics only: never log the exception, its message,
+            // previous exception, response body, headers, or the user's prompt.
+            $status = $e->httpStatus ?? $e->getCode();
+            Log::warning('Demo provider request failed', [
+                'provider' => Provider::Groq->value,
+                'status' => $status >= 100 && $status <= 599 ? $status : null,
+                'error_class' => $e::class,
+                'correlation_id' => (string) Str::uuid(),
+            ]);
 
             return response()->json([
                 'message' => 'The provider could not complete that request. Try again shortly.',
