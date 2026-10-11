@@ -40,9 +40,9 @@ class DocsController extends Controller
 
     public function asset(string $path): BinaryFileResponse
     {
-        $file = $this->docs->basePath().'/public/'.trim(str_replace(['..', '\\'], '', $path), '/');
+        $file = $this->docs->assetFile($path);
 
-        abort_unless(is_file($file), 404);
+        abort_unless($file !== '', 404);
 
         return response()->file($file, ['Cache-Control' => 'public, max-age=86400']);
     }

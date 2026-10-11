@@ -221,7 +221,7 @@ class DocsRepository
     public function exists(string $path): bool
     {
         // Port sources are fragments of public guides, not separate pages.
-        if (str_starts_with(trim(str_replace(['..', '\\'], '', $path), '/'), 'ports/')) {
+        if (! $this->validRelativePath($path) || str_starts_with($path, 'ports/')) {
             return false;
         }
 
@@ -290,7 +290,7 @@ class DocsRepository
                 }
 
                 $markdown = (string) file_get_contents($file);
-                $portFile = $this->portFile($item['link']);
+                $portFile = $this->portFile(ltrim($item['link'], '/'));
                 if (is_file($portFile)) {
                     $markdown .= "\n".(string) file_get_contents($portFile);
                 }
@@ -308,30 +308,77 @@ class DocsRepository
         });
     }
 
+    public function assetFile(string $path): string
+    {
+        return $this->fileWithinRoot($this->basePath().'/public', $path);
+    }
+
     protected function portFile(string $path): string
     {
-        $path = trim(str_replace(['..', '\\'], '', $path), '/');
+        if (! $this->validRelativePath($path)) {
+            return '';
+        }
+
         $source = (string) config('docs.port_guides.'.$path, 'ports/'.$path);
 
-        return $this->sitePath().'/'.$source.'.md';
+        return $this->fileWithinRoot($this->sitePath(), $source, '.md');
     }
 
     protected function pageFile(string $path): string
     {
-        $path = trim(str_replace(['..', '\\'], '', $path), '/');
+        if (! $this->validRelativePath($path)) {
+            return '';
+        }
+
         $sourcePath = (string) config("docs.page_aliases.$path", $path);
 
         foreach ($this->roots() as $root) {
-            $file = $root.'/'.$sourcePath.'.md';
+            $file = $this->fileWithinRoot($root, $sourcePath, '.md');
 
-            if (is_file($file)) {
+            if ($file !== '') {
                 return $file;
             }
         }
 
-        // Nothing matched. Hand back the package path so a miss still reads as
-        // "the release does not document this", which is what it is.
-        return $this->basePath().'/'.$sourcePath.'.md';
+        return '';
+    }
+
+    protected function validRelativePath(string $path): bool
+    {
+        // Laravel has already URL-decoded the route parameter. Reject segments
+        // as received: removing substrings can manufacture new traversal.
+        foreach (explode('/', $path) as $segment) {
+            if (in_array($segment, ['', '.', '..'], true)
+                || str_contains($segment, '\\') || str_contains($segment, "\0")) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    protected function fileWithinRoot(string $root, string $path, string $suffix = ''): string
+    {
+        if (! $this->validRelativePath($path)) {
+            return '';
+        }
+
+        $root = realpath($root);
+
+        if ($root === false) {
+            return '';
+        }
+
+        $prefix = rtrim($root, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
+        $file = realpath($prefix.$path.$suffix);
+
+        // Canonical paths also prevent symlink escapes. The separator excludes
+        // siblings such as public-evil from a root named public.
+        if ($file === false || ! str_starts_with($file, $prefix) || ! is_file($file)) {
+            return '';
+        }
+
+        return $file;
     }
 
     /**
