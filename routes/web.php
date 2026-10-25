@@ -29,6 +29,4 @@ Route::post('/demo', [DemoController::class, 'run'])->middleware('throttle:5,1')
 Route::get('/docs', [DocsController::class, 'index'])->name('docs.index');
 Route::get('/docs-index.json', [DocsController::class, 'searchIndex'])->name('docs.search-index');
 Route::get('/docs-assets/{path}', [DocsController::class, 'asset'])->where('path', '.*')->name('docs.asset');
-Route::get('/sitemap.xml', [DocsController::class, 'sitemap'])->name('sitemap');
-Route::get('/llms.txt', [DocsController::class, 'llms'])->name('llms');
 Route::get('/docs/{path}', [DocsController::class, 'show'])->where('path', '[A-Za-z0-9\-\/_]+')->name('docs.show');

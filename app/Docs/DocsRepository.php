@@ -275,6 +275,57 @@ class DocsRepository
     }
 
     /**
+     * A page's meta description: its first real paragraph, as plain text, cut
+     * on a word boundary near 160 characters. Empty when the page opens with
+     * no prose, so the caller can fall back to a site default.
+     */
+    public function description(string $path): string
+    {
+        $html = $this->page($path)['html'];
+
+        foreach (preg_split('#</p>#i', $html) ?: [] as $chunk) {
+            $start = stripos($chunk, '<p');
+
+            if ($start === false) {
+                continue;
+            }
+
+            $text = trim((string) preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags(substr($chunk, $start)), ENT_QUOTES | ENT_HTML5)));
+
+            if (mb_strlen($text) >= 40) {
+                return mb_strlen($text) <= 160 ? $text : rtrim(Str::limit($text, 157, ''), ' ,;:.').'…';
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * A page as Markdown for LLM crawlers (`/docs/<page>.md`), or null when no
+     * such page exists. Goes through the same path guard as the HTML page.
+     */
+    public function markdown(string $path): ?string
+    {
+        if (! $this->exists($path)) {
+            return null;
+        }
+
+        return $this->preprocess((string) file_get_contents($this->pageFile($path)));
+    }
+
+    /** How many provider guides the docs carry, counted from the nav rather than written down. */
+    public function providerGuideCount(): int
+    {
+        foreach ($this->nav() as $group) {
+            if ($group['text'] === 'Providers') {
+                return count($group['items']);
+            }
+        }
+
+        return 0;
+    }
+
+    /**
      * @return array<int, array{title: string, link: string, section: string, text: string}>
      */
     public function searchIndex(): array

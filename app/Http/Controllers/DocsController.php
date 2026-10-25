@@ -6,7 +6,6 @@ namespace App\Http\Controllers;
 
 use App\Docs\DocsRepository;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Response;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -45,45 +44,5 @@ class DocsController extends Controller
         abort_unless($file !== '', 404);
 
         return response()->file($file, ['Cache-Control' => 'public, max-age=86400']);
-    }
-
-    public function sitemap(): Response
-    {
-        $urls = collect($this->docs->pages())
-            ->map(fn (array $item): string => '<url><loc>'.url('/docs'.$item['link']).'</loc></url>')
-            ->prepend('<url><loc>'.url('/').'</loc></url>')
-            ->implode('');
-
-        $xml = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'.$urls.'</urlset>';
-
-        return response($xml, 200, ['Content-Type' => 'application/xml']);
-    }
-
-    public function llms(): Response
-    {
-        $lines = [
-            '# Prism',
-            '',
-            '> Prism is a Laravel package for integrating Large Language Models (LLMs) into applications — a unified, fluent API across '.count($this->docs->pages()).' documented topics and 16 providers.',
-            '> This is the actively maintained Particle Academy fork, published as `particle-academy/prism` (drop-in for `prism-php/prism`). Installed version: '.$this->docs->version().'.',
-            '',
-        ];
-
-        foreach ($this->docs->nav() as $group) {
-            $lines[] = '## '.$group['text'];
-            $lines[] = '';
-
-            foreach ($group['items'] as $item) {
-                // Companion-package entries link straight out to GitHub; only
-                // real pages live under /docs.
-                $href = $this->docs->isExternal($item) ? $item['link'] : url('/docs'.$item['link']);
-
-                $lines[] = '- ['.$item['text'].']('.$href.')';
-            }
-
-            $lines[] = '';
-        }
-
-        return response(implode("\n", $lines), 200, ['Content-Type' => 'text/plain; charset=utf-8']);
     }
 }
