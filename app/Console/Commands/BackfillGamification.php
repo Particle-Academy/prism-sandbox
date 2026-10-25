@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Contributor;
 use App\Support\AwardOutcome;
+use App\Support\CommitCredits;
 use App\Support\ContributionLimits;
 use App\Support\ContributorResolver;
 use App\Support\XpAwarder;
@@ -48,6 +49,9 @@ class BackfillGamification extends Command
 
     /** @var array<string, int> reason => count, so the summary can explain itself */
     private array $skipReasons = [];
+
+    /** @var array<string, list<mixed>> "owner/repo#number" => authored dates of a merged PR's commits */
+    private array $prCommitDates = [];
 
     public function handle(ContributorResolver $resolver): int
     {
@@ -244,6 +248,14 @@ class BackfillGamification extends Command
                 continue;
             }
 
+            // The authored dates of a merged PR's own commits, which is what a
+            // squash commit has to be matched on (see CommitCredits).
+            if (data_get($pr, 'merged_at') !== null) {
+                foreach ($this->paginate($http, "/repos/{$repo}/pulls/{$number}/commits") as $prCommit) {
+                    $this->prCommitDates[strtolower($repo).'#'.$number][] = data_get($prCommit, 'commit.author.date');
+                }
+            }
+
             foreach ($this->paginate($http, "/repos/{$repo}/pulls/{$number}/reviews") as $review) {
                 $this->award($resolver, data_get($review, 'user'), 'pr-review-xp', 'review', data_get($review, 'id'), 'Reviewed a pull request '.data_get($review, 'html_url'),
                     ContributionLimits::context($repo, data_get($review, 'submitted_at'), $number));
@@ -368,8 +380,36 @@ class BackfillGamification extends Command
                 data_get($commit, 'sha'),
                 'Landed commit '.substr((string) data_get($commit, 'sha'), 0, 7).' '.data_get($commit, 'html_url'),
                 $this->commitContext($repo, $commit),
+                $this->commitIdentities($repo, $commit),
             );
         }
+    }
+
+    /**
+     * What identifies this commit's work across repositories: its authored
+     * date, plus — for a squash merge made on GitHub — the authored dates of
+     * the pull request's own commits, which is what an absorbed cherry-pick
+     * of that work carries.
+     *
+     * Only GitHub's own squash (committer `web-flow`) is traced to its pull
+     * request: a cherry-pick keeps the upstream title, and its "(#n)" names a
+     * pull request in ANOTHER repository, so reading it here would match the
+     * wrong one.
+     *
+     * @return list<string>
+     */
+    private function commitIdentities(string $repo, mixed $commit): array
+    {
+        $dates = [data_get($commit, 'commit.author.date')];
+
+        $title = strtok((string) data_get($commit, 'commit.message', ''), "\n");
+        if (data_get($commit, 'committer.login') === 'web-flow'
+            && is_string($title)
+            && preg_match('/\(#(\d+)\)\s*$/', $title, $match)) {
+            array_push($dates, ...($this->prCommitDates[strtolower($repo).'#'.$match[1]] ?? []));
+        }
+
+        return CommitCredits::identities($dates);
     }
 
     /**
@@ -399,8 +439,11 @@ class BackfillGamification extends Command
      * Award one contribution, mirroring the webhook exactly. In dry-run it only
      * checks eligibility (no rows written); otherwise it delegates to the shared,
      * idempotent XpAwarder. A missing dedup subject (id/node_id) is skipped.
+     *
+     * @param  list<string>  $identities  commit identities (CommitCredits); work
+     *                                    already credited under another commit is skipped
      */
-    private function award(ContributorResolver $resolver, mixed $user, string $metric, string $keyPrefix, mixed $id, string $reason, ?array $context = null): bool
+    private function award(ContributorResolver $resolver, mixed $user, string $metric, string $keyPrefix, mixed $id, string $reason, ?array $context = null, array $identities = []): bool
     {
         $id = is_scalar($id) ? (string) $id : '';
         if ($id === '') {
@@ -428,14 +471,27 @@ class BackfillGamification extends Command
             return false;
         }
 
+        $contributor = $resolver->resolve($user);
+        $key = "$keyPrefix:$id";
+
+        if ($contributor instanceof Contributor && CommitCredits::creditedElsewhere($contributor, $identities, $key)) {
+            $this->skip('credited in another repo');
+
+            return false;
+        }
+
         $outcome = XpAwarder::award(
-            $resolver->resolve($user),
+            $contributor,
             $metric,
             (int) config("gamification.metrics.$metric.xp", 0),
             $reason,
-            "$keyPrefix:$id",
+            $key,
             context: $context,
         );
+
+        if ($contributor instanceof Contributor && ($outcome === AwardOutcome::Awarded || $outcome === AwardOutcome::Duplicate)) {
+            CommitCredits::remember($contributor, $identities, $key);
+        }
 
         // This line is why the enum exists. It used to read `$ok ? awarded++ :
         // skip('already awarded')`, so a run against an unseeded taxonomy

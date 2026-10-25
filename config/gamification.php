@@ -91,13 +91,13 @@ return [
         explode(',', (string) env('GITHUB_UPSTREAM_REPOS', 'prism-php/prism'))
     ))),
 
-    // GitHub logins (case-insensitive) excluded from XP and the leaderboard —
-    // e.g. maintainers who shouldn't compete with the community. Add more via the
-    // comma-separated GITHUB_IGNORED_USERS env var. `invalid-email-address` is
-    // the placeholder account GitHub attributes commits with unrecognised
-    // author emails to; it is not a person.
+    // GitHub logins (case-insensitive) excluded from XP and the leaderboard.
+    // Maintainers are NOT excluded: the board credits everyone who builds Prism.
+    // `invalid-email-address` is the placeholder account GitHub attributes
+    // commits with unrecognised author emails to; it is not a person. Add more
+    // via the comma-separated GITHUB_IGNORED_USERS env var.
     'ignored_users' => array_values(array_unique(array_merge(
-        ['wishborn', 'invalid-email-address'],
+        ['invalid-email-address'],
         array_filter(array_map('trim', explode(',', (string) env('GITHUB_IGNORED_USERS', ''))))
     ))),
 

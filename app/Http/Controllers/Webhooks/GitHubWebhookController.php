@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Webhooks;
 
 use App\Models\Contributor;
+use App\Support\AwardOutcome;
+use App\Support\CommitCredits;
 use App\Support\ContributionLimits;
 use App\Support\ContributorResolver;
 use App\Support\XpAwarder;
@@ -237,6 +239,9 @@ class GitHubWebhookController
                 'commit:'.$sha,
                 // Git dates are author-controlled, so cannot choose a quota day.
                 $this->context($payload, null),
+                // ...but the authored date is what identifies absorbed work that
+                // was already credited upstream under another SHA.
+                CommitCredits::identities([data_get($commit, 'timestamp')]),
             ) || $awarded;
         }
 
@@ -306,12 +311,24 @@ class GitHubWebhookController
         return app(ContributorResolver::class)->resolve($githubUser);
     }
 
-    protected function award(?Contributor $contributor, string $metric, int $amount, string $reason, string $dedupKey, ?array $context = null): bool
+    /**
+     * @param  list<string>  $identities  commit identities (CommitCredits); work
+     *                                    already credited under another commit is not credited again
+     */
+    protected function award(?Contributor $contributor, string $metric, int $amount, string $reason, string $dedupKey, ?array $context = null, array $identities = []): bool
     {
+        if ($contributor instanceof Contributor && CommitCredits::creditedElsewhere($contributor, $identities, $dedupKey)) {
+            return false;
+        }
+
         $outcome = XpAwarder::award($contributor, $metric, $amount, $reason, $dedupKey, context: $context);
 
         if ($outcome->retryable()) {
             throw new XpAwardFailure;
+        }
+
+        if ($contributor instanceof Contributor && ($outcome === AwardOutcome::Awarded || $outcome === AwardOutcome::Duplicate)) {
+            CommitCredits::remember($contributor, $identities, $dedupKey);
         }
 
         return $outcome->awarded();
