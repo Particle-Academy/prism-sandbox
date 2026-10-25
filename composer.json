@@ -19,6 +19,7 @@
         "laravel/framework": "^13.8",
         "laravel/tinker": "^3.0",
         "league/commonmark": "^2.8",
+        "particle-academy/fancy-seo": "^0.6.0",
         "particle-academy/laravel-fun-lab": "0.6",
         "particle-academy/prism": ">=0.114 <1.0",
         "tempest/highlight": "^2.27"

@@ -274,7 +274,8 @@ class SiteDocsTest extends TestCase
 
     public function test_site_pages_join_the_sitemap_search_index_and_llms_txt(): void
     {
-        $this->get('/sitemap.xml')->assertOk()->assertSee(url('/docs/packages/overview'), false);
+        // Sitemap URLs name the public canonical domain, not whatever host served the request.
+        $this->get('/sitemap.xml')->assertOk()->assertSee(config('fancy-seo.url').'/docs/packages/overview', false);
 
         $this->getJson('/docs-index.json')
             ->assertOk()
@@ -284,7 +285,7 @@ class SiteDocsTest extends TestCase
             ->assertOk()
             ->assertSee('## The ecosystem')
             ->assertSee('## Harness')
-            ->assertSee('[What the Harness is]('.url('/docs/packages/harness').')', false);
+            ->assertSee('[What the Harness is]('.config('fancy-seo.url').'/docs/packages/harness)', false);
     }
 
     public function test_prev_and_next_cross_from_the_package_docs_into_the_site_section(): void

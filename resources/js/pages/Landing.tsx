@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import { GradGlyph, KineticFooter, KineticNav, Marquee, Reveal } from '../components/kinetic';
 import { SearchPalette, useSearchPalette } from '../components/SearchPalette';
@@ -156,18 +156,6 @@ export default function Landing({ version }: { version: string }) {
 
     return (
         <div className="k-page">
-            <Head>
-                <title>Prism — one provider interface, and a harness for agents</title>
-                <meta
-                    head-key="description"
-                    name="description"
-                    content="Prism is a cross-language provider API ecosystem of nine package families: a mature PHP/Laravel reference across 18 providers, a durable agent harness, and focused TypeScript and Python ports."
-                />
-                <meta property="og:title" content="Prism — one provider interface, and a harness for agents" />
-                <meta property="og:description" content="A mature PHP/Laravel reference across 18 providers, a durable agent harness, and seven more optional families — in three languages." />
-                <meta property="og:type" content="website" />
-            </Head>
-
             <KineticNav version={version} onSearch={() => setOpen(true)} />
             <SearchPalette open={open} onClose={() => setOpen(false)} />
 

@@ -1,6 +1,7 @@
 import { createFancyServer } from '@particle-academy/fancy-inertia/server';
 import { Toast } from '@particle-academy/react-fancy';
 import type { ComponentType, ReactNode } from 'react';
+import { PageSeo } from './components/page-seo';
 
 /**
  * Server-side rendering entry. It renders each page inside the SAME Fancy
@@ -12,7 +13,10 @@ import type { ComponentType, ReactNode } from 'react';
  * `INERTIA_SSR_ENABLED=true` in `.env` to use it.
  */
 const providers = (outlet: ReactNode): ReactNode => (
-    <Toast.Provider position="bottom-right">{outlet}</Toast.Provider>
+    <Toast.Provider position="bottom-right">
+        <PageSeo />
+        {outlet}
+    </Toast.Provider>
 );
 
 createFancyServer({

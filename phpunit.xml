@@ -23,9 +23,16 @@
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>
-        <env name="DB_CONNECTION" value="sqlite"/>
-        <env name="DB_DATABASE" value=":memory:"/>
-        <env name="DB_URL" value=""/>
+        <!-- FORCED. Genie gives every process in its workspace DB_CONNECTION=pgsql and the workspace's own database,
+             and an unforced <env> loses to a variable already set: the suite then ran RefreshDatabase against the
+             workspace's real database (2026-10-25, the same failure prism-labs hit on 2026-10-23). <server> as well
+             as <env>: a forced <env> sets getenv() and $_ENV, but Laravel reads $_SERVER first. -->
+        <env name="DB_CONNECTION" value="sqlite" force="true"/>
+        <env name="DB_DATABASE" value=":memory:" force="true"/>
+        <env name="DB_URL" value="" force="true"/>
+        <server name="DB_CONNECTION" value="sqlite" force="true"/>
+        <server name="DB_DATABASE" value=":memory:" force="true"/>
+        <server name="DB_URL" value="" force="true"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>

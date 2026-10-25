@@ -2,9 +2,8 @@ import { createInertiaApp } from '@inertiajs/react';
 import { setupFancyApp } from '@particle-academy/fancy-inertia';
 import { Toast } from '@particle-academy/react-fancy';
 import type { ComponentType, ReactNode } from 'react';
+import { PageSeo } from './components/page-seo';
 import '@particle-academy/react-fancy/styles.css';
-
-const appName = import.meta.env.VITE_APP_NAME ?? 'Fancy';
 
 /**
  * App-wide providers mounted above the Inertia outlet — they survive page
@@ -13,11 +12,15 @@ const appName = import.meta.env.VITE_APP_NAME ?? 'Fancy';
  * realtime server-state invalidation.
  */
 const providers = (outlet: ReactNode): ReactNode => (
-    <Toast.Provider position="bottom-right">{outlet}</Toast.Provider>
+    <Toast.Provider position="bottom-right">
+        <PageSeo />
+        {outlet}
+    </Toast.Provider>
 );
 
 createInertiaApp({
-    title: (title) => (title ? `${title} — ${appName}` : appName),
+    // Titles arrive complete from the server (SeoServiceProvider); nothing is appended here.
+    title: (title) => title,
     resolve: (name) => {
         // Typing the glob is what keeps this assignable to Inertia's
         // ComponentResolver — an untyped glob resolves to `unknown`.
