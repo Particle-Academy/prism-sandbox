@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use FancySeo\FancySeo;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -38,6 +39,9 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            // The same resolved head the server rendered, so in-app navigation
+            // updates it from one definition (SeoServiceProvider).
+            'seo' => fn () => app(FancySeo::class)->forRequest($request)->toArray(),
             // Gates the nav link. A prominent link to a page that says
             // "not configured" is worse than no link at all.
             'demoEnabled' => filled(config('prism.providers.groq.api_key')),

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "103ff7b4a6bd60a3264f89dfdb9ea4fc",
+    "content-hash": "070d3f1d11e13d46db87452caf46eb68",
     "packages": [
         {
             "name": "brick/math",
@@ -2622,6 +2622,79 @@
                 }
             ],
             "time": "2026-02-16T23:10:27+00:00"
+        },
+        {
+            "name": "particle-academy/fancy-seo",
+            "version": "v0.6.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Particle-Academy/fancy-seo.git",
+                "reference": "f9fb951b09536bc653325e2bd234bd00892426de"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Particle-Academy/fancy-seo/zipball/f9fb951b09536bc653325e2bd234bd00892426de",
+                "reference": "f9fb951b09536bc653325e2bd234bd00892426de",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/contracts": "^13.0",
+                "illuminate/http": "^13.0",
+                "illuminate/routing": "^13.0",
+                "illuminate/support": "^13.0",
+                "illuminate/view": "^13.0",
+                "php": "^8.4"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.26",
+                "orchestra/testbench": "^9.0|^10.0|^11.0",
+                "pestphp/pest": "^3.0|^4.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "FancySeo": "FancySeo\\Facades\\FancySeo"
+                    },
+                    "providers": [
+                        "FancySeo\\FancySeoServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "FancySeo\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Particle Academy",
+                    "homepage": "https://github.com/Particle-Academy"
+                }
+            ],
+            "description": "Server-rendered SEO + crawlability for Laravel + Inertia apps — per-route meta/Open Graph/Twitter/JSON-LD on the first byte, dynamic sitemap.xml / robots.txt / llms.txt, and per-page Markdown. The PHP baseline that pairs with @particle-academy/fancy-inertia's <Seo>.",
+            "homepage": "https://github.com/Particle-Academy/fancy-seo",
+            "keywords": [
+                "JSON-LD",
+                "SSR",
+                "Sitemap",
+                "inertia",
+                "laravel",
+                "llms-txt",
+                "open-graph",
+                "particle-academy",
+                "robots",
+                "seo"
+            ],
+            "support": {
+                "issues": "https://github.com/Particle-Academy/fancy-seo/issues",
+                "source": "https://github.com/Particle-Academy/fancy-seo"
+            },
+            "time": "2026-10-02T06:07:08+00:00"
         },
         {
             "name": "particle-academy/laravel-fun-lab",
@@ -6231,16 +6304,16 @@
         },
         {
             "name": "symfony/yaml",
-            "version": "v8.1.5",
+            "version": "v8.1.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/yaml.git",
-                "reference": "b3fc9e8888eeb9daddc33bfbd15d282a61f543cd"
+                "reference": "6107ee26a25215c3df3af0a3315e56bb4fd0b7db"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/yaml/zipball/b3fc9e8888eeb9daddc33bfbd15d282a61f543cd",
-                "reference": "b3fc9e8888eeb9daddc33bfbd15d282a61f543cd",
+                "url": "https://api.github.com/repos/symfony/yaml/zipball/6107ee26a25215c3df3af0a3315e56bb4fd0b7db",
+                "reference": "6107ee26a25215c3df3af0a3315e56bb4fd0b7db",
                 "shasum": ""
             },
             "require": {
@@ -6283,7 +6356,7 @@
             "description": "Loads and dumps YAML files",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/yaml/tree/v8.1.5"
+                "source": "https://github.com/symfony/yaml/tree/v8.1.9"
             },
             "funding": [
                 {
@@ -6303,7 +6376,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-08-21T12:16:08+00:00"
+            "time": "2026-10-12T12:37:13+00:00"
         },
         {
             "name": "tempest/highlight",

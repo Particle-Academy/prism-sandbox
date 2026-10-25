@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { MultiSwitch, cn } from '@particle-academy/react-fancy';
 import { useEffect, useState } from 'react';
 import { KineticNav } from '../../components/kinetic';
@@ -65,18 +65,8 @@ export default function Show({ page, nav, path, version }: { page: Page; nav: Na
         }
     };
 
-    const description = page.title + ' — Prism documentation (' + version + ') for PHP, TypeScript and Python.';
-
     return (
         <div className="k-page">
-            <Head>
-                <title>{page.title}</title>
-                <meta head-key="description" name="description" content={description} />
-                <meta property="og:title" content={page.title + ' — Prism'} />
-                <meta property="og:description" content={description} />
-                <meta property="og:type" content="article" />
-            </Head>
-
             <KineticNav version={version} onSearch={() => setOpen(true)} />
             <SearchPalette open={open} onClose={() => setOpen(false)} />
 
