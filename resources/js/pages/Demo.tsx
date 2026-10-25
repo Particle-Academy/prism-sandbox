@@ -1,4 +1,5 @@
 import { ContentRenderer } from '@particle-academy/react-fancy';
+import { Head } from '@inertiajs/react';
 import { useState } from 'react';
 import { KineticFooter, KineticNav } from '../components/kinetic';
 
@@ -50,6 +51,7 @@ export default function Demo({ version, model, configured }: { version: string; 
 
     return (
         <div className="k-page">
+            <Head title="Prism Demo" />
             <KineticNav version={version} />
 
             <main className="mx-auto max-w-4xl px-6 py-16">

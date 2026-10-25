@@ -1,3 +1,4 @@
+import { Head } from '@inertiajs/react';
 import { Drawer } from '@particle-academy/react-fancy';
 import { useState } from 'react';
 import { KineticFooter, KineticNav } from '../components/kinetic';
@@ -17,6 +18,10 @@ type Row = {
 export default function Leaderboard({ version, silos, rows }: { version: string; silos: Silo[]; rows: Row[] }) {
     return (
         <div className="k-page">
+            <Head title="Contributor Leaderboard — Prism">
+                <meta name="description" content="Top community contributors to Prism, ranked by contribution XP." />
+            </Head>
+
             <KineticNav version={version} />
 
             <section className="relative mx-auto max-w-6xl px-6 pt-24 pb-20 sm:pt-28">

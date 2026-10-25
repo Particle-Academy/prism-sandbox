@@ -5,10 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    {{-- The per-route head (title, description, canonical, Open Graph, Twitter,
-         JSON-LD) is rendered here on the server, so crawlers and link scrapers
-         get it in the first byte with or without SSR. See SeoServiceProvider. --}}
-    <x-fancy-seo::head />
+    <title inertia>{{ config('app.name', 'Fancy') }}</title>
 
     {{-- Dark is not a preference here, it is the design. Every page renders on
          the kinetic surface, whose palette is a fixed dark one (--k-bg: #07070b),
