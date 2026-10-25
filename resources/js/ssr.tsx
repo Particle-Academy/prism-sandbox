@@ -1,7 +1,7 @@
 import { createFancyServer } from '@particle-academy/fancy-inertia/server';
 import { Toast } from '@particle-academy/react-fancy';
 import type { ComponentType, ReactNode } from 'react';
-import { PageSeo } from './components/page-seo';
+import { withPageSeo } from './components/page-seo';
 
 /**
  * Server-side rendering entry. It renders each page inside the SAME Fancy
@@ -13,16 +13,18 @@ import { PageSeo } from './components/page-seo';
  * `INERTIA_SSR_ENABLED=true` in `.env` to use it.
  */
 const providers = (outlet: ReactNode): ReactNode => (
-    <Toast.Provider position="bottom-right">
-        <PageSeo />
-        {outlet}
-    </Toast.Provider>
+    <Toast.Provider position="bottom-right">{outlet}</Toast.Provider>
 );
 
 createFancyServer({
     resolve: (name) => {
         const pages = import.meta.glob<{ default: ComponentType }>('./pages/**/*.tsx', { eager: true });
-        return pages[`./pages/${name}.tsx`];
+        const module = pages[`./pages/${name}.tsx`];
+        // Same as app.tsx: the head updater rides in the page's layout, inside Inertia's tree.
+        if (module) {
+            withPageSeo(module.default);
+        }
+        return module;
     },
     providers,
     appRoot: false,

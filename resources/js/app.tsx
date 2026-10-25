@@ -2,20 +2,18 @@ import { createInertiaApp } from '@inertiajs/react';
 import { setupFancyApp } from '@particle-academy/fancy-inertia';
 import { Toast } from '@particle-academy/react-fancy';
 import type { ComponentType, ReactNode } from 'react';
-import { PageSeo } from './components/page-seo';
+import { withPageSeo } from './components/page-seo';
 import '@particle-academy/react-fancy/styles.css';
 
 /**
  * App-wide providers mounted above the Inertia outlet — they survive page
  * swaps (toasts, etc. don't reset on navigation). Add `FancyDataRoot` from
  * `@particle-academy/fancy-query` here once you wire Laravel Echo for
- * realtime server-state invalidation.
+ * realtime server-state invalidation. These sit OUTSIDE Inertia's context:
+ * nothing here may call usePage().
  */
 const providers = (outlet: ReactNode): ReactNode => (
-    <Toast.Provider position="bottom-right">
-        <PageSeo />
-        {outlet}
-    </Toast.Provider>
+    <Toast.Provider position="bottom-right">{outlet}</Toast.Provider>
 );
 
 createInertiaApp({
@@ -29,7 +27,8 @@ createInertiaApp({
         if (!page) {
             return Promise.reject(new Error(`Inertia page not found: ${name}`));
         }
-        return page().then((module) => module.default);
+        // The head updater rides in each page's layout, inside Inertia's tree.
+        return page().then((module) => withPageSeo(module.default));
     },
     // setupFancyApp builds the page-transition + provider tree and auto-detects
     // hydrateRoot vs createRoot. `appRoot: false` keeps the root lean (just our

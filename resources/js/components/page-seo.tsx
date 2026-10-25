@@ -1,5 +1,6 @@
 import { usePage } from '@inertiajs/react';
 import { Seo } from '@particle-academy/fancy-inertia/seo';
+import type { ComponentType, ReactNode } from 'react';
 
 /** The head the server resolved for this page (fancy-seo's SeoData::toArray()). */
 type SharedSeo = {
@@ -41,8 +42,30 @@ export function PageSeo() {
             noindex={seo.robots.includes('noindex')}
             twitterCard={seo.twitterCard}
             twitterSite={seo.twitterSite ?? undefined}
-            jsonLd={seo.jsonLd}
+            // No jsonLd here: the server already rendered it on the first byte, and its
+            // <script> tags carry no head-key, so a client copy would duplicate them.
+            // Structured data matters to crawlers, which load every URL fresh.
             clientOnly
         />
     );
+}
+
+type PageComponent = ComponentType & { layout?: (page: ReactNode) => ReactNode };
+
+/**
+ * Mount PageSeo through the page's default layout. It must render INSIDE
+ * Inertia's tree, because it reads `usePage()`: setupFancyApp's `providers`
+ * wrap the outlet from outside that context, and mounting it there threw
+ * "usePage must be used within the Inertia component", which left the page
+ * blank (2026-10-25). A page that sets its own layout keeps it.
+ */
+export function withPageSeo<T extends PageComponent>(Page: T): T {
+    Page.layout ??= (page: ReactNode) => (
+        <>
+            <PageSeo />
+            {page}
+        </>
+    );
+
+    return Page;
 }
