@@ -29,7 +29,7 @@ use Throwable;
 class BackfillGamification extends Command
 {
     protected $signature = 'gamification:backfill
-        {repos?* : owner/repo names to process; defaults to GITHUB_REPOS, else all repos in GITHUB_ORG}
+        {repos?* : owner/repo names to process; defaults to GITHUB_REPOS, else all repos in GITHUB_ORG, plus the upstream repos}
         {--token= : GitHub token; falls back to GITHUB_TOKEN / GH_TOKEN env}
         {--dry-run : Report what would be awarded without writing anything}';
 
@@ -116,6 +116,14 @@ class BackfillGamification extends Command
             return $args;
         }
 
+        return $this->withUpstream($this->ownRepos($http));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function ownRepos(PendingRequest $http): array
+    {
         /** @var list<string> $configured */
         $configured = (array) config('services.github.repos', []);
         if ($configured !== []) {
@@ -136,6 +144,32 @@ class BackfillGamification extends Command
         }
 
         return $repos;
+    }
+
+    /**
+     * Upstream is reconciled on every default run: no webhook can reach us
+     * from a repository we do not own, so this is its only ingestion path.
+     *
+     * @param  list<string>  $repos
+     * @return list<string>
+     */
+    private function withUpstream(array $repos): array
+    {
+        $seen = array_map('strtolower', $repos);
+
+        foreach ((array) config('gamification.upstream', []) as $upstream) {
+            if (! in_array(strtolower($upstream), $seen, true)) {
+                $repos[] = $upstream;
+                $seen[] = strtolower($upstream);
+            }
+        }
+
+        return $repos;
+    }
+
+    private function isUpstream(string $repo): bool
+    {
+        return in_array(strtolower($repo), array_map('strtolower', (array) config('gamification.upstream', [])), true);
     }
 
     private function backfillRepo(PendingRequest $http, ContributorResolver $resolver, string $repo): void
@@ -173,6 +207,11 @@ class BackfillGamification extends Command
         // must not cost us the commit XP that follows. Before this, one 403
         // here aborted the whole repo and silently skipped every commit.
         $this->section($repo, 'stargazers', function () use ($http, $resolver, $repo): void {
+            // See config/gamification.php: an upstream star is not a contribution.
+            if ($this->isUpstream($repo)) {
+                return;
+            }
+
             foreach ($this->paginate($http, "/repos/{$repo}/stargazers") as $star) {
                 $this->award($resolver, $star, 'star-xp', 'star', data_get($star, 'id'), 'Starred the repository', ContributionLimits::context($repo));
             }
@@ -279,6 +318,10 @@ class BackfillGamification extends Command
      * — on prism that is 563 commits and 100+ people who never contributed
      * here. The compare endpoint returns only what this fork is ahead by, which
      * is exactly the set whose authors deserve credit.
+     *
+     * That inherited history is still credited, but through the upstream repo
+     * itself (config gamification.upstream), so it is recorded as earned
+     * upstream rather than passed off as work that landed here.
      */
     private function backfillCommits(PendingRequest $http, ContributorResolver $resolver, string $repo): void
     {
@@ -324,10 +367,32 @@ class BackfillGamification extends Command
                 'commit',
                 data_get($commit, 'sha'),
                 'Landed commit '.substr((string) data_get($commit, 'sha'), 0, 7).' '.data_get($commit, 'html_url'),
-                // Match live processing-day enforcement; git dates are forgeable.
-                ContributionLimits::context($repo),
+                $this->commitContext($repo, $commit),
             );
         }
+    }
+
+    /**
+     * Which day a landed commit counts against the per-contributor daily cap.
+     *
+     * Ours: the processing day, matching the live push webhook, because git
+     * dates are author-controlled. Upstream: the day it was committed to the
+     * default branch. Upstream history arrives years at a time, so the
+     * processing day would hold every author to 20 commits in total, and a
+     * rejected decision is permanent. Forging the date buys nothing there:
+     * a commit reaches upstream's default branch only through its maintainers.
+     *
+     * @return array{day: string, pr_key: string, repo: string}
+     */
+    private function commitContext(string $repo, mixed $commit): array
+    {
+        if (! $this->isUpstream($repo)) {
+            return ContributionLimits::context($repo);
+        }
+
+        $landed = data_get($commit, 'commit.committer.date');
+
+        return ContributionLimits::context($repo, is_string($landed) && $landed !== '' ? $landed : null);
     }
 
     /**

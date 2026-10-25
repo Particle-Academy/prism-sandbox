@@ -64,6 +64,8 @@ class XpAwarder
                     'metric' => $metric,
                     'event_hash' => hash('sha256', $dedupKey),
                     'event_key' => $dedupKey,
+                    'repo' => $context['repo'] ?? null,
+                    'xp' => $amount,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
