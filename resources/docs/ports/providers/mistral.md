@@ -164,7 +164,7 @@ import { Audio, Prism } from '@particle-academy/prism';
 
 const response = await Prism.audio()
   .using('mistral', 'voxtral-mini-latest')
-  .withInput(Audio.fromLocalPath('meeting.mp3'))
+  .withInput(Audio.fromLocalPath('recording.mp3'))
   .withProviderOptions({ language: 'en' })
   .asText();
 
@@ -177,7 +177,7 @@ from prism import Audio, Prism
 response = (
     Prism.audio()
     .using("mistral", "voxtral-mini-latest")
-    .with_input(Audio.from_local_path("meeting.mp3"))
+    .with_input(Audio.from_local_path("recording.mp3"))
     .with_provider_options({"language": "en"})
     .as_text()
 )

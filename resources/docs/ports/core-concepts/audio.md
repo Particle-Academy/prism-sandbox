@@ -84,7 +84,7 @@ import { Audio, Prism } from '@particle-academy/prism';
 
 const response = await Prism.audio()
   .using('openai', 'whisper-1')
-  .withInput(Audio.fromLocalPath('storage/recordings/visit.mp3'))
+  .withInput(Audio.fromLocalPath('recording.mp3'))
   .withProviderOptions({ language: 'en', temperature: 0 })
   .asText();
 
@@ -97,7 +97,7 @@ from prism import Audio, Prism
 response = (
     Prism.audio()
     .using("openai", "whisper-1")
-    .with_input(Audio.from_local_path("storage/recordings/visit.mp3"))
+    .with_input(Audio.from_local_path("recording.mp3"))
     .with_provider_options({"language": "en", "temperature": 0})
     .as_text()
 )
@@ -163,7 +163,7 @@ import { Audio, Prism } from '@particle-academy/prism';
 
 const response = await Prism.audio()
   .using('mistral', 'voxtral-mini-latest')
-  .withInput(Audio.fromLocalPath('storage/recordings/visit.mp3'))
+  .withInput(Audio.fromLocalPath('recording.mp3'))
   .withProviderOptions({ language: 'en' })
   .asText();
 
@@ -176,7 +176,7 @@ from prism import Audio, Prism
 response = (
     Prism.audio()
     .using("mistral", "voxtral-mini-latest")
-    .with_input(Audio.from_local_path("storage/recordings/visit.mp3"))
+    .with_input(Audio.from_local_path("recording.mp3"))
     .with_provider_options({"language": "en"})
     .as_text()
 )
@@ -199,7 +199,7 @@ import { Audio, Prism } from '@particle-academy/prism';
 
 const transcript = await Prism.audio()
   .using('openai', 'whisper-1')
-  .withInput(Audio.fromLocalPath('storage/recordings/visit.mp3'))
+  .withInput(Audio.fromLocalPath('recording.mp3'))
   .asText();
 
 const summary = await Prism.text()
@@ -215,7 +215,7 @@ from prism import Audio, Prism
 transcript = (
     Prism.audio()
     .using("openai", "whisper-1")
-    .with_input(Audio.from_local_path("storage/recordings/visit.mp3"))
+    .with_input(Audio.from_local_path("recording.mp3"))
     .as_text()
 )
 

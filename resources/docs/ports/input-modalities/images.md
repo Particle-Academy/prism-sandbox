@@ -64,10 +64,10 @@ The path is local to your server.
 import { readFileSync } from 'node:fs';
 import { Image, Prism } from '@particle-academy/prism';
 
-const fromDisk = Image.fromLocalPath('photos/greenhouse.png');
+const fromDisk = Image.fromLocalPath('photo.png');
 
 const fromBytes = Image.fromRawContent(
-  Uint8Array.from(readFileSync('photos/seedlings.jpg')),
+  Uint8Array.from(readFileSync('photo.jpg')),
   'image/jpeg',
 );
 
@@ -87,10 +87,10 @@ from pathlib import Path
 
 from prism import Image, Prism
 
-from_disk = Image.from_local_path("photos/greenhouse.png")
+from_disk = Image.from_local_path("photo.png")
 
 from_bytes = Image.from_raw_content(
-    Path("photos/seedlings.jpg").read_bytes(),
+    Path("photo.jpg").read_bytes(),
     "image/jpeg",
 )
 

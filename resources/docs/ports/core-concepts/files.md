@@ -28,7 +28,7 @@ const files = Prism.files()
   .withProviderOptions({ purpose: 'user_data' });
 
 const uploaded = await files.upload(
-  readFileSync('storage/reports/greenhouse.pdf'),
+  readFileSync('report.pdf'),
   'greenhouse.pdf',
   'application/pdf',
 );
@@ -48,7 +48,7 @@ files = (
 )
 
 uploaded = files.upload(
-    Path("storage/reports/greenhouse.pdf").read_bytes(),
+    Path("report.pdf").read_bytes(),
     "greenhouse.pdf",
     "application/pdf",
 )

@@ -58,7 +58,7 @@ import { Prism } from '@particle-academy/prism';
 const response = await Prism.embeddings()
   .using('openai', 'text-embedding-3-small')
   .fromInput('What is a heat pump?')
-  .fromFile('docs/heat-pumps.md')
+  .fromFile('notes.md')
   .asEmbeddings();
 
 console.log(response.embeddings.length); // 2
@@ -71,7 +71,7 @@ response = (
     Prism.embeddings()
     .using("openai", "text-embedding-3-small")
     .from_input("What is a heat pump?")
-    .from_file("docs/heat-pumps.md")
+    .from_file("notes.md")
     .as_embeddings()
 )
 
