@@ -1,0 +1,102 @@
+# Prism — robots.txt
+
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /logout
+Disallow: /webhooks
+
+User-agent: GPTBot
+Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /logout
+Disallow: /webhooks
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /logout
+Disallow: /webhooks
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /logout
+Disallow: /webhooks
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /logout
+Disallow: /webhooks
+
+User-agent: Claude-Web
+Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /logout
+Disallow: /webhooks
+
+User-agent: anthropic-ai
+Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /logout
+Disallow: /webhooks
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /logout
+Disallow: /webhooks
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /logout
+Disallow: /webhooks
+
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /logout
+Disallow: /webhooks
+
+User-agent: CCBot
+Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /logout
+Disallow: /webhooks
+
+User-agent: Amazonbot
+Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /logout
+Disallow: /webhooks
+
+User-agent: Meta-ExternalAgent
+Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /logout
+Disallow: /webhooks
+
+User-agent: cohere-ai
+Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /logout
+Disallow: /webhooks
+
+Sitemap: https://ai.particle.academy/sitemap.xml
+# LLM index: https://ai.particle.academy/llms.txt

@@ -68,6 +68,19 @@ class SeoTest extends TestCase
         $this->assertStringContainsString('Disallow: /webhooks', $body);
     }
 
+    public function test_the_static_robots_txt_matches_what_the_route_renders(): void
+    {
+        // The host's nginx answers /robots.txt with a 404 status when no static file
+        // exists, even though Laravel renders the body behind it; crawlers ignore a
+        // 404 robots.txt. So public/robots.txt is served instead, and it must stay
+        // exactly what fancy-seo would render: `php artisan seo:robots` rewrites it.
+        $this->assertSame(
+            (string) $this->get('/robots.txt')->assertOk()->getContent(),
+            (string) file_get_contents(public_path('robots.txt')),
+            'public/robots.txt has drifted from the fancy-seo config; regenerate it.',
+        );
+    }
+
     public function test_the_sitemap_lists_docs_and_omits_the_unconfigured_demo(): void
     {
         config(['prism.providers.groq.api_key' => null]);
