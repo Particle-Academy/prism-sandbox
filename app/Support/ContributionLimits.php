@@ -22,7 +22,9 @@ class ContributionLimits
         // letting a malformed record bypass the per-PR cap.
         $number = ctype_digit($number) && trim($number, '0') !== '' ? ltrim($number, '0') : 'unknown';
 
-        return ['day' => $day, 'pr_key' => strtolower($repo).':'.$number];
+        // `repo` is not a quota scope; XpAwarder records it on the claim so the
+        // leaderboard can tell upstream points from ours.
+        return ['day' => $day, 'pr_key' => strtolower($repo).':'.$number, 'repo' => strtolower($repo)];
     }
 
     /** Called inside XpAwarder's transaction while the contributor row is locked. */

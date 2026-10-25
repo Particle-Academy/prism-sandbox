@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Contributor;
+use App\Support\ContributionLimits;
+use App\Support\XpAwarder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia;
 use LaravelFunLab\Facades\LFL;
@@ -55,6 +57,54 @@ class LeaderboardTest extends TestCase
                 ->where('rows.1.github_username', 'bulk')
                 ->where('rows.1.score', 90)
                 ->where('rows.1.total_xp', 90));
+    }
+
+    public function test_it_splits_out_the_points_earned_upstream(): void
+    {
+        config()->set('gamification.upstream', ['prism-php/prism']);
+
+        $both = Contributor::create(['github_id' => '5', 'github_username' => 'both']);
+        $ours = Contributor::create(['github_id' => '6', 'github_username' => 'ours']);
+
+        // Upstream: a merged PR (25 x 5.0 = 125). Ours: an issue (5 x 2.0 = 10).
+        XpAwarder::award($both, 'pr-accepted-xp', 25, 'test', 'pr-merged:UP_1', context: ContributionLimits::context('prism-php/prism'));
+        XpAwarder::award($both, 'issue-xp', 5, 'test', 'issue:OURS_1', context: ContributionLimits::context('Particle-Academy/prism'));
+        XpAwarder::award($ours, 'issue-xp', 5, 'test', 'issue:OURS_2', context: ContributionLimits::context('Particle-Academy/prism'));
+
+        $this->get('/leaderboard')
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('upstream', ['prism-php/prism'])
+                ->where('rows.0.github_username', 'both')
+                ->where('rows.0.score', 135)
+                ->where('rows.0.upstream', 125)
+                ->where('rows.1.github_username', 'ours')
+                ->where('rows.1.upstream', 0));
+    }
+
+    public function test_it_shows_every_contributor_not_just_the_top_fifty(): void
+    {
+        foreach (range(1, 60) as $i) {
+            $contributor = Contributor::create(['github_id' => (string) (1000 + $i), 'github_username' => "c{$i}"]);
+            LFL::award('issue-xp')->to($contributor)->amount($i)->because('test')->save();
+        }
+
+        $this->get('/leaderboard')
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->has('rows', 60)
+                ->where('rows.0.github_username', 'c60')
+                ->where('rows.59.github_username', 'c1'));
+    }
+
+    public function test_the_github_placeholder_account_is_not_a_contributor(): void
+    {
+        $placeholder = Contributor::create(['github_id' => '7', 'github_username' => 'invalid-email-address']);
+        LFL::award('commit-xp')->to($placeholder)->amount(10)->because('test')->save();
+
+        $this->get('/leaderboard')
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page->has('rows', 0));
     }
 
     public function test_it_renders_empty_when_there_are_no_contributions(): void

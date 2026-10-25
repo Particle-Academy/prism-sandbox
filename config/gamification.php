@@ -80,11 +80,24 @@ return [
     // One year — a redelivered/replayed webhook can never double-count.
     'dedup_seconds' => (int) env('XP_DEDUP_SECONDS', 31_536_000),
 
+    // Upstream repositories whose contributions are tracked alongside ours, so
+    // the board credits the people who built Prism before the fork, and shows
+    // which of anyone's points were earned there. We cannot install a webhook
+    // on a repo we do not own, so these are reconciled by the backfill only.
+    // Stars are not counted upstream: thousands of stargazers would bury the
+    // people who contributed, and a star is not a contribution.
+    'upstream' => array_values(array_filter(array_map(
+        fn (string $repo): string => strtolower(trim($repo)),
+        explode(',', (string) env('GITHUB_UPSTREAM_REPOS', 'prism-php/prism'))
+    ))),
+
     // GitHub logins (case-insensitive) excluded from XP and the leaderboard —
     // e.g. maintainers who shouldn't compete with the community. Add more via the
-    // comma-separated GITHUB_IGNORED_USERS env var.
+    // comma-separated GITHUB_IGNORED_USERS env var. `invalid-email-address` is
+    // the placeholder account GitHub attributes commits with unrecognised
+    // author emails to; it is not a person.
     'ignored_users' => array_values(array_unique(array_merge(
-        ['wishborn'],
+        ['wishborn', 'invalid-email-address'],
         array_filter(array_map('trim', explode(',', (string) env('GITHUB_IGNORED_USERS', ''))))
     ))),
 

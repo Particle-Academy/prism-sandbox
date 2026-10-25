@@ -9,12 +9,25 @@ type Row = {
     github_username: string;
     avatar_url: string | null;
     score: number;
+    upstream: number;
     total_xp: number;
     achievements: number;
     silos: { slug: string; xp: number }[];
 };
 
-export default function Leaderboard({ version, silos, rows }: { version: string; silos: Silo[]; rows: Row[] }) {
+export default function Leaderboard({
+    version,
+    silos,
+    upstream,
+    rows,
+}: {
+    version: string;
+    silos: Silo[];
+    upstream: string[];
+    rows: Row[];
+}) {
+    const upstreamNames = upstream.join(', ');
+
     return (
         <div className="k-page">
             <KineticNav version={version} />
@@ -28,10 +41,11 @@ export default function Leaderboard({ version, silos, rows }: { version: string;
                     Contributor Leaderboard
                 </h1>
                 <p className="mt-4 max-w-2xl text-lg" style={{ color: 'var(--k-ink-2)' }}>
-                    Every comment, issue, and pull request on the project earns XP. Here are the people building Prism.
+                    Every comment, issue, and pull request earns XP — here and upstream on{' '}
+                    <code>{upstreamNames}</code>, where Prism began. Here are the people building it.
                 </p>
 
-                <HowPointsWork silos={silos} />
+                <HowPointsWork silos={silos} upstreamNames={upstreamNames} />
 
                 {rows.length === 0 ? (
                     <p className="k-mono mt-16" style={{ color: 'var(--k-ink-2)' }}>
@@ -50,6 +64,12 @@ export default function Leaderboard({ version, silos, rows }: { version: string;
                                         </th>
                                     ))}
                                     <th className="py-3 pl-4 text-right font-normal">Total XP</th>
+                                    <th
+                                        className="py-3 pl-4 text-right font-normal"
+                                        title={`Points earned upstream on ${upstreamNames}; the rest were earned in this ecosystem`}
+                                    >
+                                        Upstream
+                                    </th>
                                     {/* The ranked column — silo XP weighted by significance. */}
                                     <th className="py-3 pl-4 text-right font-normal" title="Silo XP weighted by contribution significance — the ranking used here">
                                         Score
@@ -92,6 +112,18 @@ export default function Leaderboard({ version, silos, rows }: { version: string;
                                         <td className="py-4 pl-4 text-right tabular-nums" style={{ color: 'var(--k-ink-2)' }}>
                                             {row.total_xp}
                                         </td>
+                                        <td className="py-4 pl-4 text-right tabular-nums" style={{ color: 'var(--k-ink-2)' }}>
+                                            {row.upstream > 0 ? (
+                                                <>
+                                                    {row.upstream}
+                                                    <span className="k-mono ml-2 text-xs" style={{ color: 'var(--k-ink-3)' }}>
+                                                        {Math.round((row.upstream / row.score) * 100)}%
+                                                    </span>
+                                                </>
+                                            ) : (
+                                                '—'
+                                            )}
+                                        </td>
                                         <td className="py-4 pl-4 text-right font-semibold tabular-nums" style={{ color: 'var(--k-ink)' }}>
                                             {row.score}
                                         </td>
@@ -109,7 +141,7 @@ export default function Leaderboard({ version, silos, rows }: { version: string;
     );
 }
 
-function HowPointsWork({ silos }: { silos: Silo[] }) {
+function HowPointsWork({ silos, upstreamNames }: { silos: Silo[]; upstreamNames: string }) {
     const [open, setOpen] = useState(false);
 
     // Ranking is by weighted score, so showing XP alone would misexplain the
@@ -187,8 +219,10 @@ function HowPointsWork({ silos }: { silos: Silo[] }) {
                             <p className="mt-6 max-w-2xl text-sm" style={{ color: 'var(--k-ink-3)' }}>
                                 So one <strong style={{ color: 'var(--k-ink-2)' }}>{top.name.toLowerCase()}</strong> is worth{' '}
                                 {Math.round(top.xp * top.weight * 10) / 10} points — the heaviest single contribution here.
-                                Contributions absorbed from upstream count too: commits that land in this fork earn XP even
-                                when the pull request was opened on <code>prism-php/prism</code>.
+                                Upstream counts too: issues, pull requests, reviews, comments and commits on{' '}
+                                <code>{upstreamNames}</code> earn the same XP, and the Upstream column shows how many of each
+                                person's points were earned there. Stars upstream do not count. Commits absorbed into this fork
+                                earn XP here as well, even when the pull request was opened upstream.
                             </p>
                         )}
                     </div>

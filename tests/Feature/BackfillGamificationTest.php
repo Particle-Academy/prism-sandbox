@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Contributor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -111,5 +112,74 @@ class BackfillGamificationTest extends TestCase
             ->assertSuccessful();
 
         $this->assertDatabaseCount('contributors', 0);
+    }
+
+    /**
+     * Upstream: one author's commits, each landed on a different day, plus a
+     * stargazer. Upstream is not a fork, so its whole history is walked.
+     */
+    protected function fakeUpstream(int $commits = 25): void
+    {
+        $repo = 'https://api.github.com/repos/prism-php/prism';
+
+        $history = [];
+        foreach (range(1, $commits) as $i) {
+            $history[] = [
+                'sha' => sprintf('%040d', $i),
+                'html_url' => "http://commit/{$i}",
+                'author' => $this->ghUser('sixlive', 7),
+                'commit' => ['committer' => ['date' => sprintf('2024-01-%02dT12:00:00Z', $i)]],
+            ];
+        }
+
+        Http::preventStrayRequests();
+        Http::fake([
+            "{$repo}/stargazers*" => Http::response([$this->ghUser('stargazer', 8)]),
+            "{$repo}/commits*" => Http::response($history),
+            "{$repo}/issues*" => Http::response([]),
+            "{$repo}/pulls*" => Http::response([]),
+            $repo => Http::response(['full_name' => 'prism-php/prism', 'default_branch' => 'main']),
+        ]);
+    }
+
+    public function test_upstream_commits_are_capped_by_the_day_they_landed(): void
+    {
+        config()->set('gamification.upstream', ['prism-php/prism']);
+        $this->fakeUpstream(25);
+
+        $this->artisan('gamification:backfill', ['repos' => ['prism-php/prism']])->assertSuccessful();
+
+        // Capped by the processing day, a single run would credit 20 of these
+        // and reject the other 5 permanently.
+        $sixlive = Contributor::where('github_username', 'sixlive')->firstOrFail();
+        $this->assertSame(25 * $this->xp('commit-xp'), $sixlive->getXpFor('commit-xp'));
+
+        // Every claim records that it was earned upstream, with its XP.
+        $this->assertSame(25, DB::table('xp_award_claims')->where('repo', 'prism-php/prism')->where('xp', $this->xp('commit-xp'))->count());
+    }
+
+    public function test_upstream_stars_are_not_contributions(): void
+    {
+        config()->set('gamification.upstream', ['prism-php/prism']);
+        $this->fakeUpstream(1);
+
+        $this->artisan('gamification:backfill', ['repos' => ['prism-php/prism']])->assertSuccessful();
+
+        $this->assertDatabaseMissing('contributors', ['github_username' => 'stargazer']);
+        Http::assertNotSent(fn ($request) => str_contains($request->url(), 'prism-php/prism/stargazers'));
+    }
+
+    public function test_a_default_run_includes_upstream(): void
+    {
+        config()->set('gamification.upstream', ['prism-php/prism']);
+        config()->set('services.github.repos', ['Particle-Academy/prism']);
+        $this->fakeUpstream(1);
+        Http::fake(['https://api.github.com/repos/Particle-Academy/prism*' => Http::response([])]);
+
+        $this->artisan('gamification:backfill')
+            ->expectsOutputToContain('Backfilling: Particle-Academy/prism, prism-php/prism')
+            ->assertSuccessful();
+
+        $this->assertDatabaseHas('contributors', ['github_username' => 'sixlive']);
     }
 }
