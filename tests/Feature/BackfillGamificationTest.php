@@ -16,7 +16,7 @@ class BackfillGamificationTest extends TestCase
     {
         parent::setUp();
 
-        config()->set('gamification.ignored_users', ['wishborn']);
+        config()->set('gamification.ignored_users', ['ignored-user']);
     }
 
     /**
@@ -58,7 +58,7 @@ class BackfillGamificationTest extends TestCase
             ]),
             "{$repo}/stargazers*" => Http::response([
                 $this->ghUser(),                              // counts
-                $this->ghUser('wishborn', 1),                 // ignored → skipped
+                $this->ghUser('ignored-user', 1),             // ignored → skipped
             ]),
         ]);
     }
@@ -88,7 +88,7 @@ class BackfillGamificationTest extends TestCase
 
         // Bots and ignored/maintainer logins never become contributors.
         $this->assertDatabaseMissing('contributors', ['github_username' => 'dependabot']);
-        $this->assertDatabaseMissing('contributors', ['github_username' => 'wishborn']);
+        $this->assertDatabaseMissing('contributors', ['github_username' => 'ignored-user']);
     }
 
     public function test_it_is_idempotent_across_runs(): void
@@ -167,6 +167,103 @@ class BackfillGamificationTest extends TestCase
 
         $this->assertDatabaseMissing('contributors', ['github_username' => 'stargazer']);
         Http::assertNotSent(fn ($request) => str_contains($request->url(), 'prism-php/prism/stargazers'));
+    }
+
+    /**
+     * A fork of prism-php/prism that is ahead by the given commits, and an
+     * upstream whose history and merged pull requests are given.
+     *
+     * @param  list<array<string, mixed>>  $forkCommits
+     * @param  list<array<string, mixed>>  $upstreamCommits
+     * @param  array<int, list<array<string, mixed>>>  $upstreamPrCommits  PR number => its commits
+     */
+    protected function fakeForkAndUpstream(array $forkCommits, array $upstreamCommits, array $upstreamPrCommits = []): void
+    {
+        $fork = 'https://api.github.com/repos/Particle-Academy/prism';
+        $up = 'https://api.github.com/repos/prism-php/prism';
+
+        $pulls = [];
+        $fakes = [];
+        foreach ($upstreamPrCommits as $number => $commits) {
+            $pulls[] = ['node_id' => "UP_PR_{$number}", 'number' => $number, 'html_url' => "http://up/pr/{$number}", 'merged_at' => '2026-03-01T00:00:00Z', 'user' => $this->ghUser('author', 50)];
+            $fakes["{$up}/pulls/{$number}/commits*"] = Http::response($commits);
+        }
+
+        Http::preventStrayRequests();
+        Http::fake($fakes + [
+            "{$up}/pulls/*/reviews*" => Http::response([]),
+            "{$up}/pulls/comments*" => Http::response([]),
+            "{$up}/pulls*" => Http::response($pulls),
+            "{$up}/issues*" => Http::response([]),
+            "{$up}/commits*" => Http::response($upstreamCommits),
+            $up => Http::response(['full_name' => 'prism-php/prism', 'default_branch' => 'main']),
+            "{$fork}/compare/*" => Http::response(['commits' => $forkCommits, 'total_commits' => count($forkCommits)]),
+            "{$fork}/*" => Http::response([]),
+            $fork => Http::response(['full_name' => 'Particle-Academy/prism', 'default_branch' => 'main', 'parent' => ['full_name' => 'prism-php/prism']]),
+        ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function commit(string $sha, string $authoredAt, string $title, string $committer = 'wishborn'): array
+    {
+        return [
+            'sha' => $sha,
+            'html_url' => "http://commit/{$sha}",
+            'author' => $this->ghUser('author', 50),
+            'committer' => ['login' => $committer],
+            'commit' => [
+                'message' => $title."\n\nbody",
+                'author' => ['date' => $authoredAt],
+                'committer' => ['date' => '2026-03-01T00:00:00Z'],
+            ],
+        ];
+    }
+
+    public function test_a_cherry_picked_commit_is_credited_once_across_repos(): void
+    {
+        config()->set('gamification.upstream', ['prism-php/prism']);
+
+        // The fork absorbed the upstream commit: new SHA, same authored date.
+        $this->fakeForkAndUpstream(
+            [$this->commit('forksha', '2026-02-01T10:00:00Z', 'fix: a thing')],
+            [$this->commit('upsha', '2026-02-01T10:00:00Z', 'fix: a thing', 'sixlive')],
+        );
+
+        $this->artisan('gamification:backfill', ['repos' => ['Particle-Academy/prism', 'prism-php/prism']])->assertSuccessful();
+
+        $author = Contributor::where('github_username', 'author')->firstOrFail();
+        $this->assertSame($this->xp('commit-xp'), $author->getXpFor('commit-xp'));
+        // The fork was walked first, so the fork holds the credit.
+        $this->assertSame(1, DB::table('xp_award_claims')->where('metric', 'commit-xp')->where('repo', 'particle-academy/prism')->count());
+        $this->assertSame(0, DB::table('xp_award_claims')->where('metric', 'commit-xp')->where('repo', 'prism-php/prism')->count());
+    }
+
+    public function test_a_squash_merge_is_credited_once_with_the_commits_absorbed_from_its_pr(): void
+    {
+        config()->set('gamification.upstream', ['prism-php/prism']);
+
+        // Upstream squash-merged PR #7, whose own commits the fork had cherry-picked.
+        $this->fakeForkAndUpstream(
+            [
+                $this->commit('fork1', '2026-02-01T10:00:00Z', 'feat: part one'),
+                $this->commit('fork2', '2026-02-02T10:00:00Z', 'feat: part two'),
+            ],
+            [$this->commit('squash', '2026-03-01T00:00:00Z', 'feat: the whole thing (#7)', 'web-flow')],
+            [7 => [
+                ['sha' => 'pr1', 'commit' => ['author' => ['date' => '2026-02-01T10:00:00Z']]],
+                ['sha' => 'pr2', 'commit' => ['author' => ['date' => '2026-02-02T10:00:00Z']]],
+            ]],
+        );
+
+        // Upstream first this time: the squash takes the credit, and the
+        // absorbed commits are recognised as the same work.
+        $this->artisan('gamification:backfill', ['repos' => ['prism-php/prism', 'Particle-Academy/prism']])->assertSuccessful();
+
+        $author = Contributor::where('github_username', 'author')->firstOrFail();
+        $this->assertSame($this->xp('commit-xp'), $author->getXpFor('commit-xp'));
+        $this->assertSame(1, DB::table('xp_award_claims')->where('metric', 'commit-xp')->where('repo', 'prism-php/prism')->count());
     }
 
     public function test_a_default_run_includes_upstream(): void

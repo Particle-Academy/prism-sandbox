@@ -52,9 +52,14 @@ export default function Leaderboard({
                         No contributions tracked yet — be the first.
                     </p>
                 ) : (
-                    <div className="mt-12 overflow-x-auto">
+                    // The header pins on scroll. Where the table fits (xl) it pins to
+                    // the page, just under the 61px site header. Narrower, the table
+                    // needs horizontal scroll, and an overflow wrapper is what `sticky`
+                    // pins against, so it scrolls in its own box sized to fit below
+                    // the site header.
+                    <div className="mt-12 max-h-[calc(100vh-61px)] overflow-auto xl:max-h-none xl:overflow-visible">
                         <table className="w-full border-collapse text-left text-sm">
-                            <thead>
+                            <thead className="sticky top-0 z-10 xl:top-[61px]" style={{ background: 'var(--k-bg)' }}>
                                 <tr className="k-mono" style={{ color: 'var(--k-ink-2)' }}>
                                     <th className="py-3 pr-4 font-normal">#</th>
                                     <th className="py-3 pr-4 font-normal">Contributor</th>

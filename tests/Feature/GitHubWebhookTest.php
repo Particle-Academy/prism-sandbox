@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Contributor;
+use App\Support\CommitCredits;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
@@ -170,6 +171,21 @@ class GitHubWebhookTest extends TestCase
         $this->assertSame(config('gamification.metrics.commit-xp.xp'), $this->xpFor('lintume', 'commit-xp'));
     }
 
+    public function test_an_absorbed_commit_already_credited_upstream_is_not_credited_again(): void
+    {
+        $author = Contributor::create(['github_id' => '777', 'github_username' => 'lintume', 'avatar_url' => 'https://avatars/lintume']);
+
+        // The upstream original, already credited by the backfill.
+        CommitCredits::remember($author, CommitCredits::identities(['2026-02-01T10:00:00Z']), 'commit:upstreamsha');
+
+        // The same work replayed into the fork: new SHA, same authored date.
+        $this->deliver('push', $this->pushPayload([
+            ['id' => 'forksha1234', 'timestamp' => '2026-02-01T11:00:00+01:00', 'author' => ['username' => 'lintume']],
+        ]))->assertOk()->assertJson(['awarded' => false]);
+
+        $this->assertSame(0, $this->xpFor('lintume', 'commit-xp'));
+    }
+
     public function test_commit_xp_is_idempotent_on_redelivery(): void
     {
         Contributor::create(['github_id' => '777', 'github_username' => 'lintume', 'avatar_url' => 'https://avatars/lintume']);
@@ -208,13 +224,25 @@ class GitHubWebhookTest extends TestCase
 
     public function test_it_never_awards_commit_xp_to_an_ignored_user(): void
     {
+        config()->set('gamification.ignored_users', ['ignored-user']);
+        Contributor::create(['github_id' => '1', 'github_username' => 'ignored-user', 'avatar_url' => 'https://avatars/ignored-user']);
+
+        $this->deliver('push', $this->pushPayload([
+            ['id' => 'abc1234def', 'author' => ['username' => 'ignored-user']],
+        ]))->assertOk()->assertJson(['awarded' => false]);
+
+        $this->assertSame(0, $this->xpFor('ignored-user', 'commit-xp'));
+    }
+
+    public function test_maintainers_earn_xp_like_everyone_else(): void
+    {
         Contributor::create(['github_id' => '1', 'github_username' => 'wishborn', 'avatar_url' => 'https://avatars/wishborn']);
 
         $this->deliver('push', $this->pushPayload([
             ['id' => 'abc1234def', 'author' => ['username' => 'wishborn']],
-        ]))->assertOk()->assertJson(['awarded' => false]);
+        ]))->assertOk()->assertJson(['awarded' => true]);
 
-        $this->assertSame(0, $this->xpFor('wishborn', 'commit-xp'));
+        $this->assertSame(config('gamification.metrics.commit-xp.xp'), $this->xpFor('wishborn', 'commit-xp'));
     }
 
     public function test_it_ignores_bot_contributors(): void
@@ -272,12 +300,12 @@ class GitHubWebhookTest extends TestCase
 
     public function test_it_ignores_users_on_the_ignore_list(): void
     {
-        config()->set('gamification.ignored_users', ['wishborn']);
+        config()->set('gamification.ignored_users', ['ignored-user']);
 
-        // Case-insensitive: "WishBorn" is still ignored.
+        // Case-insensitive: "Ignored-User" is still ignored.
         $this->deliver('star', $this->repo([
             'action' => 'created',
-            'sender' => $this->actor('WishBorn', 1),
+            'sender' => $this->actor('Ignored-User', 1),
         ]))->assertOk()->assertJson(['awarded' => false]);
 
         $this->assertDatabaseCount('contributors', 0);
