@@ -94,6 +94,7 @@ return [
         'providers/xai' => 'ports/providers/unsupported',
         'providers/z' => 'ports/providers/unsupported',
         'providers/vertex' => 'ports/providers/unsupported',
+        'providers/azure' => 'ports/providers/unsupported',
         'companion-packages/harness' => 'packages/harness',
         'companion-packages/mcp' => 'packages/mcp',
         'companion-packages/memory' => 'packages/memory',
