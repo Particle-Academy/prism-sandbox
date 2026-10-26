@@ -26,9 +26,10 @@ class DocsRepository
      * deploy that changed the *shape* of a cached structure (rather than the
      * Prism release) kept reading the old shape back — which took sitemap.xml
      * and llms.txt down with a 500 when `external` was added to nav entries.
-     * Bump this whenever a cached structure changes.
+     * Bump this whenever a cached structure changes, or the rendering of one
+     * does (8: GitHub alerts, <ExceptionSupport />, custom heading ids).
      */
-    private const SCHEMA = 5;
+    private const SCHEMA = 8;
 
     private ?string $siteFingerprint = null;
 
@@ -222,6 +223,11 @@ class DocsRepository
     {
         // Port sources are fragments of public guides, not separate pages.
         if (! $this->validRelativePath($path) || str_starts_with($path, 'ports/')) {
+            return false;
+        }
+
+        // Contributor docs shipped in the package's docs/ folder, not user pages.
+        if (in_array(strtolower($path), ['readme', 'documentation-style-guide'], true)) {
             return false;
         }
 
@@ -550,6 +556,14 @@ class DocsRepository
             $markdown = str_replace('<ProviderSupport />', $this->providerSupportTable(), $markdown);
         }
 
+        // ...and so does the exception mapping matrix.
+        if (str_contains($markdown, '<ExceptionSupport />')) {
+            $markdown = str_replace('<ExceptionSupport />', $this->exceptionSupportTable(), $markdown);
+        }
+
+        // GitHub-style `> [!NOTE]` alerts become the matching callout container.
+        $markdown = $this->alerts($markdown);
+
         // ::: code-group / ::: tip|warning|… and the bare ::: that closes one.
         $markdown = $this->containers($markdown);
 
@@ -710,8 +724,16 @@ class DocsRepository
         $html = (string) preg_replace_callback(
             '/<h([23])>(.*?)<\/h\1>/s',
             function (array $m) use (&$toc, &$seen): string {
+                // VitePress custom ids: `## Title {#custom-id}`. Other pages link
+                // to that id, and the braces must not reach the reader.
+                $customId = null;
+                if (preg_match('/\s*\{#([A-Za-z0-9_-]+)\}\s*$/', $m[2], $custom) === 1) {
+                    $customId = $custom[1];
+                    $m[2] = substr($m[2], 0, -strlen($custom[0]));
+                }
+
                 $text = trim(strip_tags($m[2]));
-                $id = Str::slug($text) ?: 'section';
+                $id = $customId ?? (Str::slug($text) ?: 'section');
 
                 while (isset($seen[$id])) {
                     $id .= '-1';
@@ -884,6 +906,117 @@ class DocsRepository
         }
 
         return $table."\n✅ supported · 🟡 planned · ⚙️ adapted · — not supported\n";
+    }
+
+    /**
+     * The `<ExceptionSupport />` matrix: which HTTP failures each provider maps
+     * to a typed exception, read from the component's own data so the two
+     * cannot drift. Its values are JS constants (`Supported`), which the
+     * literal parser returns as their names.
+     */
+    protected function exceptionSupportTable(): string
+    {
+        $vue = @file_get_contents($this->basePath().'/components/ExceptionSupport.vue');
+
+        if ($vue === false) {
+            return '';
+        }
+
+        $exceptionsLiteral = JsLiteralParser::extractArray($vue, 'exceptions');
+        $providersLiteral = JsLiteralParser::extractArray($vue, 'providers');
+        $exceptions = $exceptionsLiteral !== null ? JsLiteralParser::parse($exceptionsLiteral) : null;
+        $providers = $providersLiteral !== null ? JsLiteralParser::parse($providersLiteral) : null;
+
+        if (! is_array($exceptions) || ! is_array($providers)) {
+            return '';
+        }
+
+        $table = '| Provider | '.implode(' | ', $exceptions)." |\n";
+        $table .= '| --- '.str_repeat('| :---: ', count($exceptions))."|\n";
+
+        foreach ($providers as $provider) {
+            $cells = array_map(
+                fn (string $exception): string => strtolower((string) ($provider[Str::camel($exception)] ?? '')) === 'supported' ? '✅' : '—',
+                $exceptions
+            );
+            $table .= '| **'.($provider['name'] ?? '?').'** | '.implode(' | ', $cells)." |\n";
+        }
+
+        return $table."\n✅ mapped to a typed exception · — not mapped\n";
+    }
+
+    /**
+     * GitHub-style alerts (`> [!NOTE]` followed by quoted lines) as callouts.
+     * Unconverted, CommonMark renders the marker as literal text in a quote.
+     * Fenced code is copied through untouched.
+     */
+    protected function alerts(string $markdown): string
+    {
+        $types = [
+            'NOTE' => ['info', 'Note'],
+            'TIP' => ['tip', 'Tip'],
+            'IMPORTANT' => ['info', 'Important'],
+            'WARNING' => ['warning', 'Warning'],
+            'CAUTION' => ['danger', 'Caution'],
+        ];
+
+        $out = [];
+        $fenced = false;
+        $inAlert = false;
+
+        foreach (preg_split("/\r\n|\n|\r/", $markdown) ?: [] as $line) {
+            // An open alert ends at the first unquoted line, which is then read
+            // like any other — INCLUDING as a fence. Checking for fences first
+            // skipped the toggle when a fence directly ended an alert, and every
+            // alert after it on the page was read as code and left raw.
+            if ($inAlert) {
+                if (preg_match('/^ {0,3}>[ ]?(.*)$/', $line, $m) === 1) {
+                    // A second marker inside the same quote (`>` blank line,
+                    // then `> [!WARNING]`) starts the next callout.
+                    if (preg_match('/^[ \t]*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*$/i', $m[1], $next) === 1) {
+                        [$container, $title] = $types[strtoupper($next[1])];
+                        array_push($out, ':::', '', "::: {$container} {$title}");
+
+                        continue;
+                    }
+
+                    $out[] = $m[1];
+
+                    continue;
+                }
+
+                $out[] = ':::';
+                $out[] = '';
+                $inAlert = false;
+            }
+
+            if (preg_match('/^ {0,3}(`{3,}|~{3,})/', $line) === 1) {
+                $fenced = ! $fenced;
+            }
+
+            if ($fenced || preg_match('/^ {0,3}(`{3,}|~{3,})/', $line) === 1) {
+                $out[] = $line;
+
+                continue;
+            }
+
+            if (preg_match('/^ {0,3}>[ \t]*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*$/i', $line, $m) === 1) {
+                [$container, $title] = $types[strtoupper($m[1])];
+                $out[] = '';
+                $out[] = "::: {$container} {$title}";
+                $inAlert = true;
+
+                continue;
+            }
+
+            $out[] = $line;
+        }
+
+        if ($inAlert) {
+            $out[] = ':::';
+        }
+
+        return implode("\n", $out);
     }
 
     protected function plainText(string $markdown): string
