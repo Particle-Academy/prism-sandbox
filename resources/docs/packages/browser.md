@@ -575,8 +575,10 @@ variant, at most 100), `imagesTotal`, `fonts` (declared FontFaces, at most 50,
 `{family, weight, style, status}` with descriptor strings cut at 128 characters)
 and `renderedFonts` (aggregated platform font usage over a bounded text sample,
 at most 20 `{family, glyph_count, custom}` entries). Font facts and names are
-untrusted page content. Older sidecars may omit the font lists; they default to
-`[]`. Malformed font facts refuse with `malformed_sidecar_response`.
+untrusted page content. `fontsMeasured` says whether font observation completed.
+Older sidecars may omit these fields; font lists default to `[]` and
+`fontsMeasured` to `false`. Malformed font facts (including a non-boolean
+`fonts_measured` flag) refuse with `malformed_sidecar_response`.
 
 The load event, network idle and web fonts are all satisfied by a page whose
 image 404s or will not decode. With `requireImages: true` the capture is refused
@@ -613,6 +615,13 @@ are dropped while the refusal remains. Invalid options use
 `invalid_capture_options`. The guard also runs with `measure: false` and needs
 no page script, including under `script-src 'none'`. The default empty list
 keeps font fallback permissive.
+
+Without required fonts, observation is best-effort and never refuses a capture.
+It spends at most two seconds of spare time, preserving two seconds of the
+shared budget for the screenshot. Failed observation or insufficient spare time
+returns empty font lists and `fontsMeasured: false` (`fonts_measured` in sidecar
+JSON); completed observation reports `true`. Required fonts always use strict
+inspection within the shared capture budget.
 
 Capture refusals: `capture_origin_not_declared`, `invalid_capture_options`,
 `capture_too_large`, `capture_timeout`, `capture_failed`, `capture_images_failed`, `capture_fonts_failed`,
