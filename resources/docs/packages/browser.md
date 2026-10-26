@@ -558,6 +558,7 @@ foreach ($pages as $page) {
 | `waitForReadyAttribute` | `false` | Also wait until the page sets `data-prism-capture-ready` on `<html>`. |
 | `measure` | `true` | Return `PageFacts`. |
 | `requireImages` | `false` | Refuse the capture (`capture_images_failed`) unless every `<img>` loaded and decoded with a non-zero width. |
+| `requireFonts` | `[]` | At most 16 `{family, weight, style}` faces: nonempty family ≤128 characters, integer weight 1–1000, style `normal`, `italic` or `oblique`. Refuse with `capture_fonts_failed` if loading or sampled rendering fails. |
 | `viewportHeight` | `900` | 200–4320 |
 | `maxHeight` | `16384` | 200–32768 |
 | `maxBytes` | 15 MB | 1 KB–25 MB per image |
@@ -570,7 +571,14 @@ overflows), `viewportHeight`, `pageHeight`, `capturedHeight`, `clipped`,
 `horizontalOverflow`, `smallTargets` (`tag`, `role`, `text`, `x`, `y`, `width`,
 `height`), `smallTargetsTotal`, `images` (`src`, `natural_width`,
 `natural_height`: the source the browser actually selected, so the `srcset`
-variant, at most 100) and `imagesTotal`.
+variant, at most 100), `imagesTotal`, `fonts` (declared FontFaces, at most 50,
+`{family, weight, style, status}` with descriptor strings cut at 128 characters)
+and `renderedFonts` (aggregated platform font usage over a bounded text sample,
+at most 20 `{family, glyph_count, custom}` entries). Font facts and names are
+untrusted page content. `fontsMeasured` says whether font observation completed.
+Older sidecars may omit these fields; font lists default to `[]` and
+`fontsMeasured` to `false`. Malformed font facts (including a non-boolean
+`fonts_measured` flag) refuse with `malformed_sidecar_response`.
 
 The load event, network idle and web fonts are all satisfied by a page whose
 image 404s or will not decode. With `requireImages: true` the capture is refused
@@ -580,8 +588,43 @@ image (`src`, `natural_width`, `natural_height`, `complete`, `decoded`) with
 captures with eager images. No page script is needed, so it works on a page
 served with `script-src 'none'`.
 
+Font readiness alone also permits missing fonts and fallback rendering. Opt in:
+
+```php
+new CaptureRequest([375, 1280], requireFonts: [
+    ['family' => 'Inter', 'weight' => 400, 'style' => 'normal'],
+]);
+```
+
+The last constructor option, sent as `require_fonts`, matches a declared face
+case-insensitively after stripping outer family quotes. Its weight descriptor
+may be a single weight or a range covering the request; its style must match.
+After the existing readiness waits, the face must load within the shared
+capture budget. Chromium's DevTools protocol then samples up to 50 visible
+text-bearing elements from the first 5000 text nodes. For text whose first
+computed family matches a required family, zero custom font
+glyphs across the sample is refused. **Partial fallback is allowed**: emoji,
+symbols and unicode-range subsets may use platform fonts alongside the loaded
+face. Both custom and platform usage appear in `renderedFonts`. An unused face
+is checked for loading; this sample is not an exhaustive glyph audit.
+
+`capture_fonts_failed` carries `context()['failed_fonts']` (at most 16
+`{family, weight, style, status}` entries) and `failed_fonts_total`. Status is
+`missing`, `unloaded`, `error` or `fallback_rendered`. Malformed refusal details
+are dropped while the refusal remains. Invalid options use
+`invalid_capture_options`. The guard also runs with `measure: false` and needs
+no page script, including under `script-src 'none'`. The default empty list
+keeps font fallback permissive.
+
+Without required fonts, observation is best-effort and never refuses a capture.
+It spends at most two seconds of spare time, preserving two seconds of the
+shared budget for the screenshot. Failed observation or insufficient spare time
+returns empty font lists and `fontsMeasured: false` (`fonts_measured` in sidecar
+JSON); completed observation reports `true`. Required fonts always use strict
+inspection within the shared capture budget.
+
 Capture refusals: `capture_origin_not_declared`, `invalid_capture_options`,
-`capture_too_large`, `capture_timeout`, `capture_failed`, `capture_images_failed`,
+`capture_too_large`, `capture_timeout`, `capture_failed`, `capture_images_failed`, `capture_fonts_failed`,
 `capture_unavailable`, `invalid_capture_origin`, `capture_origin_private`, `capture_origin_unresolved`.
 
 ::: warning A screenshot is page content
