@@ -148,6 +148,13 @@ return [
             ],
         ],
 
+        [
+            'text' => 'About',
+            'items' => [
+                ['text' => 'How we maintain Prism', 'link' => '/about/how-we-maintain-prism'],
+            ],
+        ],
+
     ],
 
 ];
