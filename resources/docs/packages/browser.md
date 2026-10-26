@@ -544,6 +544,7 @@ foreach ($pages as $page) {
     $page->pageHeight;
     $page->facts?->horizontalOverflow;
     $page->facts?->smallTargets;         // interactive elements under 44 px, at most 50
+    $page->facts?->images;               // each <img>: the source used (srcset variant) and its size
 }
 ```
 
@@ -556,6 +557,7 @@ foreach ($pages as $page) {
 | `clip` | `false` | Cut a page taller than `maxHeight` instead of refusing it. |
 | `waitForReadyAttribute` | `false` | Also wait until the page sets `data-prism-capture-ready` on `<html>`. |
 | `measure` | `true` | Return `PageFacts`. |
+| `requireImages` | `false` | Refuse the capture (`capture_images_failed`) unless every `<img>` loaded and decoded with a non-zero width. |
 | `viewportHeight` | `900` | 200–4320 |
 | `maxHeight` | `16384` | 200–32768 |
 | `maxBytes` | 15 MB | 1 KB–25 MB per image |
@@ -566,11 +568,21 @@ The capture waits for the load event, network idle and web fonts. Each
 overflows), `viewportHeight`, `pageHeight`, `capturedHeight`, `clipped`,
 `image`, `bytes` and `facts`. `PageFacts` has `scrollWidth`,
 `horizontalOverflow`, `smallTargets` (`tag`, `role`, `text`, `x`, `y`, `width`,
-`height`) and `smallTargetsTotal`.
+`height`), `smallTargetsTotal`, `images` (`src`, `natural_width`,
+`natural_height`: the source the browser actually selected, so the `srcset`
+variant, at most 100) and `imagesTotal`.
+
+The load event, network idle and web fonts are all satisfied by a page whose
+image 404s or will not decode. With `requireImages: true` the capture is refused
+instead (`capture_images_failed`), and `$refused->context()` names each failed
+image (`src`, `natural_width`, `natural_height`, `complete`, `decoded`) with
+`failed_images_total`. A lazy image that never loads counts as failed, so render
+captures with eager images. No page script is needed, so it works on a page
+served with `script-src 'none'`.
 
 Capture refusals: `capture_origin_not_declared`, `invalid_capture_options`,
-`capture_too_large`, `capture_timeout`, `capture_failed`, `capture_unavailable`,
-`invalid_capture_origin`, `capture_origin_private`, `capture_origin_unresolved`.
+`capture_too_large`, `capture_timeout`, `capture_failed`, `capture_images_failed`,
+`capture_unavailable`, `invalid_capture_origin`, `capture_origin_private`, `capture_origin_unresolved`.
 
 ::: warning A screenshot is page content
 An image handed to a model carries whatever the page renders, including text
