@@ -45,6 +45,19 @@ class SeoServiceProvider extends ServiceProvider
         $seo->route('docs.index', fn (): array => $this->docsPage($docs, $intro, $base));
         $seo->route('docs.show', fn (array $params): array => $this->docsPage($docs, (string) ($params['path'] ?? ''), $base));
 
+        $seo->route('features.index', fn (): array => [
+            'title' => 'Features — Prism',
+            'description' => 'What the Prism ecosystem does, feature by feature: providers, the agent harness, Human+, browser, memory, workspace, MCP, research, observability, ACP and the language ports.',
+            'canonical' => $base.'/features',
+        ]);
+        $seo->route('features.show', fn (array $params): array => $this->featurePage((string) ($params['slug'] ?? ''), $base));
+
+        $seo->route('packages', fn (): array => [
+            'title' => 'Packages — Prism',
+            'description' => 'Every Prism package, by family and language, with its Packagist, npm or PyPI name and its docs.',
+            'canonical' => $base.'/packages',
+        ]);
+
         $seo->route('leaderboard', fn (): array => [
             'title' => 'Contributor Leaderboard — Prism',
             'description' => 'Top community contributors to Prism, ranked by contribution XP.',
@@ -64,6 +77,13 @@ class SeoServiceProvider extends ServiceProvider
                 $map->add('/docs'.$page['link'], '0.8', 'weekly');
             }
 
+            $map->add('/features', '0.9', 'weekly');
+
+            foreach (array_keys((array) config('features.pages', [])) as $slug) {
+                $map->add('/features/'.$slug, '0.8', 'weekly');
+            }
+
+            $map->add('/packages', '0.8', 'weekly');
             $map->add('/leaderboard', '0.4', 'daily');
 
             // The demo page only works when a key is configured; otherwise it
@@ -113,6 +133,32 @@ class SeoServiceProvider extends ServiceProvider
             'jsonLd' => [
                 JsonLd::article($page['title'], $url, ['description' => $description]),
                 JsonLd::breadcrumbList($crumbs),
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function featurePage(string $slug, string $base): array
+    {
+        $page = config('features.pages.'.$slug);
+
+        if (! is_array($page)) {
+            return [];
+        }
+
+        $url = $base.'/features/'.$slug;
+
+        return [
+            'title' => $page['title'].' — Prism features',
+            'description' => $page['description'],
+            'canonical' => $url,
+            'jsonLd' => [
+                JsonLd::breadcrumbList([
+                    ['name' => 'Features', 'url' => $base.'/features'],
+                    ['name' => $page['title'], 'url' => $url],
+                ]),
             ],
         ];
     }

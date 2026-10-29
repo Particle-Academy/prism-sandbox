@@ -2,24 +2,23 @@ import { Link } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import { GradGlyph, KineticFooter, KineticNav, Marquee, Reveal } from '../components/kinetic';
 import { SearchPalette, useSearchPalette } from '../components/SearchPalette';
+import { featureHref } from '../data/ecosystem';
 
 /**
- * The nine package families, described by what each one is FOR.
- *
- * Kept honest deliberately: `prism-human-plus` has never been tagged and the
- * TypeScript and Python ports have no releases at all, so nothing here promises
- * a version that does not exist. The per-package pages carry the detail.
+ * The nine package families, described by what each one is FOR. Each card
+ * opens the family's feature page; no card names a version, because the
+ * registry links on those pages show the live one.
  */
 const ECOSYSTEM = [
-    { name: 'Harness', package: 'prism-harness', link: '/docs/packages/harness', blurb: 'Durable agent sessions — threads, modes, tool permissions, approvals, subagents and budgets.' },
-    { name: 'Workspace', package: 'prism-workspace', link: '/docs/packages/workspace', blurb: 'A sandboxed disk an agent can write to, behind a path guard tested against 134 escape attempts.' },
-    { name: 'Memory', package: 'prism-memory', link: '/docs/packages/memory', blurb: 'Recall the parts of a long conversation that matter now, sized to the token budget you have left.' },
-    { name: 'MCP', package: 'prism-mcp', link: '/docs/packages/mcp', blurb: 'Speak Model Context Protocol as a client or a server, with tool definitions that survive the round trip.' },
-    { name: 'Browser', package: 'prism-browser', link: '/docs/packages/browser', blurb: 'Guarded open-web automation: an allow-list of hosts and actions, with private addresses refused out of the box.' },
-    { name: 'Human+', package: 'prism-human-plus', link: '/docs/packages/human-plus', blurb: 'Put a person in the surface as a participant — and keep confirmation tools reserved for them.' },
-    { name: 'Perplexity', package: 'prism-perplexity', link: '/docs/packages/perplexity', blurb: 'The Perplexity Agent API as a first-class provider, including its search filters and cost reporting.' },
-    { name: 'OpenTelemetry', package: 'prism-opentelemetry', link: '/docs/packages/opentelemetry', blurb: 'Export agent runs as spans to any OTel collector, separate from the framework’s own events.' },
-    { name: 'Language ports', package: 'prism-ts · prism-py', link: '/docs/packages/language-ports', blurb: 'The same nine families in TypeScript and Python, pinned to one conformance corpus across all three languages.' },
+    { name: 'Harness', package: 'prism-harness', link: featureHref('harness'), blurb: 'Durable agent sessions — threads, modes, tool permissions, approvals, subagents and budgets.' },
+    { name: 'Workspace', package: 'prism-workspace', link: featureHref('workspace'), blurb: 'A sandboxed disk an agent can write to, behind a path guard tested against 134 escape attempts.' },
+    { name: 'Memory', package: 'prism-memory', link: featureHref('memory'), blurb: 'Recall the parts of a long conversation that matter now, sized to the token budget you have left.' },
+    { name: 'MCP', package: 'prism-mcp', link: featureHref('mcp'), blurb: 'Speak Model Context Protocol as a client or a server, with tool definitions that survive the round trip.' },
+    { name: 'Browser', package: 'prism-browser', link: featureHref('browser'), blurb: 'Guarded open-web automation: an allow-list of hosts and actions, with private addresses refused out of the box.' },
+    { name: 'Human+', package: 'prism-human-plus', link: featureHref('human-plus'), blurb: 'Put a person in the surface as a participant — and keep confirmation tools reserved for them.' },
+    { name: 'Perplexity', package: 'prism-perplexity', link: featureHref('research'), blurb: 'The Perplexity Agent API as a first-class provider, including its search filters and cost reporting.' },
+    { name: 'OpenTelemetry', package: 'prism-opentelemetry', link: featureHref('observability'), blurb: 'Export agent runs as spans to any OTel collector, separate from the framework’s own events.' },
+    { name: 'Language ports', package: 'prism-ts · prism-py', link: featureHref('languages'), blurb: 'The same nine families in TypeScript and Python, pinned to one conformance corpus across all three languages.' },
 ] as const;
 
 const PROVIDERS = [
@@ -32,6 +31,7 @@ const FEATURES: { title: string; blurb: string; href?: string; badge?: string }[
     {
         title: 'One API, every provider',
         blurb: 'One request shape across 18 providers — Anthropic, OpenAI, Gemini, Ollama and more. Switch provider, keep your application code.',
+        href: featureHref('providers'),
     },
     {
         title: 'Fluent text generation',
@@ -72,6 +72,7 @@ const FEATURES: { title: string; blurb: string; href?: string; badge?: string }[
     {
         title: 'Observability & telemetry',
         blurb: 'Opt-in lifecycle events for every generation — token usage, cost, latency, and step/tool spans. Subscribe a Laravel listener for cost tracking, or drop in the OpenTelemetry bridge for traces in Arize Phoenix and any OTLP backend.',
+        href: featureHref('observability'),
         badge: 'New',
     },
 ];
@@ -261,8 +262,8 @@ export default function Landing({ version }: { version: string }) {
                         </p>
                     </Reveal>
                     <div className="mt-10 grid gap-5 lg:grid-cols-2">
-                        <Reveal><Link href="/docs/packages/browser" className="k-card block h-full p-7"><p className="k-mono mb-4">prism-browser · first slice</p><h3 className="text-2xl font-bold" style={{ color: 'var(--k-ink)' }}>Guarded open-web automation</h3><p className="mt-4 text-sm leading-relaxed" style={{ color: 'var(--k-ink-3)' }}>Policy-first navigation and typed actions over bounded, provenance-framed observations. Stable package-issued references replace raw selectors and arbitrary JavaScript.</p><p className="k-mono mt-6">Read the boundary →</p></Link></Reveal>
-                        <Reveal delay={100}><Link href="/docs/packages/human-plus" className="k-card block h-full p-7"><p className="k-mono mb-4">prism-human-plus · first slice</p><h3 className="text-2xl font-bold" style={{ color: 'var(--k-ink)' }}>Join the surface as a participant</h3><p className="mt-4 text-sm leading-relaxed" style={{ color: 'var(--k-ink-3)' }}>A PHP agent joins a live Fancy surface through an invitation and relay. The app owns stable handles, staged writes, undo, cursors and presence, and the agent works through them.</p><p className="k-mono mt-6">Explore Human+ →</p></Link></Reveal>
+                        <Reveal><Link href={featureHref('browser')} className="k-card block h-full p-7"><p className="k-mono mb-4">prism-browser · first slice</p><h3 className="text-2xl font-bold" style={{ color: 'var(--k-ink)' }}>Guarded open-web automation</h3><p className="mt-4 text-sm leading-relaxed" style={{ color: 'var(--k-ink-3)' }}>Policy-first navigation and typed actions over bounded, provenance-framed observations. Stable package-issued references replace raw selectors and arbitrary JavaScript.</p><p className="k-mono mt-6">Read the boundary →</p></Link></Reveal>
+                        <Reveal delay={100}><Link href={featureHref('human-plus')} className="k-card block h-full p-7"><p className="k-mono mb-4">prism-human-plus · first slice</p><h3 className="text-2xl font-bold" style={{ color: 'var(--k-ink)' }}>Join the surface as a participant</h3><p className="mt-4 text-sm leading-relaxed" style={{ color: 'var(--k-ink-3)' }}>A PHP agent joins a live Fancy surface through an invitation and relay. The app owns stable handles, staged writes, undo, cursors and presence, and the agent works through them.</p><p className="k-mono mt-6">Explore Human+ →</p></Link></Reveal>
                     </div>
                 </div>
             </section>

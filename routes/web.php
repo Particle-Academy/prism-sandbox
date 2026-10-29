@@ -3,6 +3,7 @@
 use App\Docs\DocsRepository;
 use App\Http\Controllers\DemoController;
 use App\Http\Controllers\DocsController;
+use App\Http\Controllers\FeaturesController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\Webhooks\GitHubWebhookController;
 use Illuminate\Support\Facades\Route;
@@ -11,6 +12,11 @@ use Inertia\Inertia;
 Route::get('/', fn (DocsRepository $docs) => Inertia::render('Landing', [
     'version' => $docs->version(),
 ]))->name('home');
+
+// What the ecosystem does, by feature, and every package it publishes.
+Route::get('/features', [FeaturesController::class, 'index'])->name('features.index');
+Route::get('/features/{slug}', [FeaturesController::class, 'show'])->where('slug', '[a-z0-9\-]+')->name('features.show');
+Route::get('/packages', [FeaturesController::class, 'packages'])->name('packages');
 
 // Community contribution gamification.
 Route::get('/leaderboard', LeaderboardController::class)->name('leaderboard');
