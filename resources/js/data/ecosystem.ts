@@ -745,7 +745,7 @@ const markdown = await workspace.read('reports/q1.md');`,
         slug: 'languages',
         title: 'Three languages, one contract',
         category: 'Language ports',
-        summary: 'Core and every companion family in PHP, TypeScript and Python, held together by one shared conformance corpus.',
+        summary: 'Core and the companion families in PHP, TypeScript and Python, held together by one shared conformance corpus.',
         pitch: [
             'Prism has PHP, TypeScript and Python implementations of core and all eight companion package families, including Harness.',
             'Shared conformance fixtures run through all three languages and compare their results.',

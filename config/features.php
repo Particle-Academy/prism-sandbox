@@ -59,7 +59,7 @@ return [
         ],
         'languages' => [
             'title' => 'Three languages, one contract',
-            'description' => 'Core and every companion family in PHP, TypeScript and Python, held together by one shared conformance corpus.',
+            'description' => 'Core and the companion families in PHP, TypeScript and Python, held together by one shared conformance corpus.',
         ],
     ],
 
