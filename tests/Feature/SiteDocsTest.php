@@ -247,10 +247,14 @@ class SiteDocsTest extends TestCase
         // Both quote styles: JSX attributes use double quotes, the ECOSYSTEM
         // array uses single. Matching only one silently checked a third of them.
         preg_match_all('~[\'"](/docs/[a-z0-9\-/]+)[\'"]~', $source, $matches);
+        // Family and capability cards link to feature pages through
+        // featureHref('<slug>'); each must name a page that exists.
+        preg_match_all('~featureHref\([\'"]([a-z0-9\-]+)[\'"]\)~', $source, $features);
 
         $links = array_values(array_unique($matches[1]));
+        $slugs = array_values(array_unique($features[1]));
 
-        $this->assertGreaterThanOrEqual(10, count($links), 'The landing page should be promoting the ecosystem, not one package.');
+        $this->assertGreaterThanOrEqual(10, count($links) + count($slugs), 'The landing page should be promoting the ecosystem, not one package.');
 
         foreach ($links as $link) {
             $this->assertTrue(
@@ -258,6 +262,28 @@ class SiteDocsTest extends TestCase
                 "The landing page links to {$link}, which has no page.",
             );
         }
+
+        foreach ($slugs as $slug) {
+            $this->assertArrayHasKey($slug, config('features.pages'), "The landing page links to /features/{$slug}, which has no page.");
+            $this->get('/features/'.$slug)->assertOk();
+        }
+    }
+
+    public function test_feature_allowlist_matches_the_feature_data(): void
+    {
+        // config/features.php gates /features/{slug} and titles each page for
+        // crawlers; resources/js/data/ecosystem.ts renders it. A slug in only
+        // one of them is a 404 behind a nav link, or a page with no content.
+        $source = File::get(resource_path('js/data/ecosystem.ts'));
+        preg_match_all('~^\s+slug: \'([a-z0-9\-]+)\',\s*$~m', $source, $matches);
+
+        $this->assertNotEmpty($matches[1], 'No feature slugs found in ecosystem.ts.');
+        $this->assertSame(array_keys(config('features.pages')), $matches[1]);
+
+        foreach ($matches[1] as $slug) {
+            $this->get('/features/'.$slug)->assertOk();
+        }
+        $this->get('/features/not-a-feature')->assertNotFound();
     }
 
     public function test_the_landing_page_names_every_family_not_just_core(): void
