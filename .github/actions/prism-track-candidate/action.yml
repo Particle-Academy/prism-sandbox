@@ -1,0 +1,30 @@
+name: Verify tracked Prism candidate
+description: Apply only this attempt's exact candidate lock before dependency installation.
+inputs:
+  artifact_id:
+    required: true
+    description: Immutable artifact ID from this workflow attempt.
+  expected_sha256:
+    required: true
+    description: Expected raw composer.lock digest from resolution.
+  base_sha:
+    required: true
+    description: Exact commit whose source is being validated.
+runs:
+  using: composite
+  steps:
+    - uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.4'
+        coverage: none
+    - uses: actions/download-artifact@v4
+      with:
+        artifact-ids: ${{ inputs.artifact_id }}
+        path: ${{ runner.temp }}/prism-track-candidate
+    - name: Verify this run, attempt, base and expected lock digest
+      shell: bash
+      env:
+        TRACK_ARTIFACT_ID: ${{ inputs.artifact_id }}
+        TRACK_EXPECTED_SHA256: ${{ inputs.expected_sha256 }}
+        TRACK_BASE_SHA: ${{ inputs.base_sha }}
+      run: php scripts/prism-track-candidate.php apply "$RUNNER_TEMP/prism-track-candidate"

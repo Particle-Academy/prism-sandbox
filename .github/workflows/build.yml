@@ -4,6 +4,17 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_call:
+    inputs:
+      candidate_artifact_id:
+        type: string
+        default: ''
+      candidate_lock_sha256:
+        type: string
+        default: ''
+      candidate_base_sha:
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -16,6 +27,21 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        if: ${{ !inputs.candidate_artifact_id }}
+
+      - uses: actions/checkout@v4
+        if: ${{ inputs.candidate_artifact_id }}
+        with:
+          ref: ${{ inputs.candidate_base_sha }}
+          persist-credentials: false
+
+      - name: Verify the candidate before the existing build
+        if: ${{ inputs.candidate_artifact_id }}
+        uses: ./.github/actions/prism-track-candidate
+        with:
+          artifact_id: ${{ inputs.candidate_artifact_id }}
+          expected_sha256: ${{ inputs.candidate_lock_sha256 }}
+          base_sha: ${{ inputs.candidate_base_sha }}
 
       - uses: actions/setup-node@v4
         with:
