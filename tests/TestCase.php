@@ -19,5 +19,9 @@ abstract class TestCase extends BaseTestCase
         // depending on whether the person running it had happened to build the
         // frontend first, which is not a property a test suite should have.
         $this->withoutVite();
+
+        // Feature tests inspect Laravel responses without a renderer process.
+        // A previously built SSR bundle must not introduce outbound HTTP.
+        config(['inertia.ssr.enabled' => false]);
     }
 }
