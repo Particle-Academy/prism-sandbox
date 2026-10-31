@@ -11,7 +11,15 @@ name: Track latest Prism
 on:
   schedule:
     - cron: '17 6 * * *' # daily, 06:17 UTC
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the validated lock to main
+        type: boolean
+        default: true
+  # Exercise the complete read-only candidate path in contribution CI, while
+  # the ordinary Tests and Build runs still exercise their no-input path.
+  pull_request:
   repository_dispatch:
     types: [prism-released]
 
@@ -21,7 +29,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   guard:
@@ -114,41 +122,143 @@ jobs:
           node .third-party-allowlist/third-party/check.mjs --repo .
           node -e "require('node:fs').rmSync('.third-party-allowlist',{recursive:true,force:true})"
 
-  bump:
+  controls:
     needs: guard
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - name: Check out main
-        uses: actions/checkout@v4
-
-      - name: Set up PHP + Composer
-        uses: shivammathur/setup-php@v2
+      - uses: actions/checkout@v4
         with:
-          # Must match the runtime this app's lockfile actually resolves for:
-          # tempest/highlight needs ^8.4 and symfony/yaml >=8.4.1, so composer
-          # refuses to update under 8.3 and this job failed every night.
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+      - name: Candidate and publisher controls against a local bare remote
+        env:
+          TRACK_REQUIRE_SYMLINK_TEST: '1'
+        run: php scripts/tests/prism-track-candidate.php
+
+  resolve:
+    needs: [guard, controls]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      changed: ${{ steps.candidate.outputs.changed }}
+      base: ${{ steps.candidate.outputs.base }}
+      candidate_sha256: ${{ steps.candidate.outputs.candidate_sha256 }}
+      artifact_id: ${{ steps.stage.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.sha || 'main' }}
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
           php-version: '8.4'
           tools: composer:v2
           coverage: none
+      - name: Resolve the candidate without executing package code
+        run: composer update particle-academy/prism --with-all-dependencies --no-interaction --no-install --no-scripts --no-plugins
+      - name: Record the exact unapproved candidate
+        id: candidate
+        run: php scripts/prism-track-candidate.php create "$RUNNER_TEMP/prism-track-staging"
+      - uses: actions/upload-artifact@v4
+        if: ${{ steps.candidate.outputs.changed == 'true' }}
+        id: stage
+        with:
+          name: prism-track-unapproved-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/prism-track-staging/composer.lock
+            ${{ runner.temp }}/prism-track-staging/receipt.json
+          if-no-files-found: error
+          retention-days: 7
 
-      - name: Update Prism to the latest stable release
-        run: composer update particle-academy/prism --with-all-dependencies --no-interaction --no-scripts
+  tests:
+    needs: resolve
+    if: ${{ needs.resolve.outputs.changed == 'true' }}
+    uses: ./.github/workflows/tests.yml
+    with:
+      candidate_artifact_id: ${{ needs.resolve.outputs.artifact_id }}
+      candidate_lock_sha256: ${{ needs.resolve.outputs.candidate_sha256 }}
+      candidate_base_sha: ${{ needs.resolve.outputs.base }}
 
-      - name: Commit & push if the lock changed
-        run: |
-          # HEAD is the lock before the update. Transitive changes are wanted,
-          # but must not be labelled as a Prism version bump when it stayed put.
-          BEFORE=$(mktemp)
-          trap 'rm -f "$BEFORE"' EXIT
-          git show HEAD:composer.lock > "$BEFORE"
-          MESSAGE=$(php scripts/prism-lock-message.php "$BEFORE" composer.lock)
-          if [ -z "$MESSAGE" ]; then
-            echo "Composer lock unchanged — nothing to do."
-            exit 0
-          fi
-          echo "$MESSAGE"
-          git config user.name  'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add composer.lock
-          git commit -m "$MESSAGE"
-          git push
+  build:
+    needs: resolve
+    if: ${{ needs.resolve.outputs.changed == 'true' }}
+    uses: ./.github/workflows/build.yml
+    with:
+      candidate_artifact_id: ${{ needs.resolve.outputs.artifact_id }}
+      candidate_lock_sha256: ${{ needs.resolve.outputs.candidate_sha256 }}
+      candidate_base_sha: ${{ needs.resolve.outputs.base }}
+
+  seal:
+    needs: [resolve, tests, build]
+    if: ${{ needs.resolve.outputs.changed == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      artifact_id: ${{ steps.validated.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.resolve.outputs.base }}
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+      - uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ needs.resolve.outputs.artifact_id }}
+          path: ${{ runner.temp }}/prism-track-staging
+      - name: Seal only after both reusable workflows succeed
+        env:
+          TRACK_BASE_SHA: ${{ needs.resolve.outputs.base }}
+          TRACK_EXPECTED_SHA256: ${{ needs.resolve.outputs.candidate_sha256 }}
+          TRACK_ARTIFACT_ID: ${{ needs.resolve.outputs.artifact_id }}
+          TRACK_TESTS_RESULT: ${{ needs.tests.result }}
+          TRACK_BUILD_RESULT: ${{ needs.build.result }}
+        run: php scripts/prism-track-candidate.php seal "$RUNNER_TEMP/prism-track-staging" "$RUNNER_TEMP/prism-track-validated"
+      - uses: actions/upload-artifact@v4
+        id: validated
+        with:
+          name: prism-track-validated-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/prism-track-validated/composer.lock
+            ${{ runner.temp }}/prism-track-validated/receipt.json
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    needs: [resolve, tests, build, seal]
+    if: ${{ github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.publish) && needs.tests.result == 'success' && needs.build.result == 'success' && needs.seal.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.resolve.outputs.base }}
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+      - uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ needs.seal.outputs.artifact_id }}
+          path: ${{ runner.temp }}/prism-track-validated
+      - name: Publish only the validated lock if main is unchanged
+        env:
+          TRACK_BASE_SHA: ${{ needs.resolve.outputs.base }}
+          TRACK_EXPECTED_SHA256: ${{ needs.resolve.outputs.candidate_sha256 }}
+          TRACK_ARTIFACT_ID: ${{ needs.seal.outputs.artifact_id }}
+          TRACK_STAGING_ARTIFACT_ID: ${{ needs.resolve.outputs.artifact_id }}
+          TRACK_TESTS_RESULT: ${{ needs.tests.result }}
+          TRACK_BUILD_RESULT: ${{ needs.build.result }}
+          GIT_TERMINAL_PROMPT: '0'
+        # GITHUB_TOKEN pushes do not start another Tests run. The exact lock
+        # already passed the reusable Tests and Build workflows in this attempt.
+        # No PAT, dependency installation or candidate package code in this job.
+        run: php scripts/prism-track-candidate.php publish "$RUNNER_TEMP/prism-track-validated"

@@ -4,6 +4,17 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_call:
+    inputs:
+      candidate_artifact_id:
+        type: string
+        default: ''
+      candidate_lock_sha256:
+        type: string
+        default: ''
+      candidate_base_sha:
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -20,6 +31,21 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        if: ${{ !inputs.candidate_artifact_id }}
+
+      - uses: actions/checkout@v4
+        if: ${{ inputs.candidate_artifact_id }}
+        with:
+          ref: ${{ inputs.candidate_base_sha }}
+          persist-credentials: false
+
+      - name: Apply the exact candidate before Composer
+        if: ${{ inputs.candidate_artifact_id }}
+        uses: ./.github/actions/prism-track-candidate
+        with:
+          artifact_id: ${{ inputs.candidate_artifact_id }}
+          expected_sha256: ${{ inputs.candidate_lock_sha256 }}
+          base_sha: ${{ inputs.candidate_base_sha }}
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -35,9 +61,17 @@ jobs:
       #
       # It does mean CI follows the first-party prereleases this app now
       # tracks — which is the point of tracking them.
+      - name: Prepare the isolated candidate environment
+        if: ${{ inputs.candidate_artifact_id }}
+        shell: bash
+        run: |
+          printf '%s\n' 'APP_ENV=testing' 'APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=' >> "$GITHUB_ENV"
+          : > .env.testing
+
       - uses: ramsey/composer-install@v3
 
       - name: Prepare the environment
+        if: ${{ !inputs.candidate_artifact_id }}
         run: |
           cp .env.example .env
           php artisan key:generate
@@ -55,7 +89,7 @@ jobs:
 
       # sqlite in memory, per phpunit.xml — no service container needed.
       - name: Execute tests
-        run: vendor/bin/pest
+        run: vendor/bin/pest${{ inputs.candidate_artifact_id && ' --fail-on-warning' || '' }}
 
   third-party:
     name: Third-party dependency allowlist
@@ -66,8 +100,23 @@ jobs:
       # This job only reads files, so it keeps no token in .git/config for
       # the fetched checker to find.
       - uses: actions/checkout@v4
+        if: ${{ !inputs.candidate_artifact_id }}
         with:
           persist-credentials: false
+
+      - uses: actions/checkout@v4
+        if: ${{ inputs.candidate_artifact_id }}
+        with:
+          ref: ${{ inputs.candidate_base_sha }}
+          persist-credentials: false
+
+      - name: Verify the candidate graph before the policy gate
+        if: ${{ inputs.candidate_artifact_id }}
+        uses: ./.github/actions/prism-track-candidate
+        with:
+          artifact_id: ${{ inputs.candidate_artifact_id }}
+          expected_sha256: ${{ inputs.candidate_lock_sha256 }}
+          base_sha: ${{ inputs.candidate_base_sha }}
 
       # Every direct dependency must be approved on the org allowlist and still
       # maintained. The list is fetched, never vendored, so there is no copy here
