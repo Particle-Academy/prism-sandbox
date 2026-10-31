@@ -10,7 +10,7 @@ import { writeFileSync } from 'node:fs';
 import { Prism } from '@particle-academy/prism';
 
 const response = await Prism.images()
-  .using('openai', 'gpt-image-1')
+  .using('openai', 'gpt-image-2.5-sunburst')
   .withPrompt('A watercolor illustration of a small greenhouse.')
   .generate();
 
@@ -30,7 +30,7 @@ from prism import Prism
 
 response = (
     Prism.images()
-    .using("openai", "gpt-image-1")
+    .using("openai", "gpt-image-2.5-sunburst")
     .with_prompt("A watercolor illustration of a small greenhouse.")
     .generate()
 )
@@ -71,7 +71,7 @@ Which options and values a model accepts is decided by OpenAI. A value the model
 import { Prism } from '@particle-academy/prism';
 
 const response = await Prism.images()
-  .using('openai', 'gpt-image-1')
+  .using('openai', 'gpt-image-2.5-sunburst')
   .withPrompt('A greenhouse icon on a plain background.')
   .withProviderOptions({ n: 2, size: '1024x1024', background: 'transparent', output_format: 'png' })
   .generate();
@@ -84,7 +84,7 @@ from prism import Prism
 
 response = (
     Prism.images()
-    .using("openai", "gpt-image-1")
+    .using("openai", "gpt-image-2.5-sunburst")
     .with_prompt("A greenhouse icon on a plain background.")
     .with_provider_options({
         "n": 2,
