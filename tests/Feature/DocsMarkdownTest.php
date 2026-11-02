@@ -236,6 +236,37 @@ class DocsMarkdownTest extends TestCase
         $this->get('/docs/README')->assertNotFound();
     }
 
+    public function test_package_asset_links_preserve_the_filename_query_and_fragment(): void
+    {
+        $html = $this->render(<<<'MD'
+            [Generation metadata](/assets/examples/openai/metadata.json#examples)
+
+            [Download](/assets/examples/openai/sample.webp?download=1#preview)
+
+            [HTML asset](/assets/examples/openai/notes.html)
+
+            ![Generated image](/assets/examples/openai/sample.webp)
+
+            [Existing asset](/docs-assets/assets/examples/openai/metadata.json)
+
+            [Provider guide](/providers/openai.md#images)
+
+            [Vendor guide](https://example.com/assets/guide.json)
+            MD);
+
+        $docs = app(DocsRepository::class);
+        $html = (fn (): string => $this->rewriteLinks($html))->call($docs);
+
+        $this->assertStringContainsString('href="/docs-assets/assets/examples/openai/metadata.json#examples"', $html);
+        $this->assertStringContainsString('href="/docs-assets/assets/examples/openai/sample.webp?download=1#preview"', $html);
+        $this->assertStringContainsString('href="/docs-assets/assets/examples/openai/notes.html"', $html);
+        $this->assertStringContainsString('src="/docs-assets/assets/examples/openai/sample.webp"', $html);
+        $this->assertStringContainsString('href="/docs-assets/assets/examples/openai/metadata.json"', $html);
+        $this->assertStringNotContainsString('/docs-assets/docs-assets/', $html);
+        $this->assertStringContainsString('href="/docs/providers/openai#images"', $html);
+        $this->assertStringContainsString('href="https://example.com/assets/guide.json"', $html);
+    }
+
     private function render(string $markdown): string
     {
         $docs = app(DocsRepository::class);
