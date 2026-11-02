@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "name", "signupUrl", "keyUrl", "billing", "regions", "steps", "verifiedOn", "researchedOn", "sources", "portSupport"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^[a-z]+$"},
+    "name": {"type": "string", "minLength": 1},
+    "signupUrl": {"type": "string", "format": "uri"},
+    "keyUrl": {"type": "string", "format": "uri"},
+    "billing": {"type": "string", "minLength": 1},
+    "regions": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["name", "note"], "properties": {"name": {"type": "string", "minLength": 1}, "note": {"type": "string", "minLength": 1}}}},
+    "steps": {"type": "array", "minItems": 2, "items": {"type": "string", "minLength": 1}},
+    "verifiedOn": {"type": ["string", "null"], "format": "date"},
+    "researchedOn": {"type": "string", "format": "date"},
+    "sources": {"type": "array", "minItems": 1, "items": {"type": "string", "format": "uri"}},
+    "console": {"type": "object", "additionalProperties": false, "required": ["url", "classification", "documentedSource"], "properties": {"url": {"type": "string", "format": "uri"}, "classification": {"type": "string", "pattern": "^auth-gated$"}, "documentedSource": {"type": "string", "format": "uri"}}},
+    "portSupport": {"type": "object", "additionalProperties": false, "required": ["ts", "py"], "properties": {"ts": {"type": "boolean"}, "py": {"type": "boolean"}}}
+  }
+}

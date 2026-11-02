@@ -57,6 +57,32 @@ jobs:
       - name: Execute tests
         run: vendor/bin/pest
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install locked renderer dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Provider schema and link refusal controls
+        run: |
+          node scripts/check-provider-content.mjs
+          node --test scripts/provider-content.test.mjs scripts/provider-links.test.mjs
+
+      - name: No credential inputs in any rendered setup page
+        run: node scripts/check-provider-markup.mjs
+
+      - name: Prove an added credential input fails
+        shell: bash
+        run: |
+          if node scripts/check-provider-markup.mjs --negative-input > setup-input-negative.log 2>&1; then
+            cat setup-input-negative.log
+            echo 'The no-input guard accepted an injected input.'
+            exit 1
+          fi
+          cat setup-input-negative.log
+          grep -q 'Setup pages must never render inputs' setup-input-negative.log
+
   third-party:
     name: Third-party dependency allowlist
     runs-on: ubuntu-latest

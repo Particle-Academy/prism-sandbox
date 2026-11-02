@@ -1,0 +1,28 @@
+{
+  "id": "anthropic",
+  "name": "Anthropic",
+  "signupUrl": "https://platform.claude.com/docs/en/get-api-key",
+  "keyUrl": "https://platform.claude.com/docs/en/get-api-key",
+  "sources": [
+    "https://platform.claude.com/docs/en/get-api-key",
+    "https://platform.claude.com/docs/en/about-claude/pricing"
+  ],
+  "billing": "Check the Claude Console billing page and available API credits. Access and limits are specific to your organization and workspace.",
+  "steps": [
+    "Sign in or create an account in the Claude Console. Select the organization and workspace for your application.",
+    "Open API keys, choose Create key, give it a name and expiration, and select yourself or the service account that should own it. Scope it to the intended workspace.",
+    "Copy the key once into your own secret storage. If your role cannot create keys, ask the organization administrator."
+  ],
+  "regions": [],
+  "verifiedOn": null,
+  "researchedOn": "2026-11-02",
+  "portSupport": {
+    "ts": true,
+    "py": true
+  },
+  "console": {
+    "url": "https://platform.claude.com/settings/keys",
+    "classification": "auth-gated",
+    "documentedSource": "https://platform.claude.com/docs/en/get-api-key"
+  }
+}

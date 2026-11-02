@@ -154,4 +154,6 @@ jobs:
       # examples run under an audit hook that refuses socket access. This needs
       # no key and cannot bill anyone.
       - name: Check the port examples
-        run: node scripts/check-port-docs.mjs .ports/prism-ts .ports/prism-py
+        run: |
+          node scripts/check-port-docs.mjs .ports/prism-ts .ports/prism-py
+          node scripts/generate-setup-port-env.mjs --check .ports/prism-ts .ports/prism-py

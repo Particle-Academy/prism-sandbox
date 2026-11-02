@@ -1,0 +1,36 @@
+{
+  "id": "qwen",
+  "name": "Qwen / Model Studio",
+  "signupUrl": "https://www.alibabacloud.com/help/en/model-studio/get-api-key",
+  "keyUrl": "https://www.alibabacloud.com/help/en/model-studio/get-api-key",
+  "sources": [
+    "https://www.alibabacloud.com/help/en/model-studio/get-api-key"
+  ],
+  "billing": "Model Studio bills by model and region. Verify the applicable quota, payment method and pay-as-you-go price before making a request.",
+  "regions": [
+    {
+      "name": "Singapore (international)",
+      "note": "The installed Prism default URL targets the international endpoint. Use a key and model from the matching region."
+    },
+    {
+      "name": "Other regions",
+      "note": "Keys, endpoints and model lists cannot be mixed across regions. Set the matching provider URL in your own application."
+    }
+  ],
+  "steps": [
+    "Sign in to Alibaba Cloud and activate Model Studio in the region you plan to use.",
+    "In the Model Studio API Key page, select that region, choose Create API Key and select the appropriate workspace and owner.",
+    "Copy the newly created key into your own secret storage. Keep the key, model and service endpoint in the same region; do not substitute a Coding Plan key for a pay-as-you-go key."
+  ],
+  "verifiedOn": null,
+  "researchedOn": "2026-11-02",
+  "console": {
+    "url": "https://modelstudio.console.alibabacloud.com/ap-southeast-1/settings/api-key",
+    "classification": "auth-gated",
+    "documentedSource": "https://www.alibabacloud.com/help/en/model-studio/get-api-key"
+  },
+  "portSupport": {
+    "ts": false,
+    "py": false
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "typescript": {
+    "openai": [
+      "OPENAI_API_FORMAT",
+      "OPENAI_API_KEY",
+      "OPENAI_ORGANIZATION",
+      "OPENAI_PROJECT",
+      "OPENAI_URL"
+    ],
+    "anthropic": [
+      "ANTHROPIC_API_KEY",
+      "ANTHROPIC_API_VERSION",
+      "ANTHROPIC_BETA_FEATURES",
+      "ANTHROPIC_URL"
+    ],
+    "mistral": [
+      "MISTRAL_API_KEY",
+      "MISTRAL_URL"
+    ]
+  },
+  "python": {
+    "openai": [
+      "OPENAI_API_KEY",
+      "OPENAI_ORGANIZATION",
+      "OPENAI_PROJECT",
+      "OPENAI_URL"
+    ],
+    "anthropic": [
+      "ANTHROPIC_API_KEY",
+      "ANTHROPIC_API_VERSION",
+      "ANTHROPIC_BETA_FEATURES",
+      "ANTHROPIC_URL"
+    ],
+    "mistral": [
+      "MISTRAL_API_KEY",
+      "MISTRAL_URL"
+    ]
+  },
+  "sources": [
+    {
+      "language": "typescript",
+      "provider": "openai",
+      "path": "src/providers/openai/openai.ts"
+    },
+    {
+      "language": "python",
+      "provider": "openai",
+      "path": "src/prism/providers/openai/provider.py"
+    },
+    {
+      "language": "typescript",
+      "provider": "anthropic",
+      "path": "src/providers/anthropic/anthropic.ts"
+    },
+    {
+      "language": "python",
+      "provider": "anthropic",
+      "path": "src/prism/providers/anthropic/provider.py"
+    },
+    {
+      "language": "typescript",
+      "provider": "mistral",
+      "path": "src/providers/mistral/mistral.ts"
+    },
+    {
+      "language": "python",
+      "provider": "mistral",
+      "path": "src/prism/providers/mistral/provider.py"
+    }
+  ]
+}

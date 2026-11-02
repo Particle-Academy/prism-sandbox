@@ -1,0 +1,28 @@
+{
+  "id": "openai",
+  "name": "OpenAI",
+  "signupUrl": "https://developers.openai.com/api/docs/quickstart",
+  "keyUrl": "https://developers.openai.com/api/docs/quickstart",
+  "sources": [
+    "https://developers.openai.com/api/docs/quickstart",
+    "https://developers.openai.com/api/reference/overview"
+  ],
+  "billing": "Check your API organization’s credits and billing before making a paid request. Model access and rate limits depend on your organization.",
+  "steps": [
+    "Sign in to the OpenAI API Platform or create an account there. Select the organization and project you will use.",
+    "Open API keys, create a project key with the permissions your application needs, and store it privately on your own machine.",
+    "Check the API billing and usage limits for that project. A key alone does not establish paid model access."
+  ],
+  "regions": [],
+  "verifiedOn": null,
+  "researchedOn": "2026-11-02",
+  "portSupport": {
+    "ts": true,
+    "py": true
+  },
+  "console": {
+    "url": "https://platform.openai.com/api-keys",
+    "classification": "auth-gated",
+    "documentedSource": "https://developers.openai.com/api/docs/quickstart"
+  }
+}

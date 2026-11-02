@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Docs\DocsRepository;
+use App\ProviderSetup\ProviderGuides;
 use FancySeo\FancySeo;
 use FancySeo\JsonLd;
 use FancySeo\SitemapBuilder;
@@ -45,6 +46,21 @@ class SeoServiceProvider extends ServiceProvider
         $seo->route('docs.index', fn (): array => $this->docsPage($docs, $intro, $base));
         $seo->route('docs.show', fn (array $params): array => $this->docsPage($docs, (string) ($params['path'] ?? ''), $base));
 
+        $seo->route('providers.setup.index', fn (): array => [
+            'title' => 'Provider setup — Prism',
+            'description' => 'Configure your own application with provider credentials, official setup instructions and local verification examples.',
+            'canonical' => $base.'/providers/setup',
+        ]);
+        $seo->route('providers.setup.show', function (array $params) use ($base): array {
+            $provider = (new ProviderGuides)->all()[(string) ($params['id'] ?? '')] ?? null;
+
+            return $provider === null ? [] : [
+                'title' => 'Set up '.$provider['name'].' — Prism',
+                'description' => 'Configure '.$provider['name'].' in your own application using official setup instructions and locally run examples.',
+                'canonical' => $base.'/providers/setup/'.$provider['id'],
+            ];
+        });
+
         $seo->route('features.index', fn (): array => [
             'title' => 'Features — Prism',
             'description' => 'What the Prism ecosystem does, feature by feature: providers, the agent harness, Human+, browser, memory, workspace, MCP, research, observability, ACP and the language ports.',
@@ -84,6 +100,10 @@ class SeoServiceProvider extends ServiceProvider
             }
 
             $map->add('/packages', '0.8', 'weekly');
+            $map->add('/providers/setup', '0.8', 'monthly');
+            foreach ((new ProviderGuides)->all() as $provider) {
+                $map->add('/providers/setup/'.$provider['id'], '0.7', 'monthly');
+            }
             $map->add('/leaderboard', '0.4', 'daily');
 
             // The demo page only works when a key is configured; otherwise it

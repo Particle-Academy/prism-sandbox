@@ -1,0 +1,27 @@
+{
+  "id": "xai",
+  "name": "xAI",
+  "signupUrl": "https://docs.x.ai/developers/quickstart",
+  "keyUrl": "https://docs.x.ai/developers/quickstart",
+  "sources": [
+    "https://docs.x.ai/developers/quickstart"
+  ],
+  "billing": "The xAI quickstart requires API credits. Check your team’s balance, model access and spend limits in the console.",
+  "steps": [
+    "Create an account or sign in to the xAI API Console and choose the team that should be billed.",
+    "Add API credits and review the team’s spending limits.",
+    "Open API keys, create a key with access to your chosen model, and store it privately in your local application environment."
+  ],
+  "regions": [],
+  "verifiedOn": null,
+  "researchedOn": "2026-11-02",
+  "portSupport": {
+    "ts": false,
+    "py": false
+  },
+  "console": {
+    "url": "https://console.x.ai/",
+    "classification": "auth-gated",
+    "documentedSource": "https://docs.x.ai/developers/quickstart"
+  }
+}

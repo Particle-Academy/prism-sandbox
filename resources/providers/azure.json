@@ -1,0 +1,32 @@
+{
+  "id": "azure",
+  "name": "Azure OpenAI",
+  "signupUrl": "https://learn.microsoft.com/en-us/azure/foundry-classic/openai/how-to/create-resource",
+  "keyUrl": "https://learn.microsoft.com/en-us/azure/foundry-classic/openai/how-to/create-resource",
+  "sources": [
+    "https://learn.microsoft.com/en-us/azure/foundry-classic/openai/how-to/create-resource"
+  ],
+  "billing": "Requires an Azure subscription, a compatible model deployment and quota. Prices vary by deployed model and region; check the resource’s Azure pricing before calling it.",
+  "regions": [
+    {
+      "name": "Your deployment region",
+      "note": "Use the endpoint, deployment name and API version for your actual Azure resource. A general OpenAI model name is not an Azure deployment."
+    }
+  ],
+  "steps": [
+    "Sign in with an Azure subscription and permissions to create Azure OpenAI resources and model deployments.",
+    "Create or select a compatible Azure OpenAI resource. Deploy the model you intend to call and confirm its regional quota.",
+    "From that resource, obtain its endpoint and key. Configure your own application with that endpoint, key, deployment name and compatible API version. No Azure resource is created by this site."
+  ],
+  "verifiedOn": null,
+  "researchedOn": "2026-11-02",
+  "portSupport": {
+    "ts": false,
+    "py": false
+  },
+  "console": {
+    "url": "https://portal.azure.com/",
+    "classification": "auth-gated",
+    "documentedSource": "https://learn.microsoft.com/en-us/azure/foundry-classic/openai/how-to/create-resource"
+  }
+}
