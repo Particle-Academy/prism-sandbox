@@ -9,9 +9,18 @@
   ],
   "billing": "Check your API organization’s credits and billing before making a paid request. Model access and rate limits depend on your organization.",
   "steps": [
-    "Sign in to the OpenAI API Platform or create an account there. Select the organization and project you will use.",
-    "Open API keys, create a project key with the permissions your application needs, and store it privately on your own machine.",
-    "Check the API billing and usage limits for that project. A key alone does not establish paid model access."
+    {
+      "title": "Choose an organization and project",
+      "body": "Sign in to the OpenAI API Platform or create an account there. Select the organization and project you will use."
+    },
+    {
+      "title": "Create a project API key",
+      "body": "Open API keys, create a project key with the permissions your application needs, and store it privately on your own machine."
+    },
+    {
+      "title": "Check billing and model access",
+      "body": "Check the API billing and usage limits for that project. A key alone does not establish paid model access."
+    }
   ],
   "regions": [],
   "verifiedOn": null,

@@ -9,9 +9,18 @@
   ],
   "billing": "Check the Claude Console billing page and available API credits. Access and limits are specific to your organization and workspace.",
   "steps": [
-    "Sign in or create an account in the Claude Console. Select the organization and workspace for your application.",
-    "Open API keys, choose Create key, give it a name and expiration, and select yourself or the service account that should own it. Scope it to the intended workspace.",
-    "Copy the key once into your own secret storage. If your role cannot create keys, ask the organization administrator."
+    {
+      "title": "Choose an organization and workspace",
+      "body": "Sign in or create an account in the Claude Console. Select the organization and workspace for your application."
+    },
+    {
+      "title": "Create a scoped API key",
+      "body": "Open API keys, choose Create key, give it a name and expiration, and select yourself or the service account that should own it. Scope it to the intended workspace."
+    },
+    {
+      "title": "Store the key privately",
+      "body": "Copy the key once into your own secret storage. If your role cannot create keys, ask the organization administrator."
+    }
   ],
   "regions": [],
   "verifiedOn": null,

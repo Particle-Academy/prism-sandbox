@@ -1,0 +1,31 @@
+{
+  "id": "perplexity",
+  "name": "Perplexity",
+  "signupUrl": "https://docs.perplexity.ai/docs/getting-started/quickstart",
+  "keyUrl": "https://docs.perplexity.ai/docs/getting-started/quickstart",
+  "sources": [
+    "https://docs.perplexity.ai/docs/getting-started/quickstart"
+  ],
+  "billing": "Perplexity API usage is pay as you go. Check project credits and the selected API/model’s token, search or request fees; a consumer subscription does not establish API credits.",
+  "regions": [],
+  "steps": [
+    {
+      "title": "Choose your API project",
+      "body": "Sign in to the Perplexity API Console using the official guide and select the project your application will use."
+    },
+    {
+      "title": "Create a project API key",
+      "body": "Open the console’s API Keys page, create an application key and store it privately on your machine."
+    },
+    {
+      "title": "Choose a compatible text model",
+      "body": "Review project billing and select a model supported by Prism’s text provider. This verification is a short text request, not the separate deep research workflow."
+    }
+  ],
+  "verifiedOn": null,
+  "researchedOn": "2026-11-02",
+  "portSupport": {
+    "ts": false,
+    "py": false
+  }
+}

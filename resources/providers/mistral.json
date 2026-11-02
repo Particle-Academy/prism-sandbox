@@ -8,9 +8,18 @@
   ],
   "billing": "Studio documents a limited Free mode without a credit card. Check the organization’s plan and quotas; activate billing for paid usage.",
   "steps": [
-    "Create a Mistral account or sign in to Studio and select the intended organization and workspace.",
-    "Open API Keys in Studio, choose Create new key, and set its name, expiration and access scope.",
-    "Store the key on your own machine. Check your plan and usage limits before choosing a paid model."
+    {
+      "title": "Choose an organization and workspace",
+      "body": "Create a Mistral account or sign in to Studio and select the intended organization and workspace."
+    },
+    {
+      "title": "Create an API key",
+      "body": "Open API Keys in Studio, choose Create new key, and set its name, expiration and access scope."
+    },
+    {
+      "title": "Check your plan and limits",
+      "body": "Store the key on your own machine. Check your plan and usage limits before choosing a paid model."
+    }
   ],
   "regions": [],
   "verifiedOn": null,

@@ -1,0 +1,31 @@
+{
+  "id": "deepseek",
+  "name": "DeepSeek",
+  "signupUrl": "https://api-docs.deepseek.com/",
+  "keyUrl": "https://api-docs.deepseek.com/",
+  "sources": [
+    "https://api-docs.deepseek.com/"
+  ],
+  "billing": "API calls use your API platform balance and model-specific rates. An empty balance is a separate failure from an invalid API key; review the platform billing before sending a request.",
+  "regions": [],
+  "steps": [
+    {
+      "title": "Sign in to the API platform",
+      "body": "Use the API key link in DeepSeek’s official first-call guide to create or sign in to your platform account."
+    },
+    {
+      "title": "Create an API key",
+      "body": "Create a key for your application in the platform, and keep the full key in your own secret storage."
+    },
+    {
+      "title": "Check balance and model access",
+      "body": "Review your API balance, limits and currently supported model identifiers before configuring your local application."
+    }
+  ],
+  "verifiedOn": null,
+  "researchedOn": "2026-11-02",
+  "portSupport": {
+    "ts": false,
+    "py": false
+  }
+}

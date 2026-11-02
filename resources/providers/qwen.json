@@ -18,9 +18,18 @@
     }
   ],
   "steps": [
-    "Sign in to Alibaba Cloud and activate Model Studio in the region you plan to use.",
-    "In the Model Studio API Key page, select that region, choose Create API Key and select the appropriate workspace and owner.",
-    "Copy the newly created key into your own secret storage. Keep the key, model and service endpoint in the same region; do not substitute a Coding Plan key for a pay-as-you-go key."
+    {
+      "title": "Activate Model Studio in your region",
+      "body": "Sign in to Alibaba Cloud and activate Model Studio in the region you plan to use."
+    },
+    {
+      "title": "Create a workspace API key",
+      "body": "In the Model Studio API Key page, select that region, choose Create API Key and select the appropriate workspace and owner."
+    },
+    {
+      "title": "Match the key, model and region",
+      "body": "Copy the newly created key into your own secret storage. Keep the key, model and service endpoint in the same region; do not substitute a Coding Plan key for a pay-as-you-go key."
+    }
   ],
   "verifiedOn": null,
   "researchedOn": "2026-11-02",

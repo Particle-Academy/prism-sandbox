@@ -8,9 +8,18 @@
   ],
   "billing": "The xAI quickstart requires API credits. Check your team’s balance, model access and spend limits in the console.",
   "steps": [
-    "Create an account or sign in to the xAI API Console and choose the team that should be billed.",
-    "Add API credits and review the team’s spending limits.",
-    "Open API keys, create a key with access to your chosen model, and store it privately in your local application environment."
+    {
+      "title": "Select your API team",
+      "body": "Create an account or sign in to the xAI API Console and choose the team that should be billed."
+    },
+    {
+      "title": "Add API credits",
+      "body": "Add API credits and review the team’s spending limits."
+    },
+    {
+      "title": "Create an API key",
+      "body": "Open API keys, create a key with access to your chosen model, and store it privately in your local application environment."
+    }
   ],
   "regions": [],
   "verifiedOn": null,

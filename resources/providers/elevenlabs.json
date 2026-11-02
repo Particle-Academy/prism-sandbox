@@ -1,0 +1,32 @@
+{
+  "id": "elevenlabs",
+  "name": "ElevenLabs",
+  "signupUrl": "https://elevenlabs.io/docs/help-center/technical/how-do-i-authorize-myself-using-an-api-key",
+  "keyUrl": "https://elevenlabs.io/docs/help-center/technical/how-do-i-authorize-myself-using-an-api-key",
+  "sources": [
+    "https://elevenlabs.io/docs/help-center/technical/how-do-i-authorize-myself-using-an-api-key",
+    "https://elevenlabs.io/docs/api-reference/authentication"
+  ],
+  "billing": "Speech synthesis consumes your plan’s character or credit allowance. Check the selected voice/model price, remaining quota and per-key credit limit. The local example synthesizes only “Hello.”",
+  "regions": [],
+  "steps": [
+    {
+      "title": "Create or sign in to your account",
+      "body": "In ElevenLabs, open Developers and select the API Keys tab."
+    },
+    {
+      "title": "Create a restricted API key",
+      "body": "Name a separate application key, allow the speech synthesis endpoints it needs and choose an appropriate credit limit. Keep useful restrictions enabled."
+    },
+    {
+      "title": "Choose a model and voice",
+      "body": "Select a speech synthesis model and voice that your account can use. Set their identifiers on your own machine as PRISM_SETUP_MODEL and PRISM_SETUP_VOICE; the example does not create or clone a voice."
+    }
+  ],
+  "verifiedOn": null,
+  "researchedOn": "2026-11-02",
+  "portSupport": {
+    "ts": false,
+    "py": false
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "id": "requesty",
+  "name": "Requesty",
+  "signupUrl": "https://docs.requesty.ai/quickstart",
+  "keyUrl": "https://docs.requesty.ai/quickstart",
+  "sources": [
+    "https://docs.requesty.ai/quickstart"
+  ],
+  "billing": "Free models and paid routing have different limits. Check the selected model’s price, available credits and team/key spend controls before making a request.",
+  "regions": [
+    {
+      "name": "Your routing region",
+      "note": "Review Requesty’s routing and data handling settings for your workload. Use the endpoint and model your account is configured to serve."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Create or sign in to your account",
+      "body": "Open the Requesty app through its official quickstart and select your application’s organization."
+    },
+    {
+      "title": "Create an API key",
+      "body": "Open API Keys, create a separate application key, and keep it only in your own secret storage."
+    },
+    {
+      "title": "Review model and spend settings",
+      "body": "Choose a currently available model identifier and review credits, model access and applicable spend limits before configuring the router endpoint."
+    }
+  ],
+  "verifiedOn": null,
+  "researchedOn": "2026-11-02",
+  "portSupport": {
+    "ts": false,
+    "py": false
+  }
+}

@@ -8,9 +8,18 @@
   ],
   "billing": "Some models have limited free quotas. Paid API usage requires the project’s current billing setup; check AI Studio before sending a request.",
   "steps": [
-    "Sign in to Google AI Studio and accept the applicable terms. Select or import the Google Cloud project you intend to use.",
-    "Open API keys and create an auth key for that project. Use the current key type and restrictions described by Google’s key guide.",
-    "Check the project’s API quotas, model availability and billing. Store the key only in your local application environment."
+    {
+      "title": "Select a Cloud project",
+      "body": "Sign in to Google AI Studio and accept the applicable terms. Select or import the Google Cloud project you intend to use."
+    },
+    {
+      "title": "Create and restrict an API key",
+      "body": "Open API keys and create an auth key for that project. Use the current key type and restrictions described by Google’s key guide."
+    },
+    {
+      "title": "Check quota and billing",
+      "body": "Check the project’s API quotas, model availability and billing. Store the key only in your local application environment."
+    }
   ],
   "regions": [],
   "verifiedOn": null,

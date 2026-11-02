@@ -1,0 +1,31 @@
+{
+  "id": "ollama",
+  "name": "Ollama",
+  "signupUrl": "https://docs.ollama.com/quickstart",
+  "keyUrl": "https://docs.ollama.com/quickstart",
+  "sources": [
+    "https://docs.ollama.com/quickstart"
+  ],
+  "billing": "Local models need your own hardware and electricity, but no provider API key or per-token cloud bill. Download size and memory requirements depend on your model. Cloud models are a separate billed service.",
+  "regions": [],
+  "steps": [
+    {
+      "title": "Install Ollama locally",
+      "body": "Use the official installer for your operating system, then open Ollama. On Linux, start its local server if it is not running."
+    },
+    {
+      "title": "Download a local model",
+      "body": "Choose a model that fits your hardware and run ollama pull with that model name on your own machine. Use a local model, not a cloud-suffixed model, for this walkthrough."
+    },
+    {
+      "title": "Keep the API on your machine",
+      "body": "Use the installed localhost endpoint below from the same machine as your application. Keep it bound to loopback; this guide does not expose your Ollama server to the internet."
+    }
+  ],
+  "verifiedOn": null,
+  "researchedOn": "2026-11-02",
+  "portSupport": {
+    "ts": false,
+    "py": false
+  }
+}

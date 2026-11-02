@@ -1,0 +1,32 @@
+{
+  "id": "openrouter",
+  "name": "OpenRouter",
+  "signupUrl": "https://openrouter.ai/docs/quickstart",
+  "keyUrl": "https://openrouter.ai/docs/quickstart",
+  "sources": [
+    "https://openrouter.ai/docs/quickstart",
+    "https://openrouter.ai/developers"
+  ],
+  "billing": "Model prices, provider charges and free-model limits vary. Review your available credits and key limits. A free model or a key does not imply unlimited free access.",
+  "regions": [],
+  "steps": [
+    {
+      "title": "Create an account",
+      "body": "Sign in or create an OpenRouter account, then select the account or organization your application will use."
+    },
+    {
+      "title": "Create an application API key",
+      "body": "Use the API key link on the official developer page. Name the key for this application, review its available limit controls and store it privately."
+    },
+    {
+      "title": "Select a model and review credits",
+      "body": "Use a model identifier supported by your account, including its author prefix when required. Review the model’s current price and your credit balance."
+    }
+  ],
+  "verifiedOn": null,
+  "researchedOn": "2026-11-02",
+  "portSupport": {
+    "ts": false,
+    "py": false
+  }
+}

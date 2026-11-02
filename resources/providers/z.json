@@ -1,0 +1,31 @@
+{
+  "id": "z",
+  "name": "Z.AI",
+  "signupUrl": "https://docs.z.ai/guides/overview/quick-start",
+  "keyUrl": "https://docs.z.ai/guides/overview/quick-start",
+  "sources": [
+    "https://docs.z.ai/guides/overview/quick-start"
+  ],
+  "billing": "Check the standard API account’s balance and model pricing. The GLM Coding Plan uses a separate endpoint; do not assume that subscription covers the package’s default standard API endpoint.",
+  "regions": [],
+  "steps": [
+    {
+      "title": "Sign in to the Open Platform",
+      "body": "Register or sign in to Z.AI using the platform link in the official quickstart."
+    },
+    {
+      "title": "Create a standard API key",
+      "body": "Open API Keys management and create a Standard API Key for this application. Store it privately on your machine."
+    },
+    {
+      "title": "Check balance and endpoint",
+      "body": "Review billing and choose a model available to your standard API account. Keep the model, key and endpoint compatible; Coding Plan configuration is a separate workflow."
+    }
+  ],
+  "verifiedOn": null,
+  "researchedOn": "2026-11-02",
+  "portSupport": {
+    "ts": false,
+    "py": false
+  }
+}

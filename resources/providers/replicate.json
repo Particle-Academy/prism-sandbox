@@ -8,9 +8,18 @@
   ],
   "billing": "Review Replicate billing before running a model. The optional one-image verification example uses FLUX Schnell, approximately US$0.003 per output at the documented rate; actual charges and availability can change.",
   "steps": [
-    "Create a Replicate account or sign in, then review the account’s billing and payment settings.",
-    "Open API tokens. Create a separate, descriptively named token for your application rather than sharing one across environments.",
-    "Store the token only in your local environment. Choose the single-image example only after checking the model’s current price."
+    {
+      "title": "Review your account and billing",
+      "body": "Create a Replicate account or sign in, then review the account’s billing and payment settings."
+    },
+    {
+      "title": "Create an application token",
+      "body": "Open API tokens. Create a separate, descriptively named token for your application rather than sharing one across environments."
+    },
+    {
+      "title": "Check the image model price",
+      "body": "Store the token only in your local environment. Choose the single-image example only after checking the model’s current price."
+    }
   ],
   "regions": [],
   "verifiedOn": null,
