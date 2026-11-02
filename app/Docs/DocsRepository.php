@@ -27,9 +27,9 @@ class DocsRepository
      * Prism release) kept reading the old shape back — which took sitemap.xml
      * and llms.txt down with a 500 when `external` was added to nav entries.
      * Bump this whenever a cached structure changes, or the rendering of one
-     * does (8: GitHub alerts, <ExceptionSupport />, custom heading ids).
+     * does (9: package asset download links).
      */
-    private const SCHEMA = 8;
+    private const SCHEMA = 9;
 
     private ?string $siteFingerprint = null;
 
@@ -756,8 +756,13 @@ class DocsRepository
         $html = (string) preg_replace_callback(
             '/href="(\/[^"#]*?)(#[^"]*)?"/',
             function (array $m): string {
-                $path = (string) preg_replace('/\.(md|html)$/', '', $m[1]);
                 $hash = $m[2] ?? '';
+
+                if (str_starts_with($m[1], '/assets/')) {
+                    return "href=\"/docs-assets{$m[1]}{$hash}\"";
+                }
+
+                $path = (string) preg_replace('/\.(md|html)$/', '', $m[1]);
 
                 if (preg_match('/\.[a-z0-9]{2,4}$/i', $path) === 1 || str_starts_with($path, '/docs')) {
                     return "href=\"{$path}{$hash}\"";
