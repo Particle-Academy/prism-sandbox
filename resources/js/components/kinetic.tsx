@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { cn } from '@particle-academy/react-fancy';
+import { Button, cn } from '@particle-academy/react-fancy';
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { FEATURES, featureHref } from '../data/ecosystem';
 
@@ -234,6 +234,7 @@ function MobileMenu({ demoEnabled, onSearch }: { demoEnabled: boolean; onSearch?
                         <Link href="/packages" onClick={close} className={item}>
                             Packages
                         </Link>
+                        <Button href="/providers/setup" onClick={close} variant="ghost" className={item}>Provider setup</Button>
                         <p className="k-mono mt-3 px-3 pb-1">Features</p>
                         <div className="grid grid-cols-1 gap-0.5 min-[420px]:grid-cols-2">
                             {FEATURES.map((feature) => (
@@ -292,6 +293,7 @@ export function KineticNav({ version, onSearch }: { version: string; onSearch?: 
                     <Link href="/packages" className={navLink}>
                         Packages
                     </Link>
+                    <Button href="/providers/setup" variant="ghost" size="sm">Provider setup</Button>
                     <FeaturesMenu />
                     <Link href="/leaderboard" className={navLink}>
                         Leaderboard

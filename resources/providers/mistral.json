@@ -1,0 +1,27 @@
+{
+  "id": "mistral",
+  "name": "Mistral",
+  "signupUrl": "https://docs.mistral.ai/getting-started/quickstarts/studio/activate-and-generate-api-key",
+  "keyUrl": "https://docs.mistral.ai/getting-started/quickstarts/studio/activate-and-generate-api-key",
+  "sources": [
+    "https://docs.mistral.ai/getting-started/quickstarts/studio/activate-and-generate-api-key"
+  ],
+  "billing": "Studio documents a limited Free mode without a credit card. Check the organization’s plan and quotas; activate billing for paid usage.",
+  "steps": [
+    "Create a Mistral account or sign in to Studio and select the intended organization and workspace.",
+    "Open API Keys in Studio, choose Create new key, and set its name, expiration and access scope.",
+    "Store the key on your own machine. Check your plan and usage limits before choosing a paid model."
+  ],
+  "regions": [],
+  "verifiedOn": null,
+  "researchedOn": "2026-11-02",
+  "portSupport": {
+    "ts": true,
+    "py": true
+  },
+  "console": {
+    "url": "https://console.mistral.ai/",
+    "classification": "auth-gated",
+    "documentedSource": "https://docs.mistral.ai/getting-started/quickstarts/studio/activate-and-generate-api-key"
+  }
+}

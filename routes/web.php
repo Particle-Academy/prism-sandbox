@@ -5,6 +5,7 @@ use App\Http\Controllers\DemoController;
 use App\Http\Controllers\DocsController;
 use App\Http\Controllers\FeaturesController;
 use App\Http\Controllers\LeaderboardController;
+use App\Http\Controllers\ProviderSetupController;
 use App\Http\Controllers\Webhooks\GitHubWebhookController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -17,6 +18,9 @@ Route::get('/', fn (DocsRepository $docs) => Inertia::render('Landing', [
 Route::get('/features', [FeaturesController::class, 'index'])->name('features.index');
 Route::get('/features/{slug}', [FeaturesController::class, 'show'])->where('slug', '[a-z0-9\-]+')->name('features.show');
 Route::get('/packages', [FeaturesController::class, 'packages'])->name('packages');
+
+Route::get('/providers/setup', [ProviderSetupController::class, 'index'])->name('providers.setup.index');
+Route::get('/providers/setup/{id}', [ProviderSetupController::class, 'show'])->where('id', '[a-z]+')->name('providers.setup.show');
 
 // Community contribution gamification.
 Route::get('/leaderboard', LeaderboardController::class)->name('leaderboard');

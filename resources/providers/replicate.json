@@ -1,0 +1,27 @@
+{
+  "id": "replicate",
+  "name": "Replicate",
+  "signupUrl": "https://replicate.com/docs/topics/security/api-tokens",
+  "keyUrl": "https://replicate.com/docs/topics/security/api-tokens",
+  "sources": [
+    "https://replicate.com/docs/topics/security/api-tokens"
+  ],
+  "billing": "Review Replicate billing before running a model. The optional one-image verification example uses FLUX Schnell, approximately US$0.003 per output at the documented rate; actual charges and availability can change.",
+  "steps": [
+    "Create a Replicate account or sign in, then review the account’s billing and payment settings.",
+    "Open API tokens. Create a separate, descriptively named token for your application rather than sharing one across environments.",
+    "Store the token only in your local environment. Choose the single-image example only after checking the model’s current price."
+  ],
+  "regions": [],
+  "verifiedOn": null,
+  "researchedOn": "2026-11-02",
+  "portSupport": {
+    "ts": false,
+    "py": false
+  },
+  "console": {
+    "url": "https://replicate.com/account/api-tokens",
+    "classification": "auth-gated",
+    "documentedSource": "https://replicate.com/docs/topics/security/api-tokens"
+  }
+}

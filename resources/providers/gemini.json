@@ -1,0 +1,27 @@
+{
+  "id": "gemini",
+  "name": "Gemini",
+  "signupUrl": "https://ai.google.dev/gemini-api/docs/api-key",
+  "keyUrl": "https://ai.google.dev/gemini-api/docs/api-key",
+  "sources": [
+    "https://ai.google.dev/gemini-api/docs/api-key"
+  ],
+  "billing": "Some models have limited free quotas. Paid API usage requires the project’s current billing setup; check AI Studio before sending a request.",
+  "steps": [
+    "Sign in to Google AI Studio and accept the applicable terms. Select or import the Google Cloud project you intend to use.",
+    "Open API keys and create an auth key for that project. Use the current key type and restrictions described by Google’s key guide.",
+    "Check the project’s API quotas, model availability and billing. Store the key only in your local application environment."
+  ],
+  "regions": [],
+  "verifiedOn": null,
+  "researchedOn": "2026-11-02",
+  "portSupport": {
+    "ts": false,
+    "py": false
+  },
+  "console": {
+    "url": "https://aistudio.google.com/apikey",
+    "classification": "auth-gated",
+    "documentedSource": "https://ai.google.dev/gemini-api/docs/api-key"
+  }
+}
