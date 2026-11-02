@@ -1,4 +1,5 @@
 import { Badge, CodeBlock } from '@particle-academy/react-fancy';
+import type { CodeLanguage } from '@particle-academy/react-fancy';
 import { type ReactNode } from 'react';
 import { KineticNav } from '../../components/kinetic';
 
@@ -24,8 +25,8 @@ export function ResearchStatus({ provider }: { provider: ProviderGuide }) {
     return <p className="mt-4 text-sm text-[var(--k-ink-3)]">{provider.verifiedOn ? `Walked through on ${provider.verifiedOn}.` : `Researched from ${provider.name}'s official documentation on ${provider.researchedOn}. Not yet walked through end to end.`}{provider.stale && ' These instructions were last checked more than 90 days ago; review the official sources before continuing.'}</p>;
 }
 
-export function StaticCode({ code, label }: { code: string; label: string }) {
-    return <CodeBlock className="my-4 min-w-0" code={code} title={label} language="plaintext" copyable copyLabels={{ copy: `Copy ${label}` }} />;
+export function StaticCode({ code, label, language }: { code: string; label: string; language: CodeLanguage }) {
+    return <CodeBlock className="my-4 min-w-0" code={code} title={label} language={language} copyable copyLabels={{ copy: `Copy ${label}` }} />;
 }
 
 export function environmentText(provider: ProviderGuide, language: string): string {
