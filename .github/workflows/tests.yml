@@ -83,6 +83,17 @@ jobs:
           cat setup-input-negative.log
           grep -q 'Setup pages must never render inputs' setup-input-negative.log
 
+      - name: Prove a broken local verification snippet fails
+        shell: bash
+        run: |
+          if node scripts/check-provider-markup.mjs --negative-snippet > setup-snippet-negative.log 2>&1; then
+            cat setup-snippet-negative.log
+            echo 'The local example guard accepted a broken native method.'
+            exit 1
+          fi
+          cat setup-snippet-negative.log
+          grep -q 'Expected 1 calls, got 0' setup-snippet-negative.log
+
   third-party:
     name: Third-party dependency allowlist
     runs-on: ubuntu-latest

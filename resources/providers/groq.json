@@ -1,0 +1,31 @@
+{
+  "id": "groq",
+  "name": "Groq",
+  "signupUrl": "https://console.groq.com/docs/quickstart",
+  "keyUrl": "https://console.groq.com/docs/quickstart",
+  "sources": [
+    "https://console.groq.com/docs/quickstart"
+  ],
+  "billing": "Groq has model-specific free limits and paid plans. Review the project’s quota, billing and spend limits before using a paid tier.",
+  "regions": [],
+  "steps": [
+    {
+      "title": "Choose your Groq project",
+      "body": "Create an account or sign in to GroqCloud, then select the project for your application."
+    },
+    {
+      "title": "Create a project API key",
+      "body": "Open the API key page linked from the official quickstart and create a separate key for this application. Store it privately on your own machine."
+    },
+    {
+      "title": "Check model access and limits",
+      "body": "Choose an available text model and review the project’s model permissions, rate limits and billing."
+    }
+  ],
+  "verifiedOn": null,
+  "researchedOn": "2026-11-02",
+  "portSupport": {
+    "ts": false,
+    "py": false
+  }
+}

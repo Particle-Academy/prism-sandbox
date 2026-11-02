@@ -1,0 +1,32 @@
+{
+  "id": "voyageai",
+  "name": "Voyage AI",
+  "signupUrl": "https://docs.voyageai.com/docs/api-key-and-installation",
+  "keyUrl": "https://docs.voyageai.com/docs/api-key-and-installation",
+  "sources": [
+    "https://docs.voyageai.com/docs/api-key-and-installation",
+    "https://docs.voyageai.com/docs/faq"
+  ],
+  "billing": "Embeddings are billed by the selected model and input tokens, subject to your current allowance and plan. The local example embeds only “Hello.”; review the dashboard’s billing and limits first.",
+  "regions": [],
+  "steps": [
+    {
+      "title": "Sign in to the Voyage dashboard",
+      "body": "Create or sign in to your Voyage AI account and open the API keys section linked in the official guide."
+    },
+    {
+      "title": "Create an application secret key",
+      "body": "Choose Create new secret key and store it privately in your application’s environment. Use Prism’s environment name below, which can differ from the provider’s standalone SDK."
+    },
+    {
+      "title": "Check embedding model access",
+      "body": "Choose a text embedding model your account can use, then review current usage limits and payment settings. This provider supplies embeddings rather than text completions."
+    }
+  ],
+  "verifiedOn": null,
+  "researchedOn": "2026-11-02",
+  "portSupport": {
+    "ts": false,
+    "py": false
+  }
+}

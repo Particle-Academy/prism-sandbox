@@ -4,7 +4,7 @@ import { KineticNav } from '../../components/kinetic';
 
 export type ProviderGuide = {
     id: string; name: string; signupUrl: string; keyUrl: string; billing: string;
-    regions: { name: string; note: string }[]; steps: string[]; sources: string[];
+    regions: { name: string; note: string }[]; steps: { title: string; body: string }[]; sources: string[];
     researchedOn: string; verifiedOn: string | null; stale: boolean;
     portSupport: { ts: boolean; py: boolean }; capabilities: string[];
     console?: { url: string; classification: 'auth-gated'; documentedSource: string };
@@ -37,8 +37,14 @@ export function environmentText(provider: ProviderGuide, language: string): stri
 }
 
 export function verifySnippet(provider: ProviderGuide, language: string): string {
+    if (provider.id === 'voyageai') return phpVerification(`    $result = Prism::embeddings()\n        ->using('voyageai', $model)\n        ->fromInput('Hello.')\n        ->withProviderOptions(['inputType' => 'query'])\n        ->asEmbeddings();\n    echo count($result->embeddings), ' embedding(s)', PHP_EOL;`);
+    if (provider.id === 'elevenlabs') return phpVerification(`    $voice = getenv('PRISM_SETUP_VOICE');\n    if (!$voice) {\n        throw new RuntimeException('Set PRISM_SETUP_VOICE to a voice your account can use.');\n    }\n    $result = Prism::audio()\n        ->using('elevenlabs', $model)\n        ->withVoice($voice)\n        ->withInput('Hello.')\n        ->withProviderOptions(['model_id' => $model])\n        ->asAudio();\n    echo strlen($result->audio->rawContent()), ' audio bytes', PHP_EOL;`);
     if (language === 'typescript') return `import { Prism } from '@particle-academy/prism';\n\nconst model = process.env.PRISM_SETUP_MODEL;\nif (!model) throw new Error('Set PRISM_SETUP_MODEL to a model your account can use.');\ntry {\n  const result = await Prism.text()\n    .using('${provider.id}', model)\n    .withPrompt('Say hello.')\n    .withMaxTokens(32)\n    .asText();\n  console.log(result.text);\n} catch (error) {\n  console.error(error instanceof Error ? error.name : 'Request failed');\n  process.exitCode = 1;\n}`;
     if (language === 'python') return `import os\nfrom prism import Prism\n\nmodel = os.environ.get('PRISM_SETUP_MODEL')\nif not model:\n    raise RuntimeError('Set PRISM_SETUP_MODEL to a model your account can use.')\ntry:\n    result = (Prism.text()\n        .using('${provider.id}', model)\n        .with_prompt('Say hello.')\n        .with_max_tokens(32)\n        .as_text())\n    print(result.text)\nexcept Exception as error:\n    print(type(error).__name__)\n    raise SystemExit(1) from None`;
     if (provider.id === 'replicate') return `use Prism\\Prism\\Facades\\Prism;\n\n// One billed image; approximately US$0.003, subject to current model pricing.\n$result = Prism::image()\n    ->using('replicate', 'black-forest-labs/flux-schnell')\n    ->withPrompt('A small blue circle on a white background')\n    ->withProviderOptions(['num_outputs' => 1, 'aspect_ratio' => '1:1'])\n    ->generate();\n\necho count($result->images), PHP_EOL;`;
     return `use Prism\\Prism\\Facades\\Prism;\n\n// Run in your own configured Laravel app (for example, php artisan tinker).\n$model = getenv('PRISM_SETUP_MODEL');\nif (!$model) {\n    throw new RuntimeException('Set PRISM_SETUP_MODEL to your model${provider.id === 'azure' ? ' deployment' : ''}.');\n}\ntry {\n    $result = Prism::text()\n        ->using('${provider.id}', $model)\n        ->withPrompt('Say hello.')\n        ->withMaxTokens(32)\n        ->asText();\n    echo $result->text, PHP_EOL;\n} catch (Throwable $error) {\n    echo get_class($error), PHP_EOL;\n}`;
+}
+
+function phpVerification(body: string): string {
+    return `use Prism\\Prism\\Facades\\Prism;\n\n// Run in your own configured Laravel application.\n$model = getenv('PRISM_SETUP_MODEL');\nif (!$model) {\n    throw new RuntimeException('Set PRISM_SETUP_MODEL to a model your account can use.');\n}\ntry {\n${body}\n} catch (Throwable $error) {\n    echo get_class($error), PHP_EOL;\n}`;
 }

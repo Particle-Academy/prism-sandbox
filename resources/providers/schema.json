@@ -10,7 +10,7 @@
     "keyUrl": {"type": "string", "format": "uri"},
     "billing": {"type": "string", "minLength": 1},
     "regions": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["name", "note"], "properties": {"name": {"type": "string", "minLength": 1}, "note": {"type": "string", "minLength": 1}}}},
-    "steps": {"type": "array", "minItems": 2, "items": {"type": "string", "minLength": 1}},
+    "steps": {"type": "array", "minItems": 2, "items": {"type": "object", "additionalProperties": false, "required": ["title", "body"], "properties": {"title": {"type": "string", "minLength": 3}, "body": {"type": "string", "minLength": 1}}}},
     "verifiedOn": {"type": ["string", "null"], "format": "date"},
     "researchedOn": {"type": "string", "format": "date"},
     "sources": {"type": "array", "minItems": 1, "items": {"type": "string", "format": "uri"}},

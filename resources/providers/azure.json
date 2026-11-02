@@ -14,9 +14,18 @@
     }
   ],
   "steps": [
-    "Sign in with an Azure subscription and permissions to create Azure OpenAI resources and model deployments.",
-    "Create or select a compatible Azure OpenAI resource. Deploy the model you intend to call and confirm its regional quota.",
-    "From that resource, obtain its endpoint and key. Configure your own application with that endpoint, key, deployment name and compatible API version. No Azure resource is created by this site."
+    {
+      "title": "Select a subscription and permissions",
+      "body": "Sign in with an Azure subscription and permissions to create Azure OpenAI resources and model deployments."
+    },
+    {
+      "title": "Deploy a model in your region",
+      "body": "Create or select a compatible Azure OpenAI resource. Deploy the model you intend to call and confirm its regional quota."
+    },
+    {
+      "title": "Get the resource endpoint and key",
+      "body": "From that resource, obtain its endpoint and key. Configure your own application with that endpoint, key, deployment name and compatible API version. No Azure resource is created by this site."
+    }
   ],
   "verifiedOn": null,
   "researchedOn": "2026-11-02",

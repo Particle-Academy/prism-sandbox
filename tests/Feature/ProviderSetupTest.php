@@ -10,18 +10,16 @@ use Tests\TestCase;
 
 class ProviderSetupTest extends TestCase
 {
-    public function test_provider_coverage_matches_the_installed_config_with_an_explicit_second_slice(): void
+    public function test_every_installed_provider_has_a_guide_without_deferred_exceptions(): void
     {
         $configured = array_keys((new CoreProviderConfig)->providers());
         $guides = (new ProviderGuides)->all();
-        $pending = json_decode(file_get_contents(resource_path('providers/coverage.json')), true, flags: JSON_THROW_ON_ERROR)['pending'];
-        $covered = [...array_keys($guides), ...$pending];
+        $covered = array_keys($guides);
         $this->assertSame(count($covered), count(array_unique($covered)));
         sort($configured);
         sort($covered);
-        $this->assertSame($configured, $covered, 'Every installed provider needs a guide or the explicitly approved second slice.');
-        $this->assertCount(8, $guides);
-        $this->assertCount(10, $pending);
+        $this->assertSame($configured, $covered, 'Every installed provider needs a guide.');
+        $this->assertCount(18, $guides);
     }
 
     public function test_every_setup_page_contains_only_public_source_derived_props(): void
@@ -34,6 +32,11 @@ class ProviderSetupTest extends TestCase
             $this->assertSame($id, $props['provider']['id']);
             $this->assertNull($props['provider']['verifiedOn']);
             $this->assertNotEmpty($props['provider']['sources']);
+            foreach ($guide['steps'] as $step) {
+                $this->assertNotEmpty($step['title']);
+                $this->assertNotEmpty($step['body']);
+                $this->assertDoesNotMatchRegularExpression('/^Step\s+\d+$/i', $step['title']);
+            }
             $this->assertStringContainsString('/providers/setup/'.$id, $props['seo']['canonical']);
             foreach ($guide['environment'] as $variable) {
                 $this->assertMatchesRegularExpression('/^[A-Z][A-Z0-9_]*$/', $variable['name']);
@@ -45,7 +48,7 @@ class ProviderSetupTest extends TestCase
             $this->assertSame($guide['portSupport']['py'], $guide['portEnvironment']['python'] !== []);
         }
         $this->get('/providers/setup/notaprovider')->assertNotFound();
-        $this->get('/providers/setup/vertex')->assertNotFound();
+        $this->post('/providers/setup/openai', ['key' => 'OWNED_NO_INPUT_CANARY'])->assertStatus(405);
     }
 
     public function test_the_catalog_never_uses_resolved_application_credential_values(): void

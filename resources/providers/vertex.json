@@ -1,0 +1,37 @@
+{
+  "id": "vertex",
+  "name": "Vertex AI (Google Cloud)",
+  "signupUrl": "https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/start/gcp-auth",
+  "keyUrl": "https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/start/gcp-auth",
+  "sources": [
+    "https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/start/gcp-auth",
+    "https://docs.cloud.google.com/docs/authentication/set-up-adc-local-dev-environment"
+  ],
+  "billing": "Requires a Cloud project with billing, the relevant API enabled, model access and regional quota. Token rates and other charges depend on your model and region.",
+  "regions": [
+    {
+      "name": "Your Cloud project and region",
+      "note": "Set the project and region names below to match the model you can use. The package’s default region is not a promise of model availability."
+    }
+  ],
+  "steps": [
+    {
+      "title": "Prepare your Cloud project",
+      "body": "Choose a Cloud project, enable billing and the relevant model API, and arrange the permissions and regional quota your application needs."
+    },
+    {
+      "title": "Create local Application Default Credentials",
+      "body": "Install the Google Cloud CLI on your own machine, select your project, and run gcloud auth application-default login there. Follow Google’s sign-in instructions locally."
+    },
+    {
+      "title": "Keep ADC local to your application",
+      "body": "Run the application as the user who configured ADC. Do not download, paste or upload a service-account JSON for this walkthrough. The application reads local ADC itself; this website never opens it."
+    }
+  ],
+  "verifiedOn": null,
+  "researchedOn": "2026-11-02",
+  "portSupport": {
+    "ts": false,
+    "py": false
+  }
+}
