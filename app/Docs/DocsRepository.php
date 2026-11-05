@@ -224,7 +224,9 @@ class DocsRepository
     {
         return array_values(array_filter(
             $this->flatNav(),
-            fn (array $item): bool => ! $this->isExternal($item),
+            // Site pages listed in the sidebar are not docs files, so they never
+            // enter page lookups or previous/next links.
+            fn (array $item): bool => ! $this->isExternal($item) && ! ($item['site'] ?? false),
         ));
     }
 

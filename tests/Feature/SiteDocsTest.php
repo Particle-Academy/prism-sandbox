@@ -32,6 +32,13 @@ class SiteDocsTest extends TestCase
                     continue;
                 }
 
+                // A site page in the sidebar must resolve as a route, not a docs file.
+                if ($item['site'] ?? false) {
+                    $this->get($item['link'])->assertOk();
+
+                    continue;
+                }
+
                 // A nav entry naming a page nobody wrote must fail here rather
                 // than render as a link to a 404 — that is the whole reason
                 // siteNav() does not filter entries it cannot resolve.
