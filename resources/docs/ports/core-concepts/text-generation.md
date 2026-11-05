@@ -187,7 +187,7 @@ response = (
 
 ## Response callback
 
-In TypeScript, `asText()` accepts an optional callback that receives the pending request and the response before the promise resolves. Python's `as_text()` takes no arguments; use the returned response directly.
+TypeScript `asText()` accepts an optional callback that receives the pending request and the response before the promise resolves. In Python, process the response returned by `as_text()`.
 
 ```ts
 import { Prism } from '@particle-academy/prism';

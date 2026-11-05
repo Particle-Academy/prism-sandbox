@@ -236,7 +236,7 @@ Before each request, including every redirect, it checks:
 
 A negative or non-integer limit raises `RangeError` in TypeScript and `ValueError` in Python. Python's default transport applies a 30-second timeout to each hop. TypeScript's `fetchPublic` has no timeout of its own.
 
-Refusals carry one of these codes. In TypeScript they are thrown as `PrismUrlRefused`, a subclass of `PrismError`. Python has no separate class: it raises `PrismError` with the same `code`.
+Refusals carry one of these codes. TypeScript raises `PrismUrlRefused`, a `PrismError` subclass; Python raises `PrismError`. Read the stable `code` in either language.
 
 | Code | Meaning |
 |---|---|

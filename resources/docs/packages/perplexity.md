@@ -212,7 +212,9 @@ TypeScript, dicts in Python), so every field Perplexity sends reaches you.
 
 The Agent API runs long research tasks in the background. `create()` starts a
 run and returns at once; `retrieve()` reads its current state, `wait()` polls
-until it finishes, and `cancel()` stops it.
+until it finishes, and `cancel()` requests cancellation. An accepted request
+can return `cancelling` while the provider finishes stopping the run. Retrieve
+the run again to observe a terminal status.
 
 ::: language-group
 ```php
@@ -294,7 +296,7 @@ Every call returns an `AgentResponse`:
 | Field | Contains |
 | --- | --- |
 | `id` | the response id — keep it to retrieve or cancel the run later |
-| `status` | `queued`, `in_progress`, `completed`, `failed`, `incomplete` or `cancelled` |
+| `status` | `queued`, `in_progress`, `completed`, `failed`, `incomplete`, `cancelling` or `cancelled` |
 | `model` | the model that ran, or null |
 | `output` | the output items |
 | `annotations` | every annotation (citations) from the output's content parts, flattened |
@@ -305,7 +307,8 @@ Every call returns an `AgentResponse`:
 
 `isTerminal()` / `is_terminal()` is true for `completed`, `failed`,
 `incomplete` and `cancelled`; `isSuccessful()` / `is_successful()` only for
-`completed`. `text()` joins every text part of the output. PHP's `status` is the
+`completed`. `cancelling` is nonterminal. `text()` joins every text part of the
+output. PHP's `status` is the
 `Prism\Perplexity\Agent\AgentStatus` enum (`AgentStatus::Completed`, …), and
 Python's is the `AgentStatus` enum (`AgentStatus.COMPLETED`, …); TypeScript
 uses the string values. PHP responses also carry `protocol`
@@ -313,6 +316,13 @@ uses the string values. PHP responses also carry `protocol`
 
 A run that ends `failed`, `incomplete` or `cancelled` is returned as a
 response, not thrown. Check `status` before reading `text()`.
+
+Cancellation acknowledgements are bound to the exact requested run ID. A
+malformed acknowledgement or a different ID raises an error; it does not
+confirm that the requested run stopped. Cancellation state is then uncertain:
+use `retrieve()` with the requested ID to check it. The client sends one
+cancellation request and does not retry it automatically. `raw` retains the
+provider's unmodified acknowledgement.
 
 ### Waiting
 

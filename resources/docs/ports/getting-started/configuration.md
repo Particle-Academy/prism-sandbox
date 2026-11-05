@@ -97,4 +97,4 @@ response = (
 
 The `transport` key replaces the HTTP layer for ordinary calls. Use it to assert the outgoing request and return a recorded response without network access. Streaming calls use a separate `streamTransport` / `stream_transport`, and TypeScript's OpenAI and Mistral providers use `binaryTransport` for audio. See [Testing](/core-concepts/testing).
 
-The ports do not read `config/prism.php`, Laravel's `env()` helper or service-container bindings.
+Configure each native provider through its `using()` configuration object or the environment variables listed above. PHP's Laravel integration reads `config/prism.php` and its service-container bindings.

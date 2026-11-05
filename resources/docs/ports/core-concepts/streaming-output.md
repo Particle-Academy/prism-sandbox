@@ -39,7 +39,7 @@ for event in stream:
 
 The stream accumulates nothing. To keep the full text, collect the deltas yourself or read `TextCompleteEvent.text`.
 
-In Python, the event classes are in `prism.streaming`, not the top-level `prism` package. In TypeScript they are exported from `@particle-academy/prism`.
+Import Python event classes from `prism.streaming`, and TypeScript event classes from `@particle-academy/prism`.
 
 ## Event types
 
@@ -131,7 +131,7 @@ A tool-call event is not permission to execute a tool. Use the [Harness](/packag
 
 ## Forwarding a stream
 
-The iterator is a provider event stream, not an HTTP response. Your web framework owns SSE headers, cancellation and client disconnect handling. `toObject()` / `to_dict()` gives each event a JSON form you can forward. Laravel helpers such as `asEventStreamResponse()` are specific to the PHP integration.
+Forward the provider iterator through your application's streaming response. Your web framework owns SSE headers, cancellation and client disconnect handling. `toObject()` / `to_dict()` gives each event a JSON form you can forward. PHP's Laravel integration also supplies `asEventStreamResponse()`.
 
 ## Testing a stream
 

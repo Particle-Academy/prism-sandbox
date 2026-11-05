@@ -1,6 +1,6 @@
 # Prism Server
 
-Prism Server is the PHP package's Laravel HTTP integration. The TypeScript and Python core packages do not ship its routes, Artisan commands or `config/prism.php` settings.
+Prism Server supplies Laravel routes and configuration for the PHP package. In Node.js and Python, call Prism from an endpoint in your application's HTTP framework as shown below.
 
 ## Calling Prism from a server
 

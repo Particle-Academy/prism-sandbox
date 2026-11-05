@@ -1,6 +1,6 @@
 # Error handling
 
-Failures raise `PrismError` with a stable `code`. Branch on the code, not on the message: codes stay the same between releases, while messages may be reworded. The PHP package's exception classes do not exist in the ports.
+Package failures raise `PrismError` with a stable `code`; native argument and transport errors are described below. Branch on the code, not on the message: codes stay the same between releases, while messages may be reworded.
 
 ## Handle an unsupported provider
 
@@ -36,7 +36,7 @@ except PrismError as error:
 
 ## The error object
 
-The fields have different names in the two languages.
+Read the native error fields shown below.
 
 | TypeScript | Python | Contents |
 |---|---|---|
@@ -46,7 +46,7 @@ The fields have different names in the two languages.
 | `responseBody` | `body` | The provider's raw response body, when it was kept. Often `null` / `None`, for example on streaming and audio failures. |
 | `cause` | `__cause__` | The underlying error, when there was one (for example the file-system error behind `unreadable_media_file`). |
 
-In TypeScript, refused URLs from `fetchPublic()` throw `PrismUrlRefused`, a subclass of `PrismError` whose `code` is one of the six URL refusal codes. Python has no subclass: it raises `PrismError` with the same codes.
+TypeScript `fetchPublic()` raises `PrismUrlRefused`, a `PrismError` subclass, for refused URLs. Python `fetch_public()` raises `PrismError`. Both expose the stable URL-refusal `code`.
 
 A provider response body can echo your prompt or other request content. Treat `responseBody` / `body` as sensitive when logging.
 

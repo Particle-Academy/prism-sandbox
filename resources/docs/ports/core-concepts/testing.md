@@ -1,6 +1,6 @@
 # Testing
 
-Inject a fake transport in the provider config to exercise request building and response parsing without a live provider. No credentials or network connection are needed. The ports do not use Laravel's facade fake or PHPUnit assertions.
+Inject a fake transport in the provider config to exercise request building and response parsing without a live provider. Assert on the captured request with your language's test framework; no credentials or network connection are needed.
 
 Every provider (`openai`, `anthropic`, `mistral`) takes the same transport keys:
 

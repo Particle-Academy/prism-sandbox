@@ -3,20 +3,32 @@
 Prism has PHP, TypeScript and Python implementations of core and all eight
 companion package families, including Harness.
 
-::: tip Every capability, three providers
-Both ports implement every capability the PHP reference has, with three of its
-eighteen providers: Anthropic, Mistral and OpenAI. The multi-step tool execution
-loop in core is PHP-specific; unsupported tool-loop responses in core produce
-a coded error. The separate TypeScript and Python Harness packages provide
-agent runtimes with tool execution and durable approvals.
+::: tip Native APIs, shared conformance fixtures
+Both core ports provide fluent request APIs for Anthropic, Mistral and OpenAI.
+Their supported operations and provider mappings are described in the guides.
+The separate TypeScript and Python Harness packages provide agent runtimes
+with tool execution and durable approvals.
 :::
 
 ## What exists
 
 | Port | Runtime | Install | Current scope |
 | --- | --- | --- | --- |
-| [TypeScript](https://github.com/Particle-Academy/prism-ts) | Node 20+ | `npm install @particle-academy/prism` | Every capability; Anthropic, Mistral and OpenAI; native promises and strict types |
-| [Python](https://github.com/Particle-Academy/prism-py) | Python 3.10+ | `pip install prism-ai-core` | Every capability; Anthropic, Mistral and OpenAI; zero runtime dependencies |
+| [TypeScript](https://github.com/Particle-Academy/prism-ts) | Node 22+ | `npm install @particle-academy/prism` | Anthropic, Mistral and OpenAI adapters; native promises and strict types |
+| [Python](https://github.com/Particle-Academy/prism-py) | Python 3.10+ | `pip install prism-ai-core` | Anthropic, Mistral and OpenAI adapters; native modules and zero runtime dependencies |
+
+## Current limits
+
+Core ports expose a subset of the PHP reference's provider integrations and
+operation depth. Check [provider interoperability](/docs/advanced/provider-interoperability),
+[tool execution](/docs/core-concepts/tools-function-calling),
+[core confirmations and Harness approvals](/docs/core-concepts/human-in-the-loop),
+[schema types](/docs/core-concepts/structured-output), and
+[payload projection](/docs/advanced/payload-projection) before choosing an API.
+Image generation does not include the reference's image-edit API, and port
+moderation accepts text inputs. The
+[conformance ledger](https://github.com/Particle-Academy/prism-parity/blob/main/parity/ledger.json)
+records the scope and known gaps of the shared comparisons.
 
 ## What parity means here
 

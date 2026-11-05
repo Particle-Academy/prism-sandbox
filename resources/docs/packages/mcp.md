@@ -753,7 +753,7 @@ each `listTools()` / `list_tools()` is a request.
 
 ## Errors
 
-Every failure carries a stable code. In PHP, each exception extends
+Package protocol failures carry a stable code. In PHP, each exception extends
 `Prism\Mcp\Exceptions\McpException` and returns its code from `code()`; branch on
 the class or the code, not the message. In TypeScript and Python, every failure
 is an `McpError` with a `code` property (Python also has the `ErrorCode` enum).

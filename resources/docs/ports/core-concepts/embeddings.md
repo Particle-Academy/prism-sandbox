@@ -86,7 +86,7 @@ OpenAI reads three keys from `withProviderOptions()` / `with_provider_options()`
 | Option | Type | Meaning |
 |---|---|---|
 | `dimensions` | number | Shorten the vector to this many dimensions (`text-embedding-3-*` models). |
-| `encoding_format` | string | Leave unset, or `float`. The ports read vectors as number arrays only: with `base64`, every `Embedding` comes back empty. |
+| `encoding_format` | string | `float` or `base64`. Base64 vectors are decoded as little-endian float32 values. Malformed base64, incomplete float32 values and non-finite decoded numbers raise `invalid_embedding`. |
 | `user` | string | An end-user identifier OpenAI uses for abuse monitoring. |
 
 Mistral sends only the model and the inputs. None of the options above are forwarded to it.

@@ -83,12 +83,12 @@ above are all it needs. If the OpenTelemetry API is not installed, the bridge
 does nothing.
 
 The PHP package requires PHP 8.2+ and `particle-academy/prism` 0.111 or newer.
-These environment settings do not apply to TypeScript or Python.
+Configure the TypeScript and Python subscribers explicitly through the adapter below.
 
 ## Connect the tracer (TypeScript and Python)
 
-The TypeScript and Python subscribers do not import OpenTelemetry. They write
-through the package's own `Tracer` interface — one method, `startSpan` /
+The TypeScript and Python subscribers write through the package's own
+`Tracer` interface — one method, `startSpan` /
 `start_span` — and a `Span` with `setAttribute`, `setStatus`,
 `recordException` and `end`. Timestamps are epoch **nanoseconds**, and a child
 span receives its parent as the package's own `Span` object.
