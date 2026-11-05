@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { KineticNav } from '../../components/kinetic';
 import { SearchPalette, useSearchPalette } from '../../components/SearchPalette';
 
-type NavItem = { text: string; link: string };
+type NavItem = { text: string; link: string; site?: boolean };
 type NavGroup = { text: string; items: NavItem[] };
 type TocEntry = { id: string; text: string; level: number };
 type DocLanguage = 'php' | 'typescript' | 'python';
@@ -120,7 +120,7 @@ export default function Show({ page, nav, path, version }: { page: Page; nav: Na
                                                         {item.text} ↗
                                                     </a>
                                                 ) : (
-                                                    <Link href={'/docs' + item.link} className={className} style={style}>
+                                                    <Link href={item.site ? item.link : '/docs' + item.link} className={className} style={style}>
                                                         {item.text}
                                                     </Link>
                                                 )}
