@@ -59,6 +59,18 @@ class SiteDocsTest extends TestCase
         );
     }
 
+    public function test_provider_setup_is_listed_under_getting_started_as_a_site_page(): void
+    {
+        $nav = app(DocsRepository::class)->nav();
+        $gettingStarted = collect($nav)->firstWhere('text', 'Getting Started');
+
+        $this->assertNotNull($gettingStarted);
+        $entry = collect($gettingStarted['items'])->firstWhere('text', 'Provider setup');
+        $this->assertSame('/providers/setup', $entry['link'] ?? null);
+        $this->assertTrue($entry['site'] ?? false, 'Linked at the site root, not under /docs.');
+        $this->get('/providers/setup')->assertOk();
+    }
+
     public function test_the_upstream_companion_section_is_suppressed_so_it_cannot_compete(): void
     {
         // The package ships its own "Companion Packages" group, and the site

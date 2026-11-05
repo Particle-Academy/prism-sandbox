@@ -107,7 +107,7 @@ class DocsRepository
 
             if (is_array($sidebar)) {
                 $groups = $sidebar[0]['items'] ?? $sidebar;
-                $nav = $this->withoutSuperseded($this->normalizeNav($groups));
+                $nav = $this->withSitePages($this->withoutSuperseded($this->normalizeNav($groups)));
 
                 if ($nav !== []) {
                     return $nav;
@@ -151,6 +151,27 @@ class DocsRepository
             $nav,
             fn (array $section): bool => ! in_array(mb_strtolower(trim($section['text'])), $superseded, true),
         ));
+    }
+
+    /**
+     * Append the site's own pages to the upstream group they belong in, such as
+     * Provider setup under Getting Started. They are flagged `site` so the
+     * sidebar links them at the site root rather than under /docs.
+     *
+     * @param  array<int, array{text: string, items: array<int, array<string, mixed>>}>  $nav
+     * @return array<int, array{text: string, items: array<int, array<string, mixed>>}>
+     */
+    protected function withSitePages(array $nav): array
+    {
+        $pages = (array) config('docs.site_pages_in_package_sections', []);
+
+        foreach ($nav as $index => $section) {
+            foreach ($pages[$section['text']] ?? [] as $page) {
+                $nav[$index]['items'][] = ['text' => $page['text'], 'link' => $page['link'], 'external' => false, 'site' => true];
+            }
+        }
+
+        return $nav;
     }
 
     /**

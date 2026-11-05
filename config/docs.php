@@ -46,6 +46,16 @@ return [
     |
     */
 
+    /*
+    | Site pages listed inside an upstream sidebar group, matched by the group's
+    | title. Their links are site paths, not /docs paths.
+    */
+    'site_pages_in_package_sections' => [
+        'Getting Started' => [
+            ['text' => 'Provider setup', 'link' => '/providers/setup'],
+        ],
+    ],
+
     'superseded_package_sections' => [
         'Companion Packages',
         'Other Packages',
