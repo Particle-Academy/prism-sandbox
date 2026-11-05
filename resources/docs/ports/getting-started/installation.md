@@ -2,7 +2,7 @@
 
 ## Requirements
 
-TypeScript requires Node.js 20 or later. Python requires Python 3.10 or later. Both run independently of Laravel. Install the package in your application's server environment.
+TypeScript requires Node.js 22 or later. Python requires Python 3.10 or later. Install the package in your application's server environment.
 
 ## Install the package
 
@@ -20,7 +20,7 @@ The Python distribution is `prism-ai-core` and its import is `prism`. The unrela
 
 ## Configure credentials
 
-Provide `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` or `MISTRAL_API_KEY` through your server environment. The ports do not publish a Laravel configuration file and do not require an Artisan command. See [Configuration](/getting-started/configuration) for explicit per-request configuration.
+Provide `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` or `MISTRAL_API_KEY` through your server environment, or pass explicit per-request configuration. See [Configuration](/getting-started/configuration) for each language's keys and precedence.
 
 ## Import Prism
 

@@ -100,7 +100,7 @@ modes = ModeRegistry({
 | `max_steps` | `8` | The child's step allowance |
 | `max_cost_usd` | none | The child's cost allowance |
 | `max_seconds` | none | The child's wall-clock allowance |
-| `max_output_tokens_per_call` | none | PHP only: an output token ceiling per model call, which can narrow but never raise the parent's |
+| `max_output_tokens_per_call` | none | An output token ceiling per model call, which can narrow but never raise the parent's |
 | `scope` | the subagent's name | Suffix for the child's session scope |
 
 A subagent whose `mode` is not configured makes the parent mode fail to

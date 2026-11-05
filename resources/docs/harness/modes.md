@@ -203,15 +203,14 @@ Include only the tools the mode needs. An empty list is valid and gives a mode
 with no tools. Separate modes can give research, editing and verification runs
 different authority.
 
-A turn can narrow the list further by passing tool names to `send()`. In PHP
-the names are intersected with the mode's list, so a caller can never widen a
-mode. In TypeScript and Python the names passed **replace** the mode's list for
-that turn; pass only names you have checked against the mode, and never names
-taken from request input.
+A turn can pass tool names to `send()`. Named agents enforce their mode's tool
+ceiling. In the legacy namespace, PHP intersects the names with the mode's
+list; TypeScript and Python use the supplied list for that turn. Pass only
+names authorized by the active mode, and never names taken from request input.
 
-In TypeScript and Python, a name with no registered tool throws
-`tool_not_available` when the run starts. PHP offers only the names it can
-resolve.
+TypeScript and Python fail closed with `tool_not_available` when a requested
+tool is unregistered. PHP named agents also reject unregistered requested
+tools. PHP's legacy namespace filters out names it cannot resolve.
 
 ## Tool authorization
 

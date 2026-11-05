@@ -49,8 +49,8 @@ print(response.structured)
 
 `Prism.structured()` has every method of `Prism.text()` (system prompts, messages, temperature, provider options and so on) plus `withSchema()` and `usingStructuredMode()`.
 
-::: warning Python imports
-In Python, `StringSchema`, `NumberSchema` and `BooleanSchema` can be imported from `prism`, but `ObjectSchema`, `ArraySchema` and `EnumSchema` are only in `prism.schema`. Import all six from `prism.schema` to keep it simple. In TypeScript every schema class is exported from `@particle-academy/prism`.
+::: tip Python imports
+Import the six Python schema classes from `prism.schema`. Import TypeScript schema classes from `@particle-academy/prism`.
 :::
 
 ## Schema types
@@ -132,12 +132,12 @@ review = ObjectSchema(
 | Provider | Method | Enforced? |
 |---|---|---|
 | OpenAI | Strict `json_schema` response format, or JSON mode; see [Structured mode](#structured-mode). | Yes in structured mode. |
-| Anthropic | Appends a user message containing the schema and asking for JSON only. | No. The model can answer in prose. |
+| Anthropic | Native `output_config.format` JSON Schema output. | Yes, for models that support native structured output. |
 | Mistral | Strict `json_schema` response format. Tools set on a structured request are **not sent**, because Mistral rejects a schema and tools in one request. | Yes. |
 
 ## Structured mode
 
-`usingStructuredMode()` chooses how OpenAI receives the schema. Anthropic and Mistral ignore it.
+`usingStructuredMode()` chooses how OpenAI receives the schema. Anthropic uses its native output format, and Mistral uses its strict schema response format. Anthropic's separate internal structured-tool mode (`use_tool_calling`) remains unsupported and is refused before HTTP; it is distinct from native schema output.
 
 | Mode | OpenAI behaviour |
 |---|---|
@@ -182,7 +182,7 @@ In Python, `StructuredMode` is imported from `prism.enums`.
 | TypeScript | Python | Type | Meaning |
 |---|---|---|---|
 | `structured` | `structured` | object or null | The parsed object. **Null when the reply was not a JSON object.** |
-| `text` | `text` | string | The model's raw reply, kept so you can see why parsing failed. |
+| `text` | `text` | string | Empty for native structured-output responses; other modes retain the reply text. The completed assistant message retains the original JSON. |
 | `finishReason` | `finish_reason` | `FinishReason` | Why generation stopped. |
 | `usage` | `usage` | `Usage` | Token counts, as for [text](/core-concepts/text-generation#the-response). |
 | `meta` | `meta` | `Meta` | Response id, model and rate limits. |
@@ -192,9 +192,9 @@ In Python, `StructuredMode` is imported from `prism.enums`.
 
 `structured` is read from the whole reply, or from the first fenced code block if the whole reply does not parse. A JSON array or scalar is not accepted. A null `structured` is not an error: check for it.
 
-The parsed object has not been validated against your schema by the ports. Validate it in your application before it authorizes an action or writes data, especially for Anthropic, where the schema is only requested.
+The ports parse the provider's reply without running a local schema validator. Native schema modes ask the provider to enforce the schema. Validate the result and apply your application's authorization checks before it triggers an action or writes data.
 
-In TypeScript, `asStructured()` accepts the same optional callback as `asText()`. Python's `as_structured()` takes no arguments.
+TypeScript `asStructured()` accepts the same optional callback as `asText()`. In Python, process the response returned by `as_structured()`.
 
 ## Errors
 

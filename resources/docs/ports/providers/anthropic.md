@@ -162,7 +162,7 @@ Thinking token counts are in `usage.thoughtTokens` / `usage.thought_tokens`.
 
 ## Structured output
 
-Anthropic has no schema-enforcing mode. For structured requests the adapter appends a user message asking for JSON that matches your schema, then parses the reply. The model can still answer with something else: then `structured` is `null` / `None` and the raw reply is in `text`. Validate the result before you rely on it. See [Structured output](/core-concepts/structured-output).
+Structured requests send the schema through Anthropic's native `output_config.format` on supported models. Read the parsed object from `structured`; `text` is empty and the completed assistant message retains the original JSON. Apply your own validation and authorization before acting on the result. The separate internal structured-tool mode (`use_tool_calling`) remains unsupported and is refused before HTTP. See [Structured output](/core-concepts/structured-output).
 
 ## Images and documents
 

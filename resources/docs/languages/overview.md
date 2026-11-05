@@ -1,8 +1,8 @@
 # Build with Prism
 
-Prism exposes the same provider-facing capabilities in PHP, TypeScript and
-Python. Choose a language once and every example on this page follows it; the
-concepts, capability names and failure boundaries stay the same.
+Prism provides native PHP, TypeScript and Python APIs for provider requests.
+Choose a language once and every example on this page follows it. Check the
+supported operations and current limits when moving a workflow between languages.
 
 For the cross-language contract, corpus, and current provider limits, read
 [Language ports](/packages/language-ports).
@@ -24,7 +24,7 @@ pip install prism-ai-core
 :::
 
 PHP requires PHP 8.2+ and Laravel 12.61+ or 13.12+. The TypeScript package
-requires Node 20+. The Python distribution requires Python 3.10+ and installs
+requires Node 22+. The Python distribution requires Python 3.10+ and installs
 the `prism` import.
 
 ::: warning Python package name
@@ -78,10 +78,13 @@ injectable HTTP transport so tests can run without a socket.
 
 ## Current surface
 
-All three implementations cover text, structured output, streaming,
-embeddings, images, moderation, text to speech, speech to text, files, batches
-and fill-in-the-middle. PHP is the reference and carries eighteen providers.
-The TypeScript and Python ports currently carry Anthropic, Mistral and OpenAI.
+The core APIs cover text, structured output, provider streams, embeddings,
+image generation, text moderation, speech, files, batches and fill-in-the-middle
+with provider-specific support. PHP is the reference and carries eighteen
+providers. The TypeScript and Python ports carry Anthropic, Mistral and OpenAI.
+Their operation depth and integrations are described in
+[Language ports](/packages/language-ports#current-limits); availability of a
+capability name does not promise every reference operation.
 
 Not every capability reaches every provider. Images, moderation, text to
 speech, files and batches work with OpenAI in the ports, and

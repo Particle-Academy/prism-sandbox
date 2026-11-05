@@ -181,10 +181,10 @@ all three languages, so they can share a base directory.
 | `root()` | `root` | `root` | absolute directory (PHP returns `null` for non-local disks) |
 | `disk()` | — | — | the underlying Laravel disk |
 
-PHP's `read()` returns the file's bytes as a string, so it is safe for binary
-files. In TypeScript and Python, use `readBytes()` / `read_bytes()` for
-anything that is not UTF-8 text; `read()` would corrupt it. In TypeScript and
-Python, paths may be passed as strings or as raw bytes (`Uint8Array` / `bytes`).
+PHP `read()` returns bytes as a string. For binary files, use TypeScript
+`readBytes()` or Python `read_bytes()`; use their `read()` methods for UTF-8
+text. TypeScript and Python paths accept strings or raw bytes
+(`Uint8Array` / `bytes`).
 Python's `append()` takes text only.
 
 Writes create missing parent directories. `copy()` guards both paths. `delete()`
