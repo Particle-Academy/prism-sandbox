@@ -1,16 +1,20 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import {extractTypeScriptEnvironment,extractPythonEnvironment} from './provider-port-environment.mjs';
 
 const root=path.resolve(import.meta.dirname,'..'),args=process.argv.slice(2),check=args.includes('--check');
 const paths=args.filter(a=>a!=='--check');assert.equal(paths.length,2,'Pass checked-out TypeScript and Python port roots');
+const typescript=createRequire(path.join(path.resolve(paths[0]),'package.json'))('typescript');
 const result={schemaVersion:1,typescript:{},python:{},sources:[]};
 for(const provider of ['openai','anthropic','mistral'])for(const[language,relative]of [['typescript',`src/providers/${provider}/${provider}.ts`],['python',`src/prism/providers/${provider}/provider.py`]]){
  const file=path.join(path.resolve(paths[language==='typescript'?0:1]),relative),source=fs.readFileSync(file,'utf8');assert(source.length<1000000);
- const expression=language==='typescript'?/\breadEnv\('([A-Z][A-Z0-9_]*)'\)/g:/\bos\.environ\.get\("([A-Z][A-Z0-9_]*)"/g;
- const names=[...new Set([...source.matchAll(expression)].map(m=>m[1]))].sort();assert(names.length>0);assert(names.every(n=>n.startsWith(provider.toUpperCase()+'_')));
+ const configurationPath=language==='typescript'?'src/internal/provider-config.ts':'src/prism/providers/config.py',configuration=fs.readFileSync(path.join(path.resolve(paths[language==='typescript'?0:1]),configurationPath),'utf8');
+ const names=language==='typescript'?extractTypeScriptEnvironment(source,configuration,typescript):extractPythonEnvironment(source,configuration);assert(names.length>0);assert(names.every(n=>n.startsWith(provider.toUpperCase()+'_')));
  result[language][provider]=names;
  result.sources.push({language,provider,path:relative});
+ result.sources.push({language,provider,path:configurationPath});
 }
 const target=path.join(root,'resources/providers/port-environment.json'),body=JSON.stringify(result,null,2)+'\n';
 if(check)assert.equal(fs.readFileSync(target,'utf8'),body,'Port environment names/source drifted: regenerate and review');else fs.writeFileSync(target,body);
