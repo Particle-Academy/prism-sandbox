@@ -1,10 +1,10 @@
 {
   "id": "gemini",
   "name": "Gemini",
-  "signupUrl": "https://ai.google.dev/gemini-api/docs/api-key",
-  "keyUrl": "https://ai.google.dev/gemini-api/docs/api-key",
+  "signupUrl": "https://aistudio.google.com/docs/api-key",
+  "keyUrl": "https://aistudio.google.com/docs/api-key",
   "sources": [
-    "https://ai.google.dev/gemini-api/docs/api-key"
+    "https://aistudio.google.com/docs/api-key"
   ],
   "billing": "Some models have limited free quotas. Paid API usage requires the project’s current billing setup; check AI Studio before sending a request.",
   "steps": [
@@ -23,7 +23,7 @@
   ],
   "regions": [],
   "verifiedOn": null,
-  "researchedOn": "2026-11-02",
+  "researchedOn": "2026-11-06",
   "portSupport": {
     "ts": false,
     "py": false
@@ -31,6 +31,6 @@
   "console": {
     "url": "https://aistudio.google.com/apikey",
     "classification": "auth-gated",
-    "documentedSource": "https://ai.google.dev/gemini-api/docs/api-key"
+    "documentedSource": "https://aistudio.google.com/docs/api-key"
   }
 }
