@@ -156,4 +156,5 @@ jobs:
       - name: Check the port examples
         run: |
           node scripts/check-port-docs.mjs .ports/prism-ts .ports/prism-py
+          PRISM_SETUP_PORT_TS_ROOT=.ports/prism-ts node --test scripts/provider-port-environment.test.mjs
           node scripts/generate-setup-port-env.mjs --check .ports/prism-ts .ports/prism-py
