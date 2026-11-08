@@ -2802,16 +2802,16 @@
         },
         {
             "name": "particle-academy/prism",
-            "version": "v0.146.0",
+            "version": "v0.147.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Particle-Academy/prism.git",
-                "reference": "f684d3aca5d2ca36bf68d452d3515d541600b507"
+                "reference": "60c6ab8718b0982c2fe14daaaa442198b9fb6dc8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Particle-Academy/prism/zipball/f684d3aca5d2ca36bf68d452d3515d541600b507",
-                "reference": "f684d3aca5d2ca36bf68d452d3515d541600b507",
+                "url": "https://api.github.com/repos/Particle-Academy/prism/zipball/60c6ab8718b0982c2fe14daaaa442198b9fb6dc8",
+                "reference": "60c6ab8718b0982c2fe14daaaa442198b9fb6dc8",
                 "shasum": ""
             },
             "require": {
@@ -2877,7 +2877,7 @@
             "description": "A powerful Laravel package for integrating Large Language Models (LLMs) into your applications. Actively maintained fork of prism-php/prism.",
             "support": {
                 "issues": "https://github.com/Particle-Academy/prism/issues",
-                "source": "https://github.com/Particle-Academy/prism/tree/v0.146.0"
+                "source": "https://github.com/Particle-Academy/prism/tree/v0.147.0"
             },
             "funding": [
                 {
@@ -2885,8 +2885,8 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-11-02T07:44:01+00:00",
-            "published-time": "2026-11-02T17:06:38+00:00"
+            "time": "2026-11-07T07:17:19+00:00",
+            "published-time": "2026-11-07T15:41:18+00:00"
         },
         {
             "name": "phpoption/phpoption",
