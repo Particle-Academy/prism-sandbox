@@ -1378,16 +1378,16 @@
         },
         {
             "name": "laravel/prompts",
-            "version": "v0.3.26",
+            "version": "v0.3.27",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/prompts.git",
-                "reference": "2d1e9bf6bab8d3f383c254db7f2b4ea8816d55e0"
+                "reference": "abdfc75a1ae6c6f21522daed50da7124cbff09d2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/prompts/zipball/2d1e9bf6bab8d3f383c254db7f2b4ea8816d55e0",
-                "reference": "2d1e9bf6bab8d3f383c254db7f2b4ea8816d55e0",
+                "url": "https://api.github.com/repos/laravel/prompts/zipball/abdfc75a1ae6c6f21522daed50da7124cbff09d2",
+                "reference": "abdfc75a1ae6c6f21522daed50da7124cbff09d2",
                 "shasum": ""
             },
             "require": {
@@ -1430,10 +1430,10 @@
             ],
             "description": "Add beautiful and user-friendly forms to your command-line applications.",
             "support": {
-                "source": "https://github.com/laravel/prompts/tree/v0.3.26"
+                "source": "https://github.com/laravel/prompts/tree/v0.3.27"
             },
-            "time": "2026-10-09T14:45:13+00:00",
-            "published-time": "2026-10-13T15:18:36+00:00"
+            "time": "2026-11-09T16:07:10+00:00",
+            "published-time": "2026-11-09T16:09:07+00:00"
         },
         {
             "name": "laravel/serializable-closure",
@@ -2802,16 +2802,16 @@
         },
         {
             "name": "particle-academy/prism",
-            "version": "v0.147.0",
+            "version": "v0.147.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Particle-Academy/prism.git",
-                "reference": "60c6ab8718b0982c2fe14daaaa442198b9fb6dc8"
+                "reference": "245e649e5e95fd9e1686fc5387fd0987fb8fc7fe"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Particle-Academy/prism/zipball/60c6ab8718b0982c2fe14daaaa442198b9fb6dc8",
-                "reference": "60c6ab8718b0982c2fe14daaaa442198b9fb6dc8",
+                "url": "https://api.github.com/repos/Particle-Academy/prism/zipball/245e649e5e95fd9e1686fc5387fd0987fb8fc7fe",
+                "reference": "245e649e5e95fd9e1686fc5387fd0987fb8fc7fe",
                 "shasum": ""
             },
             "require": {
@@ -2877,7 +2877,7 @@
             "description": "A powerful Laravel package for integrating Large Language Models (LLMs) into your applications. Actively maintained fork of prism-php/prism.",
             "support": {
                 "issues": "https://github.com/Particle-Academy/prism/issues",
-                "source": "https://github.com/Particle-Academy/prism/tree/v0.147.0"
+                "source": "https://github.com/Particle-Academy/prism/tree/v0.147.1"
             },
             "funding": [
                 {
@@ -2885,8 +2885,8 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-11-07T07:17:19+00:00",
-            "published-time": "2026-11-07T15:41:18+00:00"
+            "time": "2026-11-08T19:57:42+00:00",
+            "published-time": "2026-11-08T20:03:18+00:00"
         },
         {
             "name": "phpoption/phpoption",
