@@ -231,7 +231,7 @@ class SiteDocsTest extends TestCase
     {
         $docs = app(DocsRepository::class);
         foreach (['core-concepts/prism-server' => 'Laravel', 'core-concepts/human-in-the-loop' => 'do not expose',
-            'providers/gemini' => 'not a built-in provider'] as $path => $reason) {
+            'providers/gemini' => 'not a built-in provider', 'core-concepts/models' => 'do not list'] as $path => $reason) {
             $page = $docs->page($path);
             $this->assertSame(['php', 'typescript', 'python'], $page['languages']);
             $this->assertStringContainsString($reason, $page['variants']['python']['html']);
