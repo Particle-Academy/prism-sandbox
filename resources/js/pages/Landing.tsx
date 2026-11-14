@@ -365,13 +365,13 @@ export default function Landing({ version }: { version: string }) {
                 </div>
             </section>
 
-            {/* Takeover note */}
+            {/* Fork note */}
             <section className="k-hairline-top" style={{ background: 'var(--k-bg-1)' }}>
                 <div className="mx-auto max-w-7xl px-6 py-20">
                     <Reveal>
                         <p className="k-mono mb-3">The fork</p>
                         <blockquote className="max-w-3xl text-2xl font-bold sm:text-4xl" style={{ letterSpacing: '-0.03em', lineHeight: 1.2, color: 'var(--k-ink)' }}>
-                            Keep building on Prism with maintained provider integrations and tested fixes. <span className="k-grad-text italic">The [un]official takeover</span> carries the project forward after its original maintainers went quiet in March 2026.
+                            Keep building on Prism with maintained provider integrations and tested fixes. <span className="k-grad-text italic">The fork</span> kept the project moving while upstream was quiet, and now sends its fixes back upstream, where sixlive, Prism's original maintainer, is active again.
                         </blockquote>
                         <div className="mt-8 grid max-w-3xl gap-4 text-sm sm:grid-cols-3" style={{ color: 'var(--k-ink-2)' }}>
                             <div>
