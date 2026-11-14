@@ -28,8 +28,17 @@ function scan(dir) {
 
 try {
   scan(join(root, 'resources/docs/ports'));
+  // An example whose first line names a file (`// in-house.ts`) is written under that name, so a later example on
+  // the page that imports it (`import './in-house.js'`) resolves to it and is typechecked against it. Without this,
+  // each example stands alone and such an import resolves to nothing (TypeScript 6 reports that). The temp folder is
+  // an ES module scope, so a named .ts file is ESM like the anonymous .mts examples beside it.
+  writeFileSync(join(temp, 'package.json'), '{"type":"module"}');
+  const named = new Set();
   const files = snippets.filter(s => s.language === 'ts').map((snippet, index) => {
-    const file = join(temp, `example-${index}.mts`);
+    const declared = /^\/\/ ([A-Za-z0-9_-]+\.ts)\s*\r?\n/.exec(snippet.code)?.[1];
+    if (declared !== undefined && named.has(declared)) throw new Error(`${snippet.path}: two examples are both named ${declared}`);
+    if (declared !== undefined) named.add(declared);
+    const file = join(temp, declared ?? `example-${index}.mts`);
     writeFileSync(file, snippet.code);
     return file;
   });
