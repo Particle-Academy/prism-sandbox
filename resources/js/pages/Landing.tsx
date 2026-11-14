@@ -371,7 +371,7 @@ export default function Landing({ version }: { version: string }) {
                     <Reveal>
                         <p className="k-mono mb-3">The fork</p>
                         <blockquote className="max-w-3xl text-2xl font-bold sm:text-4xl" style={{ letterSpacing: '-0.03em', lineHeight: 1.2, color: 'var(--k-ink)' }}>
-                            Keep building on Prism with maintained provider integrations and tested fixes. <span className="k-grad-text italic">The [un]official takeover</span> carries the project forward after its original maintainers went quiet in March 2026.
+                            Keep building on Prism with maintained provider integrations and tested fixes. <span className="k-grad-text italic">The [un]official takeover</span> keeps every provider API current and the core in step with the Particle Academy ecosystem built on it. Core fixes go back upstream, where sixlive, Prism's original maintainer, is merging them.
                         </blockquote>
                         <div className="mt-8 grid max-w-3xl gap-4 text-sm sm:grid-cols-3" style={{ color: 'var(--k-ink-2)' }}>
                             <div>
