@@ -234,6 +234,9 @@ function MobileMenu({ demoEnabled, onSearch }: { demoEnabled: boolean; onSearch?
                         <Link href="/packages" onClick={close} className={item}>
                             Packages
                         </Link>
+                        <Link href="/parity" onClick={close} className={item}>
+                            Parity
+                        </Link>
                         <p className="k-mono mt-3 px-3 pb-1">Features</p>
                         <div className="grid grid-cols-1 gap-0.5 min-[420px]:grid-cols-2">
                             {FEATURES.map((feature) => (
@@ -291,6 +294,9 @@ export function KineticNav({ version, onSearch }: { version: string; onSearch?: 
                     </Link>
                     <Link href="/packages" className={navLink}>
                         Packages
+                    </Link>
+                    <Link href="/parity" className={navLink}>
+                        Parity
                     </Link>
                     <FeaturesMenu />
                     <Link href="/leaderboard" className={navLink}>
@@ -356,6 +362,7 @@ export function KineticFooter() {
                 <div className="grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-4">
                     <FooterGroup title="Packages">
                         <FooterLink href="/packages">All packages</FooterLink>
+                        <FooterLink href="/parity">Parity dashboard</FooterLink>
                         {demoEnabled && <FooterLink href="/demo">Demo</FooterLink>}
                     </FooterGroup>
                     <FooterGroup title="Features">

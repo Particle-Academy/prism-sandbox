@@ -74,6 +74,12 @@ class SeoServiceProvider extends ServiceProvider
             'canonical' => $base.'/packages',
         ]);
 
+        $seo->route('parity', fn (): array => [
+            'title' => 'Parity dashboard — Prism',
+            'description' => 'Where Prism agrees across PHP, TypeScript and Python, which provider capabilities each language ships, provider API drift, and MCP and ACP protocol coverage, read from public sources.',
+            'canonical' => $base.'/parity',
+        ]);
+
         $seo->route('leaderboard', fn (): array => [
             'title' => 'Contributor Leaderboard — Prism',
             'description' => 'Top community contributors to Prism, ranked by contribution XP.',
@@ -100,6 +106,7 @@ class SeoServiceProvider extends ServiceProvider
             }
 
             $map->add('/packages', '0.8', 'weekly');
+            $map->add('/parity', '0.6', 'daily');
             $map->add('/providers/setup', '0.8', 'monthly');
             foreach ((new ProviderGuides)->all() as $provider) {
                 $map->add('/providers/setup/'.$provider['id'], '0.7', 'monthly');

@@ -1,0 +1,906 @@
+import { Badge, Card, Grid, Heading, Progress, Text, Tooltip } from '@particle-academy/react-fancy';
+import type { ReactNode } from 'react';
+import { KineticFooter, KineticNav } from '../components/kinetic';
+
+/*
+ * The public parity dashboard. Laid out after Fancy's f-dash: a grid of section
+ * cards, each with a score, a progress bar and a status badge, then a dense grid
+ * of per-item badges whose detail lives in a tooltip (and in the badge's
+ * accessible name, so it is reachable without a pointer).
+ *
+ * Everything shown arrives from the server (DashboardPresenter), already judged
+ * against the clock. This file only draws it, and the one rule it keeps is the
+ * server's: green appears only where the server said the data is current.
+ */
+
+type Color = 'green' | 'amber' | 'red' | 'sky' | 'zinc' | 'violet';
+type Score = { value: number; of: number } | null;
+type Read = { label: string; url: string; ok: boolean; error: string | null };
+type Feed = { state: 'ok' | 'partial' | 'stale' | 'failed' | 'unknown'; fetched_at: string | null; last_ok_at: string | null; reads: Read[] };
+
+type PackageRef = { name: string; version: string | null; registry: string | null; repository: string };
+type ParityCell = {
+    state: 'agree' | 'unverified' | 'elsewhere' | 'withheld' | 'port-gap' | 'no-suite' | 'none';
+    packages: PackageRef[];
+    target: string | null;
+    reference: boolean;
+    full: number;
+    total: number;
+    notes: string[];
+};
+type Ci = { state: 'ok' | 'stale' | 'failed' | 'unknown'; conclusion?: string | null; at?: string | null; url?: string | null; head_sha?: string | null; matches_head?: boolean };
+type ParityView = {
+    feed: Feed;
+    ci: Ci;
+    families: { id: string; reference: string | null; suites: number; cells: Record<Language, ParityCell> }[];
+    score: Score;
+    gaps: { id: string; summary: string; affects: string[] }[];
+    suites: number;
+    cross_family?: string[];
+};
+type ProviderCell = 'yes' | 'yes-unverified' | 'no' | 'not-ported' | 'unknown';
+type ProviderLanguage = {
+    package: string | null;
+    version: string | null;
+    tag?: string | null;
+    reference?: boolean;
+    providers?: number;
+    score: Score;
+    rows: { provider: string; cells: Record<string, ProviderCell> }[];
+};
+type ProvidersView = { feed: Feed; capabilities: string[]; providers: string[]; languages: Partial<Record<Language, ProviderLanguage>> };
+type DriftItem = { number: number; url: string; date: string; severity: 'contract' | 'catalogue' | 'unclassified'; contract: number | null; catalogue: number | null; state: 'open' | 'closed'; closed_at: string | null };
+type DriftView = {
+    feed: Feed;
+    items: DriftItem[];
+    baseline: { state: 'ok' | 'stale' | 'unknown'; committed_at?: string | null; age_days?: number | null; max_age_days?: number; drift_since_commit?: boolean };
+    score: Score;
+};
+type ProtocolCell = 'yes' | 'yes-unverified' | 'no' | 'unknown';
+type McpView = {
+    feed: Feed;
+    required: string[];
+    rule: number;
+    rows: { package: string; language: string; version: string | null; role: 'server' | 'client'; cells: Record<string, ProtocolCell> }[];
+    score: Score;
+};
+type AcpView = {
+    feed: Feed;
+    stable: { major: number; tag: string } | null;
+    preview: { major: number; tag: string } | null;
+    rows: { package: string; language: string; version: string | null; speaks: number | null; stable: ProtocolCell; preview: 'yes' | 'no' | null }[];
+    score: Score;
+};
+type ReleaseRef = { tag: string; published_at: string | null };
+type UpstreamView = {
+    feed: Feed;
+    green: boolean;
+    repo: string;
+    fork: string;
+    ahead: number | null;
+    behind: number | null;
+    merge_base: { sha: string; date: string | null } | null;
+    upstream_release: ReleaseRef | null;
+    fork_release: ReleaseRef | null;
+    releases_since: ReleaseRef[] | null;
+    opened_since: { issues: number | null; pulls: number | null };
+    watched_open: { issues: { count: number; lower_bound: boolean } | null; pulls: { count: number; lower_bound: boolean } | null };
+    watched_as_of: string | null;
+};
+type UpstreamPull = {
+    number: number;
+    title: string;
+    url: string;
+    state: 'open' | 'merged' | 'closed';
+    draft: boolean | null;
+    review: 'approved' | 'changes-requested' | 'commented' | 'none' | null;
+    ci: 'passing' | 'failing' | 'awaiting-approval' | 'running' | 'none' | 'unknown' | null;
+    age_days: number | null;
+    last_activity: string | null;
+    idle_days: number | null;
+    merged_at: string | null;
+    stale: boolean;
+};
+type UpstreamPullsView = {
+    feed: Feed;
+    green: boolean;
+    pulls: UpstreamPull[];
+    counts: { open: number; merged: number; closed: number } | null;
+    score: Score;
+    lower_bound: boolean;
+    stale_days: number | null;
+};
+type Dashboard = {
+    collected: { state: 'fresh' | 'stale' | 'unknown'; at: string | null; age_hours: number | null; max_age_hours: number };
+    parity: ParityView;
+    providers: ProvidersView;
+    drift: DriftView;
+    mcp: McpView;
+    acp: AcpView;
+    upstream: UpstreamView;
+    upstream_prs: UpstreamPullsView;
+};
+
+type Language = 'php' | 'ts' | 'py';
+const LANGUAGES: Language[] = ['php', 'ts', 'py'];
+const LANGUAGE_LABEL: Record<string, string> = { php: 'PHP', ts: 'TypeScript', py: 'Python' };
+
+/** ISO time as fixed UTC text: no locale and no clock, so the server and the browser render the same thing. */
+function utc(iso: string | null | undefined): string {
+    if (!iso) return 'unknown';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return 'unknown';
+
+    return d.toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
+}
+
+function ago(hours: number | null): string {
+    if (hours === null) return 'unknown';
+    if (hours < 1) return 'under an hour ago';
+    if (hours < 48) return `${hours}h ago`;
+
+    return `${Math.floor(hours / 24)} days ago`;
+}
+
+const FEED: Record<Feed['state'], { color: Color; label: string; detail: string }> = {
+    ok: { color: 'green', label: 'current', detail: 'Every source for this card was read in the latest collection.' },
+    partial: { color: 'amber', label: 'partial', detail: 'Some sources for this card could not be read. What could not be read shows as unknown.' },
+    stale: { color: 'amber', label: 'stale', detail: 'This data is older than it should be. It is shown as last known, never as current.' },
+    failed: { color: 'red', label: 'unknown', detail: 'The source could not be read and there is no earlier copy.' },
+    unknown: { color: 'zinc', label: 'unknown', detail: 'Not collected yet.' },
+};
+
+/** A status badge whose detail is in a tooltip and in its accessible name. */
+function Cell({ color, label, detail, solid = false }: { color: Color; label: ReactNode; detail: string; solid?: boolean }) {
+    return (
+        <Tooltip content={<span className="whitespace-pre-line">{detail}</span>}>
+            <Badge color={color} variant={solid ? 'solid' : 'soft'} size="sm" tabIndex={0} aria-label={detail} className="cursor-help justify-center">
+                {label}
+            </Badge>
+        </Tooltip>
+    );
+}
+
+function FeedBadge({ feed }: { feed: Feed }) {
+    const meta = FEED[feed.state];
+    const when = feed.state === 'stale' && feed.last_ok_at ? `\nLast read successfully: ${utc(feed.last_ok_at)}` : '';
+
+    return <Cell color={meta.color} label={meta.label} detail={`${meta.detail}\nCollected: ${utc(feed.fetched_at)}${when}`} solid />;
+}
+
+function ScoreLine({ score, label, green }: { score: Score; label: string; green: boolean }) {
+    if (score === null) {
+        return (
+            <Text size="sm" color="muted">
+                {label}: unknown
+            </Text>
+        );
+    }
+    const pct = score.of === 0 ? 0 : Math.round((score.value / score.of) * 100);
+
+    return (
+        <div className="space-y-1">
+            <Text size="sm">
+                <span className="font-semibold tabular-nums">
+                    {score.value} / {score.of}
+                </span>{' '}
+                <span className="opacity-70">{label}</span>
+            </Text>
+            <Progress value={pct} max={100} size="sm" color={green && pct === 100 ? 'green' : pct >= 75 ? 'sky' : 'amber'} aria-label={`${label}: ${pct}%`} />
+        </div>
+    );
+}
+
+function Section({
+    title,
+    description,
+    feed,
+    score,
+    scoreLabel,
+    headline,
+    wide = false,
+    children,
+}: {
+    title: string;
+    description: string;
+    feed: Feed;
+    score: Score;
+    scoreLabel: string;
+    headline?: ReactNode;
+    wide?: boolean;
+    children: ReactNode;
+}) {
+    return (
+        <Card variant="outlined" padding="md" style={wide ? { gridColumn: '1 / -1' } : undefined}>
+            <div className="flex flex-col gap-4">
+                <div className="flex items-start justify-between gap-4">
+                    <div>
+                        <Heading as="h2" size="lg" weight="bold">
+                            {title}
+                        </Heading>
+                        <Text size="sm" color="muted" className="mt-1 max-w-3xl">
+                            {description}
+                        </Text>
+                    </div>
+                    <FeedBadge feed={feed} />
+                </div>
+                <div className="max-w-md">{headline ?? <ScoreLine score={score} label={scoreLabel} green={feed.state === 'ok'} />}</div>
+                {children}
+            </div>
+        </Card>
+    );
+}
+
+function Legend({ items }: { items: [Color, string, string][] }) {
+    return (
+        <div className="flex flex-wrap items-center gap-2">
+            {items.map(([color, label, detail]) => (
+                <Cell key={label} color={color} label={label} detail={detail} />
+            ))}
+        </div>
+    );
+}
+
+/* ---------------------------------------------------------------- parity */
+
+const PARITY: Record<ParityCell['state'], { color: Color; label: (c: ParityCell) => string }> = {
+    agree: { color: 'green', label: (c) => `agrees ${c.full}/${c.total}` },
+    unverified: { color: 'amber', label: (c) => `${c.full}/${c.total} unverified` },
+    elsewhere: { color: 'sky', label: (c) => `${c.full}/${c.total} · not port` },
+    withheld: { color: 'violet', label: (c) => `${c.full}/${c.total} · withheld` },
+    'port-gap': { color: 'red', label: (c) => `port gap ${c.full}/${c.total}` },
+    'no-suite': { color: 'zinc', label: () => 'no suite' },
+    none: { color: 'zinc', label: () => 'no package' },
+};
+
+function ParityCard({ view }: { view: ParityView }) {
+    const ci = view.ci;
+    const ciColor: Color = ci.state === 'ok' ? 'green' : ci.state === 'failed' ? 'red' : ci.state === 'stale' ? 'amber' : 'zinc';
+    const ciDetail =
+        ci.state === 'unknown'
+            ? 'The parity CI verdict on main could not be read.'
+            : `Newest completed run of the parity CI on main (alignment, which runs the cross-check): ${ci.conclusion ?? 'unknown'} at ${utc(ci.at)} for ${ci.head_sha ?? 'unknown'}.` +
+              (ci.matches_head ? '' : '\nThat is not the current head of main, so it is not counted as current.') +
+              (ci.state === 'stale' ? '\nOlder than two days or behind main: not counted as current.' : '');
+
+    return (
+        <Section
+            wide
+            title="Language parity"
+            description="Every family in the published catalog, by language. A cell counts the cross-language suites for that family that run in that language, and its colour says whose gap any remainder is. A cell is green only when every suite is full and the parity CI on main is passing and current."
+            feed={view.feed}
+            score={view.score}
+            scoreLabel="family × language cells with every suite full"
+        >
+            <div className="flex flex-wrap items-center gap-2">
+                <Text size="sm" color="muted">
+                    Parity CI on main:
+                </Text>
+                <Cell color={ciColor} label={ci.state === 'unknown' ? 'unknown' : `${ci.conclusion ?? 'unknown'} · ${ci.head_sha ?? ''}`} detail={ciDetail} solid />
+                {ci.url && (
+                    <a href={ci.url} className="text-sm underline opacity-70 hover:opacity-100" rel="noreferrer" target="_blank">
+                        run
+                    </a>
+                )}
+                <Text size="sm" color="muted">
+                    · {view.suites} suites
+                </Text>
+            </div>
+
+            {view.families.length === 0 ? (
+                <Text color="muted">Unknown: the catalog could not be read.</Text>
+            ) : (
+                <div className="overflow-x-auto">
+                    <Grid cols={4} gap="sm" responsive={false} className="min-w-[36rem] items-center">
+                        <Text size="xs" weight="semibold" className="uppercase opacity-60">
+                            Family
+                        </Text>
+                        {LANGUAGES.map((l) => (
+                            <Text key={l} size="xs" weight="semibold" className="uppercase opacity-60">
+                                {LANGUAGE_LABEL[l]}
+                            </Text>
+                        ))}
+                        {view.families.map((family) => [
+                            <div key={`${family.id}-name`}>
+                                <Text weight="semibold">{family.id}</Text>
+                                <Text size="xs" color="muted">
+                                    {family.suites} {family.suites === 1 ? 'suite' : 'suites'}
+                                    {family.reference ? ` · reference ${LANGUAGE_LABEL[family.reference] ?? family.reference}` : ''}
+                                </Text>
+                            </div>,
+                            ...LANGUAGES.map((l) => {
+                                const cell = family.cells[l];
+                                const meta = PARITY[cell.state];
+                                const pkg = cell.packages.map((p) => `${p.name}${p.version ? ' ' + p.version : ''}`).join(', ');
+                                const detail = [
+                                    `${family.id} · ${LANGUAGE_LABEL[l]}${cell.reference ? ' (reference)' : ''}`,
+                                    pkg ? `Package: ${pkg}` : null,
+                                    cell.target ? `Launch target status: ${cell.target}` : null,
+                                    ...cell.notes,
+                                ]
+                                    .filter(Boolean)
+                                    .join('\n');
+
+                                return (
+                                    <div key={`${family.id}-${l}`} className="flex flex-col items-start gap-0.5">
+                                        <Cell color={meta.color} label={meta.label(cell)} detail={detail} />
+                                        {pkg && (
+                                            <Text size="xs" color="muted" className="truncate">
+                                                {cell.packages[0].version ? `v${cell.packages[0].version}` : ''}
+                                                {cell.reference ? ' · ref' : ''}
+                                            </Text>
+                                        )}
+                                    </div>
+                                );
+                            }),
+                        ])}
+                    </Grid>
+                </div>
+            )}
+
+            <Legend
+                items={[
+                    ['green', 'agrees', 'Every suite for the family is full in this language, and the parity CI on main is passing and current.'],
+                    ['amber', 'unverified', 'Every suite is full, but the CI verdict or the data is not current, so agreement is not claimed.'],
+                    ['red', 'port gap', 'This language has no runner for at least one suite: work for the port.'],
+                    ['sky', 'not port', 'Not full, but the gap belongs to the reference or to what the language can express, not to the port.'],
+                    ['violet', 'withheld', 'A security corpus is not full here. Why is not published on this page.'],
+                    ['zinc', 'no suite / no package', 'Nothing to compare yet, or no published package in this language.'],
+                ]}
+            />
+
+            {view.gaps.length > 0 && (
+                <div className="space-y-2">
+                    <Heading as="h3" size="sm" weight="semibold">
+                        Known gaps, as published in the parity ledger
+                    </Heading>
+                    <ul className="space-y-1">
+                        {view.gaps.map((gap) => (
+                            <li key={gap.id} className="flex gap-2">
+                                <Badge color="zinc" variant="outline" size="sm" className="shrink-0">
+                                    {gap.id}
+                                </Badge>
+                                <Text size="sm">
+                                    {gap.summary} <span className="opacity-60">({gap.affects.join(', ')})</span>
+                                </Text>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+            {view.cross_family && view.cross_family.length > 0 && (
+                <Text size="xs" color="muted">
+                    Suites spanning several families, counted in the total but in no row: {view.cross_family.join(', ')}.
+                </Text>
+            )}
+        </Section>
+    );
+}
+
+/* ------------------------------------------------------------- providers */
+
+const PROVIDER: Record<ProviderCell, { color: Color; label: string; text: string }> = {
+    yes: { color: 'green', label: '✓', text: 'implemented in the released source' },
+    'yes-unverified': { color: 'amber', label: '✓', text: 'implemented, as last read (the data is not current)' },
+    no: { color: 'zinc', label: '–', text: 'not implemented by this provider' },
+    'not-ported': { color: 'red', label: '×', text: 'the reference has this, but the provider is not ported to this language' },
+    unknown: { color: 'zinc', label: '?', text: 'unknown: the provider source could not be read' },
+};
+
+function ProvidersCard({ view }: { view: ProvidersView }) {
+    // The card's score is the ports against the reference: what a TypeScript or
+    // Python user can call, out of what a PHP user can.
+    const ports = LANGUAGES.map((l) => view.languages[l]).filter((l): l is ProviderLanguage => !!l && !!l.package && !l.reference);
+    const known = ports.every((p) => p.score !== null) && ports.length > 0;
+    const score: Score = known ? ports.reduce((s, p) => ({ value: s.value + p.score!.value, of: s.of + p.score!.of }), { value: 0, of: 0 }) : null;
+
+    return (
+        <Section
+            wide
+            title="Providers × capabilities"
+            description="For each language, which capability each provider implements in the source of its latest published release. Rows and columns are the reference package's providers and capabilities, so a provider missing from a port is visible as a row."
+            feed={view.feed}
+            score={score}
+            scoreLabel="of the reference's provider capabilities shipped by the TypeScript and Python ports"
+        >
+            {view.capabilities.length === 0 ? (
+                <Text color="muted">Unknown: the reference package's provider surface could not be read.</Text>
+            ) : (
+                <div className="space-y-6">
+                    {LANGUAGES.map((l) => {
+                        const lang = view.languages[l];
+                        if (!lang || !lang.package) {
+                            return (
+                                <Text key={l} color="muted">
+                                    {LANGUAGE_LABEL[l]}: no published core package.
+                                </Text>
+                            );
+                        }
+
+                        return (
+                            <div key={l} className="space-y-2">
+                                <div className="flex flex-wrap items-end justify-between gap-3">
+                                    <Heading as="h3" size="sm" weight="semibold">
+                                        {LANGUAGE_LABEL[l]} · {lang.package} {lang.tag ?? ''}
+                                        {lang.reference ? ' · reference' : ''}
+                                    </Heading>
+                                    <div className="w-64">
+                                        <ScoreLine score={lang.score} label="of the reference's provider capabilities" green={view.feed.state === 'ok'} />
+                                    </div>
+                                </div>
+                                <div className="overflow-x-auto">
+                                    <Grid cols={view.capabilities.length + 1} gap="sm" responsive={false} className="min-w-[56rem] items-center">
+                                        <span />
+                                        {view.capabilities.map((c) => (
+                                            <Text key={c} size="xs" className="truncate opacity-60" title={c}>
+                                                {c}
+                                            </Text>
+                                        ))}
+                                        {lang.rows.map((row) => [
+                                            <Text key={`${row.provider}-name`} size="sm" weight="medium">
+                                                {row.provider}
+                                            </Text>,
+                                            ...view.capabilities.map((c) => {
+                                                const meta = PROVIDER[row.cells[c] ?? 'unknown'];
+
+                                                return (
+                                                    <Cell
+                                                        key={`${row.provider}-${c}`}
+                                                        color={meta.color}
+                                                        label={meta.label}
+                                                        detail={`${row.provider} · ${c} · ${LANGUAGE_LABEL[l]} ${lang.tag ?? ''}: ${meta.text}`}
+                                                    />
+                                                );
+                                            }),
+                                        ])}
+                                    </Grid>
+                                </div>
+                            </div>
+                        );
+                    })}
+                    <Legend
+                        items={(['yes', 'yes-unverified', 'no', 'not-ported', 'unknown'] as ProviderCell[]).map((k) => [PROVIDER[k].color, PROVIDER[k].label, PROVIDER[k].text])}
+                    />
+                </div>
+            )}
+        </Section>
+    );
+}
+
+/* ----------------------------------------------------------------- drift */
+
+function DriftCard({ view }: { view: DriftView }) {
+    const b = view.baseline;
+    const baselineColor: Color = b.state === 'ok' ? 'green' : b.state === 'stale' ? 'amber' : 'zinc';
+    const baselineDetail =
+        b.state === 'unknown'
+            ? 'When the watcher baseline was last reviewed could not be read.'
+            : `The watcher compares against a committed baseline that advances only after someone reviews what changed. Last committed ${utc(b.committed_at)} (${b.age_days} days ago).` +
+              (b.state === 'stale' ? `\nDrift has been reported since then and the baseline is older than ${b.max_age_days} days: the watcher reports this as stale.` : '');
+
+    return (
+        <Section
+            title="Provider API drift"
+            description="What prism-provider-watch reported, from the issues it files on Particle-Academy/prism. A contract change touches an API we integrate; a catalogue change is a model or price moving."
+            feed={view.feed}
+            score={view.score}
+            scoreLabel="drift reports in the last 30 days closed"
+        >
+            <div className="flex flex-wrap items-center gap-2">
+                <Text size="sm" color="muted">
+                    Watcher baseline:
+                </Text>
+                <Cell color={baselineColor} label={b.state === 'unknown' ? 'unknown' : `${b.state} · ${b.age_days}d`} detail={baselineDetail} solid />
+            </div>
+            {view.items.length === 0 ? (
+                <Text color="muted">{view.feed.state === 'ok' ? 'No drift reports published.' : 'Unknown: the drift reports could not be read.'}</Text>
+            ) : (
+                <ul className="space-y-1.5">
+                    {view.items.slice(0, 14).map((item) => {
+                        const sev: Color = item.severity === 'contract' && (item.contract ?? 0) > 0 ? 'amber' : 'zinc';
+                        const sevLabel =
+                            item.severity === 'contract'
+                                ? `${item.contract} contract${item.catalogue ? ` · +${item.catalogue} catalogue` : ''}`
+                                : item.severity === 'catalogue'
+                                  ? `${item.catalogue} catalogue`
+                                  : 'unclassified';
+                        const closed = item.state === 'closed';
+                        const stateColor: Color = closed ? (view.feed.state === 'ok' ? 'green' : 'amber') : 'red';
+
+                        return (
+                            <li key={item.number} className="flex flex-wrap items-center gap-2">
+                                <Text size="sm" className="w-24 tabular-nums">
+                                    {item.date}
+                                </Text>
+                                <Cell
+                                    color={sev}
+                                    label={sevLabel}
+                                    detail={item.severity === 'contract' ? 'Contract changes touch an API Prism integrates; each one is triaged against the source.' : 'Catalogue changes only: models or prices moved.'}
+                                />
+                                <Cell
+                                    color={stateColor}
+                                    label={item.state}
+                                    detail={closed ? `Closed ${utc(item.closed_at)}.` : 'Open: not triaged yet.'}
+                                />
+                                <a href={item.url} className="text-sm underline opacity-70 hover:opacity-100" rel="noreferrer" target="_blank">
+                                    #{item.number}
+                                </a>
+                            </li>
+                        );
+                    })}
+                </ul>
+            )}
+        </Section>
+    );
+}
+
+/* ------------------------------------------------------------- protocols */
+
+const PROTOCOL: Record<ProtocolCell, { color: Color; label: string; text: string }> = {
+    yes: { color: 'green', label: '✓', text: 'served' },
+    'yes-unverified': { color: 'amber', label: '✓', text: 'served, as last read (the data is not current)' },
+    no: { color: 'red', label: '×', text: 'not served' },
+    unknown: { color: 'zinc', label: '?', text: 'unknown: could not be read' },
+};
+
+function ProtocolsCard({ mcp, acp }: { mcp: McpView; acp: AcpView }) {
+    return (
+        <Section
+            title="Protocol coverage"
+            description={`MCP: the standing rule is that our servers serve the ${mcp.rule} newest official schema versions, read from the specification repository. Clients declare one version in the catalog. ACP: the protocol version each released agent speaks, against the newest stable schema release.`}
+            feed={worst(mcp.feed, acp.feed)}
+            score={mcp.score}
+            scoreLabel={`MCP server × required-version pairs served`}
+        >
+            <div className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                    <Heading as="h3" size="sm" weight="semibold">
+                        MCP
+                    </Heading>
+                    <FeedBadge feed={mcp.feed} />
+                </div>
+                {mcp.required.length === 0 ? (
+                    <Text color="muted">Unknown: the official schema versions could not be read.</Text>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <Grid cols={mcp.required.length + 1} gap="sm" responsive={false} className="min-w-[28rem] items-center">
+                            <span />
+                            {mcp.required.map((v) => (
+                                <Text key={v} size="xs" className="opacity-60">
+                                    {v}
+                                </Text>
+                            ))}
+                            {mcp.rows.map((row) => [
+                                <div key={`${row.package}-name`}>
+                                    <Text size="sm" weight="medium" className="truncate">
+                                        {row.package}
+                                    </Text>
+                                    <Text size="xs" color="muted">
+                                        {row.role} · {LANGUAGE_LABEL[row.language] ?? row.language} {row.version ? `v${row.version}` : ''}
+                                    </Text>
+                                </div>,
+                                ...mcp.required.map((v) => {
+                                    const state = row.cells[v] ?? 'unknown';
+                                    // A client declares one version; a version it does not declare is not a gap.
+                                    const meta = row.role === 'client' && state === 'no' ? { color: 'zinc' as Color, label: '–', text: 'not the version this client declares' } : PROTOCOL[state];
+
+                                    return <Cell key={`${row.package}-${v}`} color={meta.color} label={meta.label} detail={`${row.package} · MCP ${v}: ${meta.text}`} />;
+                                }),
+                            ])}
+                        </Grid>
+                    </div>
+                )}
+            </div>
+
+            <div className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                    <Heading as="h3" size="sm" weight="semibold">
+                        ACP
+                    </Heading>
+                    <FeedBadge feed={acp.feed} />
+                </div>
+                <Text size="sm" color="muted">
+                    Newest stable schema: {acp.stable ? `v${acp.stable.major} (${acp.stable.tag})` : 'unknown'}
+                    {acp.preview ? ` · preview: v${acp.preview.major} (${acp.preview.tag})` : ''}
+                </Text>
+                {acp.rows.length === 0 ? (
+                    <Text color="muted">Unknown: no ACP agent could be read.</Text>
+                ) : (
+                    <ul className="space-y-1.5">
+                        {acp.rows.map((row) => {
+                            const meta = PROTOCOL[row.stable];
+
+                            return (
+                                <li key={row.package} className="flex flex-wrap items-center gap-2">
+                                    <Text size="sm" weight="medium">
+                                        {row.package}
+                                    </Text>
+                                    <Text size="xs" color="muted">
+                                        {LANGUAGE_LABEL[row.language] ?? row.language} {row.version ? `v${row.version}` : ''}
+                                    </Text>
+                                    <Cell
+                                        color={meta.color}
+                                        label={row.speaks === null ? '?' : `speaks v${row.speaks}`}
+                                        detail={`${row.package}: ${row.speaks === null ? 'protocol version unknown' : `speaks ACP v${row.speaks}`}; newest stable is ${acp.stable ? 'v' + acp.stable.major : 'unknown'}: ${meta.text}.`}
+                                    />
+                                    {row.preview === 'no' && acp.preview && (
+                                        <Cell color="sky" label={`v${acp.preview.major} preview: not yet`} detail={`ACP v${acp.preview.major} is a prerelease (${acp.preview.tag}). Not served yet; not a gap against the stable protocol.`} />
+                                    )}
+                                </li>
+                            );
+                        })}
+                    </ul>
+                )}
+            </div>
+        </Section>
+    );
+}
+
+/* -------------------------------------------------------------- upstream */
+
+/** A number that may be unknown. Never rendered as zero when it is not known. */
+function num(n: number | null | undefined, suffix = ''): string {
+    return n === null || n === undefined ? 'unknown' : `${n}${suffix}`;
+}
+
+function Stat({ label, value, color, detail }: { label: string; value: string; color: Color; detail: string }) {
+    return (
+        <div className="flex flex-col gap-1">
+            <Text size="xs" className="uppercase opacity-60">
+                {label}
+            </Text>
+            <Cell color={color} label={value} detail={detail} solid />
+        </div>
+    );
+}
+
+function UpstreamCard({ view }: { view: UpstreamView }) {
+    const cap = (c: Color): Color => (c === 'green' && !view.green ? 'amber' : c);
+    const behindColor: Color = view.behind === null ? 'zinc' : cap(view.behind === 0 ? 'green' : view.behind <= 10 ? 'amber' : 'red');
+    const since = view.releases_since;
+    const base = view.merge_base?.date ? view.merge_base.date.slice(0, 10) : null;
+    const watched = (w: UpstreamView['watched_open']['issues']) => (w === null ? 'unknown' : `${w.count}${w.lower_bound ? '+' : ''}`);
+
+    return (
+        <Section
+            title="Upstream drift"
+            description={`Our fork ${view.fork} against ${view.repo}, where Prism began. Behind is upstream work not yet in the fork; ahead is ours not upstream. "Since catch-up" counts from the merge base, the last upstream commit the fork contains.`}
+            feed={view.feed}
+            score={null}
+            scoreLabel=""
+            headline={
+                <div className="flex flex-wrap gap-6">
+                    <Stat label="Behind upstream" value={num(view.behind, ' commits')} color={behindColor} detail={view.behind === null ? 'The comparison could not be read.' : `${view.behind} upstream commits are not in the fork.`} />
+                    <Stat label="Ahead" value={num(view.ahead, ' commits')} color="sky" detail={view.ahead === null ? 'The comparison could not be read.' : `${view.ahead} fork commits are not upstream.`} />
+                </div>
+            }
+        >
+            <Grid cols={2} gap="sm" responsive={false}>
+                <Text size="sm" color="muted">
+                    Last catch-up (merge base)
+                </Text>
+                <Text size="sm">{view.merge_base ? `${view.merge_base.sha} · ${base ?? 'unknown'}` : 'unknown'}</Text>
+                <Text size="sm" color="muted">
+                    Upstream latest release
+                </Text>
+                <Text size="sm">{view.upstream_release ? `${view.upstream_release.tag} · ${utc(view.upstream_release.published_at).slice(0, 10)}` : 'unknown'}</Text>
+                <Text size="sm" color="muted">
+                    Our latest release
+                </Text>
+                <Text size="sm">{view.fork_release ? `${view.fork_release.tag} · ${utc(view.fork_release.published_at).slice(0, 10)}` : 'unknown'}</Text>
+            </Grid>
+
+            <div className="flex flex-wrap items-center gap-2">
+                <Text size="sm" color="muted">
+                    Since catch-up:
+                </Text>
+                <Cell
+                    color={since === null ? 'zinc' : since.length === 0 ? cap('green') : 'amber'}
+                    label={since === null ? 'releases unknown' : `${since.length} new ${since.length === 1 ? 'release' : 'releases'}`}
+                    detail={since === null ? 'Upstream releases or the merge base could not be read.' : since.length === 0 ? 'No upstream release since the merge base.' : `Released upstream after the merge base: ${since.map((r) => r.tag).join(', ')}`}
+                />
+                <Cell color="zinc" label={`${num(view.opened_since.issues)} issues`} detail="Issues opened upstream since the merge base (public search)." />
+                <Cell color="zinc" label={`${num(view.opened_since.pulls)} pulls`} detail="Pull requests opened upstream since the merge base (public search)." />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+                <Text size="sm" color="muted">
+                    Open upstream, as the provider watcher last saw it:
+                </Text>
+                <Cell
+                    color="zinc"
+                    label={`${watched(view.watched_open.issues)} issues · ${watched(view.watched_open.pulls)} pulls`}
+                    detail={`From prism-provider-watch's committed baseline${view.watched_as_of ? `, last committed ${utc(view.watched_as_of)}` : ''}. It reads one page of the newest items, so "+" is a lower bound.`}
+                />
+            </div>
+        </Section>
+    );
+}
+
+const REVIEW: Record<NonNullable<UpstreamPull['review']> | 'unknown', { color: Color; label: string }> = {
+    approved: { color: 'green', label: 'approved' },
+    'changes-requested': { color: 'red', label: 'changes requested' },
+    commented: { color: 'sky', label: 'commented' },
+    none: { color: 'zinc', label: 'no review' },
+    unknown: { color: 'zinc', label: 'review ?' },
+};
+const CI: Record<NonNullable<UpstreamPull['ci']>, { color: Color; label: string; text: string }> = {
+    passing: { color: 'green', label: 'CI passing', text: 'Every workflow run on the head commit passed.' },
+    failing: { color: 'red', label: 'CI failing', text: 'A workflow run on the head commit failed.' },
+    'awaiting-approval': { color: 'amber', label: 'CI awaiting approval', text: 'Upstream has to approve workflow runs from a fork before they start.' },
+    running: { color: 'sky', label: 'CI running', text: 'A workflow run on the head commit has not finished.' },
+    none: { color: 'zinc', label: 'no CI runs', text: 'No workflow run on the head commit.' },
+    unknown: { color: 'zinc', label: 'CI ?', text: 'The CI state could not be read.' },
+};
+
+function UpstreamPullsCard({ view }: { view: UpstreamPullsView }) {
+    const cap = (c: Color): Color => (c === 'green' && !view.green ? 'amber' : c);
+    const counts = view.counts;
+
+    return (
+        <Section
+            title="Our upstream pull requests"
+            description={`Pull requests we opened on prism-php/prism, from public data only: state, age, review, CI on the head commit and last activity. An open PR older than ${view.stale_days ?? 30} days is marked stale.`}
+            feed={view.feed}
+            score={view.score}
+            scoreLabel="of the PRs upstream has decided, merged"
+        >
+            {counts === null ? (
+                <Text color="muted">Unknown: our pull requests could not be read.</Text>
+            ) : (
+                <>
+                    <div className="flex flex-wrap gap-2">
+                        <Cell color="sky" label={`${counts.open} open`} detail="Open pull requests." />
+                        <Cell color={cap('green')} label={`${counts.merged} merged`} detail="Merged upstream." />
+                        <Cell color="zinc" label={`${counts.closed} closed`} detail="Closed without merging." />
+                        {view.lower_bound && <Cell color="amber" label="lower bound" detail="The search returned more than one page, so these counts are a lower bound." />}
+                    </div>
+                    {view.pulls.length === 0 ? (
+                        <Text color="muted">No pull requests found.</Text>
+                    ) : (
+                        <ul className="space-y-3">
+                            {view.pulls.map((pr) => {
+                                const review = REVIEW[pr.review ?? 'unknown'];
+                                const ci = CI[pr.ci ?? 'unknown'];
+
+                                return (
+                                    <li key={pr.number} className="space-y-1">
+                                        <div className="flex items-baseline gap-2">
+                                            <a href={pr.url} className="shrink-0 text-sm underline opacity-70 hover:opacity-100" rel="noreferrer" target="_blank">
+                                                #{pr.number}
+                                            </a>
+                                            <Text size="sm" className="min-w-0 truncate" title={pr.title}>
+                                                {pr.title}
+                                            </Text>
+                                        </div>
+                                        <div className="flex flex-wrap items-center gap-1.5">
+                                            <Cell
+                                                color={pr.state === 'merged' ? cap('green') : pr.state === 'closed' ? 'zinc' : 'sky'}
+                                                label={pr.draft ? 'draft' : pr.state}
+                                                detail={pr.state === 'merged' ? `Merged ${utc(pr.merged_at)}.` : pr.state === 'closed' ? 'Closed without merging.' : 'Open.'}
+                                            />
+                                            <Cell color={pr.stale ? 'amber' : 'zinc'} label={`${num(pr.age_days, 'd')} old`} detail={pr.stale ? `Open for more than ${view.stale_days} days without a merge.` : 'Days since the pull request was opened.'} />
+                                            {pr.state === 'open' && <Cell color={cap(review.color)} label={review.label} detail="Each reviewer's latest decision; a comment does not override one." />}
+                                            {pr.state === 'open' && <Cell color={cap(ci.color)} label={ci.label} detail={ci.text} />}
+                                            <Cell color="zinc" label={`active ${num(pr.idle_days, 'd')} ago`} detail={`Last activity: ${utc(pr.last_activity)}.`} />
+                                        </div>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    )}
+                </>
+            )}
+        </Section>
+    );
+}
+
+const ORDER: Feed['state'][] = ['ok', 'partial', 'stale', 'unknown', 'failed'];
+function worst(a: Feed, b: Feed): Feed {
+    return ORDER.indexOf(a.state) >= ORDER.indexOf(b.state) ? a : b;
+}
+
+/* --------------------------------------------------------------- sources */
+
+function SourcesCard({ feeds }: { feeds: [string, Feed][] }) {
+    return (
+        <Card variant="outlined" padding="md" style={{ gridColumn: '1 / -1' }}>
+            <div className="space-y-3">
+                <Heading as="h2" size="lg" weight="bold">
+                    Sources
+                </Heading>
+                <Text size="sm" color="muted">
+                    Every address read in the latest collection. All are public; nothing here is read with a credential.
+                </Text>
+                {feeds.map(([name, feed]) => (
+                    <div key={name} className="space-y-1">
+                        <div className="flex items-center gap-2">
+                            <Text size="sm" weight="semibold">
+                                {name}
+                            </Text>
+                            <FeedBadge feed={feed} />
+                        </div>
+                        {feed.reads.length === 0 ? (
+                            <Text size="xs" color="muted">
+                                Not collected yet.
+                            </Text>
+                        ) : (
+                            <ul className="space-y-0.5">
+                                {feed.reads.map((read) => (
+                                    <li key={read.label + read.url} className="flex flex-wrap items-center gap-2">
+                                        <Badge color={read.ok ? 'zinc' : 'red'} variant="soft" size="sm">
+                                            {read.ok ? 'read' : 'failed'}
+                                        </Badge>
+                                        <a href={read.url} className="text-xs underline opacity-70 hover:opacity-100" rel="noreferrer" target="_blank">
+                                            {read.label}
+                                        </a>
+                                        {read.error && (
+                                            <Text size="xs" color="danger">
+                                                {read.error}
+                                            </Text>
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                ))}
+            </div>
+        </Card>
+    );
+}
+
+/* ------------------------------------------------------------------ page */
+
+export default function Parity({ version, dashboard }: { version: string; dashboard: Dashboard }) {
+    const c = dashboard.collected;
+    const collectedColor: Color = c.state === 'fresh' ? 'green' : c.state === 'stale' ? 'amber' : 'zinc';
+    const collectedLabel = c.state === 'unknown' ? 'not collected yet' : c.state === 'stale' ? `stale · collected ${ago(c.age_hours)}` : `collected ${ago(c.age_hours)}`;
+    const collectedDetail =
+        c.state === 'unknown'
+            ? 'No collection has run yet, so every card shows unknown.'
+            : `Last collection: ${utc(c.at)}. Collected every six hours; older than ${c.max_age_hours} hours counts as stale, and nothing stale is drawn green.`;
+
+    return (
+        <div className="k-page">
+            <KineticNav version={version} />
+
+            <section className="mx-auto max-w-7xl px-6 pt-20 pb-6 sm:pt-28">
+                <p className="k-mono mb-4">Parity · languages, providers, drift, protocols</p>
+                <h1 className="max-w-3xl text-4xl font-extrabold sm:text-6xl" style={{ letterSpacing: '-0.04em', lineHeight: 1, color: 'var(--k-ink)' }}>
+                    Where Prism agrees, <span className="k-grad-text italic">and where it does not.</span>
+                </h1>
+                <p className="mt-5 max-w-2xl text-lg" style={{ color: 'var(--k-ink-2)' }}>
+                    Read from public sources: the parity catalog and suites, released package source, the provider watcher's reports and the protocol specifications.
+                    A source that could not be read says unknown.
+                </p>
+                <div className="mt-6 flex items-center gap-2">
+                    <Cell color={collectedColor} label={collectedLabel} detail={collectedDetail} solid />
+                </div>
+            </section>
+
+            <div className="mx-auto max-w-7xl px-6 pb-20">
+                <Grid cols={2} gap="lg">
+                    <ParityCard view={dashboard.parity} />
+                    <ProvidersCard view={dashboard.providers} />
+                    <DriftCard view={dashboard.drift} />
+                    <ProtocolsCard mcp={dashboard.mcp} acp={dashboard.acp} />
+                    <UpstreamCard view={dashboard.upstream} />
+                    <UpstreamPullsCard view={dashboard.upstream_prs} />
+                    <SourcesCard
+                        feeds={[
+                            ['Language parity', dashboard.parity.feed],
+                            ['Providers × capabilities', dashboard.providers.feed],
+                            ['Provider API drift', dashboard.drift.feed],
+                            ['MCP', dashboard.mcp.feed],
+                            ['ACP', dashboard.acp.feed],
+                            ['Upstream drift', dashboard.upstream.feed],
+                            ['Our upstream pull requests', dashboard.upstream_prs.feed],
+                        ]}
+                    />
+                </Grid>
+            </div>
+
+            <KineticFooter />
+        </div>
+    );
+}

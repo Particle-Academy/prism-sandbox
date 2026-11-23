@@ -11,6 +11,12 @@ use Illuminate\Support\Facades\Schedule;
 // Requires the scheduler cron (`php artisan schedule:run`) and GITHUB_TOKEN.
 Schedule::command('gamification:backfill')->dailyAt('05:00')->withoutOverlapping();
 
+// The public parity dashboard (/parity) reads a snapshot of public GitHub data.
+// Unauthenticated on purpose (about eight API calls of the 60 an hour allowed),
+// so it is collected on a schedule and never per page view. The page marks a
+// snapshot older than a day as stale.
+Schedule::command('parity:snapshot')->everySixHours()->withoutOverlapping();
+
 // The host's nginx gives /robots.txt a 404 status unless a static file exists,
 // so fancy-seo's rendered robots.txt is written to public/. SeoTest fails when
 // the file drifts from config/fancy-seo.php; run this to bring it back in line.

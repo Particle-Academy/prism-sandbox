@@ -5,6 +5,7 @@ use App\Http\Controllers\DemoController;
 use App\Http\Controllers\DocsController;
 use App\Http\Controllers\FeaturesController;
 use App\Http\Controllers\LeaderboardController;
+use App\Http\Controllers\ParityController;
 use App\Http\Controllers\ProviderSetupController;
 use App\Http\Controllers\Webhooks\GitHubWebhookController;
 use Illuminate\Support\Facades\Route;
@@ -18,6 +19,10 @@ Route::get('/', fn (DocsRepository $docs) => Inertia::render('Landing', [
 Route::get('/features', [FeaturesController::class, 'index'])->name('features.index');
 Route::get('/features/{slug}', [FeaturesController::class, 'show'])->where('slug', '[a-z0-9\-]+')->name('features.show');
 Route::get('/packages', [FeaturesController::class, 'packages'])->name('packages');
+
+// Language parity, provider capability, provider API drift and protocol
+// coverage, from public sources collected by `parity:snapshot`.
+Route::get('/parity', ParityController::class)->name('parity');
 
 Route::get('/providers/setup', [ProviderSetupController::class, 'index'])->name('providers.setup.index');
 Route::get('/providers/setup/{id}', [ProviderSetupController::class, 'show'])->where('id', '[a-z]+')->name('providers.setup.show');
