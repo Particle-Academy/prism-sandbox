@@ -19,7 +19,7 @@ namespace App\Parity;
 final class SnapshotStore
 {
     /** Section paths inside a snapshot that are carried forward independently. */
-    private const SECTIONS = [['parity'], ['providers'], ['drift'], ['protocols', 'mcp'], ['protocols', 'acp']];
+    private const SECTIONS = [['parity'], ['providers'], ['drift'], ['protocols', 'mcp'], ['protocols', 'acp'], ['upstream'], ['upstream_prs']];
 
     public function __construct(private readonly string $path) {}
 

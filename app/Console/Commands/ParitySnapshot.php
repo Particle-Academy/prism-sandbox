@@ -31,6 +31,8 @@ class ParitySnapshot extends Command
             'drift' => $written['drift'],
             'mcp' => $written['protocols']['mcp'],
             'acp' => $written['protocols']['acp'],
+            'upstream' => $written['upstream'],
+            'upstream_prs' => $written['upstream_prs'],
         ];
 
         $failed = 0;

@@ -139,6 +139,64 @@ final class PublicAllowRule
     }
 
     /**
+     * A pull request we may name on the page touches no security subject, even in
+     * its title. A security fix travels by private advisory, never by public PR, so
+     * a public PR that names one is either a mistake or a pointer to a weakness. In
+     * both cases the page leaves it out entirely.
+     */
+    private const SECURITY_TEXT = '/secur|vulnerab|\bCVE-|\bGHSA-|advisor|exploit|disclos|\bCWE-|\bembargo/i';
+
+    /** The tag of a published, non-draft release, or null. Release names and notes are never read. */
+    public static function releaseTag(mixed $release): ?string
+    {
+        if (! is_array($release) || ($release['draft'] ?? false) !== false || ! is_string($release['tag_name'] ?? null)
+            || preg_match('/^v?\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?$/', $release['tag_name']) !== 1) {
+            return null;
+        }
+
+        return $release['tag_name'];
+    }
+
+    /**
+     * The publishable fields of one of our upstream pull requests, or null.
+     *
+     * Only a PR (search also returns issues), only in the expected repository,
+     * and never one whose title or labels name a security subject or carry a
+     * private marker. The body is never read.
+     *
+     * @return array{number: int, title: string, state: string, created_at: string, updated_at: string, merged_at: string|null, url: string}|null
+     */
+    public static function upstreamPull(mixed $item, string $repo): ?array
+    {
+        if (! is_array($item) || ! is_array($item['pull_request'] ?? null)
+            || ! is_int($item['number'] ?? null) || ! is_string($item['title'] ?? null)
+            || ! in_array($item['state'] ?? null, ['open', 'closed'], true)
+            || ! is_string($item['created_at'] ?? null) || ! is_string($item['updated_at'] ?? null)
+            || ($item['html_url'] ?? null) !== "https://github.com/{$repo}/pull/{$item['number']}") {
+            return null;
+        }
+
+        $labels = array_values(array_filter(array_map(fn ($l): mixed => is_array($l) ? ($l['name'] ?? null) : $l, (array) ($item['labels'] ?? [])), 'is_string'));
+        foreach ([$item['title'], ...$labels] as $text) {
+            if (preg_match(self::SECURITY_TEXT, $text) === 1 || self::hasPrivateMarker($text)) {
+                return null;
+            }
+        }
+
+        $mergedAt = $item['pull_request']['merged_at'] ?? null;
+
+        return [
+            'number' => $item['number'],
+            'title' => $item['title'],
+            'state' => is_string($mergedAt) ? 'merged' : ($item['state'] === 'closed' ? 'closed' : 'open'),
+            'created_at' => $item['created_at'],
+            'updated_at' => $item['updated_at'],
+            'merged_at' => is_string($mergedAt) ? $mergedAt : null,
+            'url' => $item['html_url'],
+        ];
+    }
+
+    /**
      * The publishable fields of a drift issue, or null when it may not be shown.
      *
      * @return array{number: int, url: string, date: string, severity: string, contract: int|null, catalogue: int|null, state: string, closed_at: string|null}|null

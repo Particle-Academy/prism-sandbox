@@ -86,6 +86,8 @@ final class SnapshotBuilder
             'providers' => $this->providers($manifest, $at),
             'drift' => $this->drift($at),
             'protocols' => $this->protocols($manifest, $at),
+            'upstream' => (new UpstreamCollector($this->sources))->upstream($at),
+            'upstream_prs' => (new UpstreamCollector($this->sources))->pulls($at),
         ];
     }
 

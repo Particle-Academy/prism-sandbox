@@ -46,6 +46,17 @@ class ParityDashboardTest extends TestCase
         'G-999',
         'G-998',
         'G-997',
+        // Upstream: a security PR, a security-labelled PR, a PR with a private
+        // marker, an issue in the PR search, a PR in another repository, a draft
+        // release and the text of release notes and PR bodies.
+        'CANARY-SECURITY-PR',
+        'CANARY-LABELLED-PR',
+        'CANARY-PRIVATE-PR',
+        'CANARY-ISSUE-IN-SEARCH',
+        'CANARY-OTHER-REPO',
+        'CANARY-PR-BODY',
+        'CANARY-RELEASE-NOTES',
+        'v9.9.9',
     ];
 
     private string $snapshotPath;
@@ -114,6 +125,49 @@ class ParityDashboardTest extends TestCase
         $this->assertStringContainsString('"number":162', $props);
         // The hidden family is not a row at all.
         $this->assertStringNotContainsString('secret-family', $props);
+        // Our public upstream PRs are there.
+        $this->assertStringContainsString('"number":1045', $props);
+        $this->assertStringContainsString('"number":1047', $props);
+    }
+
+    public function test_upstream_drift_and_our_pull_requests_are_read_from_public_sources(): void
+    {
+        $this->fakeSources();
+        $this->collect();
+
+        $this->get('/parity')->assertInertia(fn (Assert $page) => $page
+            ->where('dashboard.upstream.feed.state', 'ok')
+            ->where('dashboard.upstream.green', true)
+            ->where('dashboard.upstream.ahead', 296)
+            ->where('dashboard.upstream.behind', 3)
+            ->where('dashboard.upstream.merge_base.sha', '385022b')
+            ->where('dashboard.upstream.upstream_release.tag', 'v0.104.0')
+            ->where('dashboard.upstream.fork_release.tag', 'v0.152.0')
+            ->where('dashboard.upstream.releases_since', [
+                ['tag' => 'v0.104.0', 'published_at' => '2026-11-20T10:00:00Z'],
+                ['tag' => 'v0.103.0', 'published_at' => '2026-11-07T23:33:27Z'],
+            ])
+            ->where('dashboard.upstream.opened_since', ['issues' => 7, 'pulls' => 4])
+            ->where('dashboard.upstream.watched_open.pulls', ['count' => 2, 'lower_bound' => false])
+            ->where('dashboard.upstream_prs.feed.state', 'ok')
+            ->where('dashboard.upstream_prs.counts', ['open' => 1, 'merged' => 1, 'closed' => 0])
+            ->where('dashboard.upstream_prs.pulls.0.number', 1047)
+            ->where('dashboard.upstream_prs.pulls.1.number', 1045)
+            ->where('dashboard.upstream_prs.pulls.1.review', 'changes-requested')
+            ->where('dashboard.upstream_prs.pulls.1.ci', 'awaiting-approval')
+            ->where('dashboard.upstream_prs.pulls.1.stale', true)
+            ->where('dashboard.upstream_prs.pulls.1.age_days', 32));
+    }
+
+    public function test_one_unreadable_author_search_makes_the_pull_request_card_unknown_not_short(): void
+    {
+        config(['parity.upstream.pr_authors' => ['wishborn', 'second-author']]);
+        $this->fakeSources();
+        $this->collect();
+
+        $this->get('/parity')->assertInertia(fn (Assert $page) => $page
+            ->where('dashboard.upstream_prs.feed.state', 'failed')
+            ->where('dashboard.upstream_prs.counts', null));
     }
 
     public function test_a_security_corpus_that_is_not_full_shows_as_withheld_without_its_cause(): void
@@ -193,7 +247,11 @@ class ParityDashboardTest extends TestCase
             ->where('dashboard.providers.feed.state', 'failed')
             ->where('dashboard.drift.feed.state', 'failed')
             ->where('dashboard.mcp.feed.state', 'failed')
-            ->where('dashboard.acp.feed.state', 'failed'));
+            ->where('dashboard.acp.feed.state', 'failed')
+            ->where('dashboard.upstream.feed.state', 'failed')
+            ->where('dashboard.upstream.behind', null)
+            ->where('dashboard.upstream_prs.feed.state', 'failed')
+            ->where('dashboard.upstream_prs.counts', null));
     }
 
     public function test_a_failed_collection_keeps_the_last_data_and_marks_it_stale(): void
@@ -334,6 +392,60 @@ class ParityDashboardTest extends TestCase
                 ['tag_name' => 'schema-v1.34.1', 'prerelease' => false],
             ]),
             "{$raw}/prism-acp/v0.1.2/src/Agent/AcpAgent.php" => Http::response("<?php\nfinal class AcpAgent { public const PROTOCOL_VERSION = 1; }\n"),
+
+            // Upstream drift.
+            "{$api}/prism-php/prism/compare/*" => Http::response([
+                'ahead_by' => 296, 'behind_by' => 3,
+                'merge_base_commit' => ['sha' => '385022b'.str_repeat('0', 33), 'commit' => ['committer' => ['date' => '2026-11-07T23:15:09Z']]],
+            ]),
+            "{$api}/prism-php/prism/releases*" => Http::response([
+                ['tag_name' => 'v0.104.0', 'published_at' => '2026-11-20T10:00:00Z', 'draft' => false, 'prerelease' => false, 'name' => 'CANARY-RELEASE-NOTES', 'body' => 'CANARY-RELEASE-NOTES'],
+                ['tag_name' => 'v9.9.9', 'published_at' => '2026-11-22T10:00:00Z', 'draft' => true, 'prerelease' => false],
+                ['tag_name' => 'v0.103.0', 'published_at' => '2026-11-07T23:33:27Z', 'draft' => false, 'prerelease' => false],
+                ['tag_name' => 'v0.102.0', 'published_at' => '2026-10-16T14:00:09Z', 'draft' => false, 'prerelease' => false],
+            ]),
+            "{$api}/Particle-Academy/prism/releases/latest" => Http::response(['tag_name' => 'v0.152.0', 'published_at' => '2026-11-23T19:33:59Z', 'draft' => false, 'body' => 'CANARY-RELEASE-NOTES']),
+            "{$raw}/prism-provider-watch/main/state/upstream.json" => Http::response(['sources' => [
+                'issues' => ['ok' => true, 'data' => ['entries' => [['id' => '1052', 'title' => '#1052 x']]]],
+                'pulls' => ['ok' => true, 'data' => ['entries' => [['id' => '1054', 'title' => '#1054 x'], ['id' => '1053', 'title' => '#1053 x']]]],
+            ]]),
+
+            // Searches: issues and pulls since the merge base, and our PRs by author.
+            'api.github.com/search/issues*' => function ($request) {
+                $url = urldecode($request->url());
+                if (str_contains($url, 'author:second-author')) {
+                    return Http::response('rate limited', 403);
+                }
+                if (str_contains($url, 'author:wishborn')) {
+                    // Overrides first: `+` keeps the LEFT operand's keys.
+                    $pr = fn (int $n, string $title, string $state, ?string $merged, array $extra = []): array => $extra + [
+                        'number' => $n, 'title' => $title, 'state' => $state, 'created_at' => '2026-10-21T19:00:00Z', 'updated_at' => '2026-11-07T22:41:56Z',
+                        'html_url' => 'https://github.com/prism-php/prism/pull/'.$n, 'pull_request' => ['merged_at' => $merged], 'labels' => [], 'body' => 'CANARY-PR-BODY',
+                    ];
+
+                    return Http::response(['total_count' => 7, 'incomplete_results' => false, 'items' => [
+                        $pr(1047, 'feat(tool): decode an object argument sent as JSON', 'closed', '2026-11-07T22:41:56Z'),
+                        $pr(1045, 'Stop fetching media URLs implicitly', 'open', null),
+                        $pr(1060, 'Fix a security hole CANARY-SECURITY-PR', 'open', null),
+                        $pr(1061, 'Tidy CANARY-LABELLED-PR', 'open', null, ['labels' => [['name' => 'security']]]),
+                        $pr(1062, 'CANARY-PRIVATE-PR: NO public detail', 'open', null),
+                        ['pull_request' => null] + $pr(1063, 'CANARY-ISSUE-IN-SEARCH', 'open', null),
+                        ['html_url' => 'https://github.com/someone/else/pull/1064'] + $pr(1064, 'CANARY-OTHER-REPO', 'open', null),
+                    ]]);
+                }
+
+                return Http::response(['total_count' => str_contains($url, 'is:issue') ? 7 : 4, 'incomplete_results' => false, 'items' => []]);
+            },
+            "{$api}/prism-php/prism/pulls/1045" => Http::response(['head' => ['sha' => str_repeat('b', 40)], 'draft' => false, 'body' => 'CANARY-PR-BODY']),
+            "{$api}/prism-php/prism/pulls/1045/reviews*" => Http::response([
+                ['state' => 'APPROVED', 'user' => ['login' => 'a']],
+                ['state' => 'COMMENTED', 'user' => ['login' => 'b'], 'body' => 'CANARY-PR-BODY'],
+                ['state' => 'CHANGES_REQUESTED', 'user' => ['login' => 'b']],
+            ]),
+            "{$api}/prism-php/prism/actions/runs*" => Http::response(['workflow_runs' => [
+                ['status' => 'completed', 'conclusion' => 'success'],
+                ['status' => 'completed', 'conclusion' => 'action_required'],
+            ]]),
         ]);
     }
 }

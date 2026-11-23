@@ -52,6 +52,98 @@ final class DashboardPresenter
             'drift' => $this->drift($snapshot['drift'] ?? null, $fresh, $now),
             'mcp' => $this->mcp($snapshot['protocols']['mcp'] ?? null, $fresh),
             'acp' => $this->acp($snapshot['protocols']['acp'] ?? null, $fresh),
+            'upstream' => $this->upstream($snapshot['upstream'] ?? null, $fresh, $snapshot['drift']['data']['baseline_committed_at'] ?? null),
+            'upstream_prs' => $this->upstreamPulls($snapshot['upstream_prs'] ?? null, $fresh, $now),
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $section
+     * @return array<string, mixed>
+     */
+    private function upstream(?array $section, bool $fresh, mixed $watcherBaseline): array
+    {
+        $feed = $this->feed($section, $fresh);
+        $data = in_array($feed['state'], ['unknown', 'failed'], true) ? null : ($section['data'] ?? null);
+        $int = fn (mixed $v): ?int => is_int($v) ? $v : null;
+        $release = fn (mixed $r): ?array => is_array($r) && is_string($r['tag'] ?? null) ? ['tag' => $r['tag'], 'published_at' => is_string($r['published_at'] ?? null) ? $r['published_at'] : null] : null;
+
+        $watched = [];
+        foreach (['issues', 'pulls'] as $source) {
+            $entry = $data['watched_open'][$source] ?? null;
+            $watched[$source] = is_array($entry) && is_int($entry['count'] ?? null) ? ['count' => $entry['count'], 'lower_bound' => (bool) ($entry['lower_bound'] ?? true)] : null;
+        }
+
+        return [
+            'feed' => $feed,
+            // Green is only for current data; the page caps everything else.
+            'green' => $feed['state'] === 'ok',
+            'repo' => is_string($data['repo'] ?? null) ? $data['repo'] : (string) config('parity.upstream.repo'),
+            'fork' => is_string($data['fork'] ?? null) ? $data['fork'] : (string) config('parity.upstream.fork'),
+            'ahead' => $int($data['ahead'] ?? null),
+            'behind' => $int($data['behind'] ?? null),
+            'merge_base' => is_array($data['merge_base'] ?? null) ? ['sha' => substr((string) $data['merge_base']['sha'], 0, 7), 'date' => $data['merge_base']['date'] ?? null] : null,
+            'upstream_release' => $release($data['upstream_release'] ?? null),
+            'fork_release' => $release($data['fork_release'] ?? null),
+            'releases_since' => is_array($data['releases_since'] ?? null) ? array_values(array_filter(array_map($release, $data['releases_since']))) : null,
+            'opened_since' => [
+                'issues' => $int($data['opened_since']['issues'] ?? null),
+                'pulls' => $int($data['opened_since']['pulls'] ?? null),
+            ],
+            'watched_open' => $watched,
+            'watched_as_of' => is_string($watcherBaseline) ? $watcherBaseline : null,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $section
+     * @return array<string, mixed>
+     */
+    private function upstreamPulls(?array $section, bool $fresh, DateTimeImmutable $now): array
+    {
+        $feed = $this->feed($section, $fresh);
+        $data = in_array($feed['state'], ['unknown', 'failed'], true) ? null : ($section['data'] ?? null);
+        if (! is_array($data)) {
+            return ['feed' => $feed, 'green' => false, 'pulls' => [], 'counts' => null, 'score' => null, 'lower_bound' => false, 'stale_days' => null];
+        }
+
+        $staleDays = is_int($data['stale_days'] ?? null) ? $data['stale_days'] : 30;
+        $counts = ['open' => 0, 'merged' => 0, 'closed' => 0];
+        $pulls = [];
+        foreach (is_array($data['pulls'] ?? null) ? $data['pulls'] : [] as $pull) {
+            if (! is_array($pull) || ! isset($counts[$pull['state'] ?? ''])) {
+                continue;
+            }
+            $counts[$pull['state']]++;
+            $created = $this->time($pull['created_at'] ?? null);
+            $updated = $this->time($pull['updated_at'] ?? null);
+            $age = $created === null ? null : intdiv($this->hours($created, $now), 24);
+            $pulls[] = [
+                'number' => $pull['number'],
+                'title' => $pull['title'],
+                'url' => $pull['url'],
+                'state' => $pull['state'],
+                'draft' => $pull['draft'] ?? null,
+                'review' => is_string($pull['review'] ?? null) ? $pull['review'] : null,
+                'ci' => is_string($pull['ci'] ?? null) ? $pull['ci'] : null,
+                'age_days' => $age,
+                'last_activity' => $updated?->format(DATE_ATOM),
+                'idle_days' => $updated === null ? null : intdiv($this->hours($updated, $now), 24),
+                'merged_at' => $pull['merged_at'] ?? null,
+                'stale' => $pull['state'] === 'open' && $age !== null && $age > $staleDays,
+            ];
+        }
+        $decided = $counts['merged'] + $counts['closed'];
+
+        return [
+            'feed' => $feed,
+            'green' => $feed['state'] === 'ok',
+            'pulls' => $pulls,
+            'counts' => $counts,
+            // Of the PRs upstream has decided, how many it took.
+            'score' => $decided === 0 ? null : ['value' => $counts['merged'], 'of' => $decided],
+            'lower_bound' => (bool) ($data['lower_bound'] ?? false),
+            'stale_days' => $staleDays,
         ];
     }
 

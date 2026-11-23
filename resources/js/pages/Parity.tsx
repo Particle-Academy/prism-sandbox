@@ -71,6 +71,45 @@ type AcpView = {
     rows: { package: string; language: string; version: string | null; speaks: number | null; stable: ProtocolCell; preview: 'yes' | 'no' | null }[];
     score: Score;
 };
+type ReleaseRef = { tag: string; published_at: string | null };
+type UpstreamView = {
+    feed: Feed;
+    green: boolean;
+    repo: string;
+    fork: string;
+    ahead: number | null;
+    behind: number | null;
+    merge_base: { sha: string; date: string | null } | null;
+    upstream_release: ReleaseRef | null;
+    fork_release: ReleaseRef | null;
+    releases_since: ReleaseRef[] | null;
+    opened_since: { issues: number | null; pulls: number | null };
+    watched_open: { issues: { count: number; lower_bound: boolean } | null; pulls: { count: number; lower_bound: boolean } | null };
+    watched_as_of: string | null;
+};
+type UpstreamPull = {
+    number: number;
+    title: string;
+    url: string;
+    state: 'open' | 'merged' | 'closed';
+    draft: boolean | null;
+    review: 'approved' | 'changes-requested' | 'commented' | 'none' | null;
+    ci: 'passing' | 'failing' | 'awaiting-approval' | 'running' | 'none' | 'unknown' | null;
+    age_days: number | null;
+    last_activity: string | null;
+    idle_days: number | null;
+    merged_at: string | null;
+    stale: boolean;
+};
+type UpstreamPullsView = {
+    feed: Feed;
+    green: boolean;
+    pulls: UpstreamPull[];
+    counts: { open: number; merged: number; closed: number } | null;
+    score: Score;
+    lower_bound: boolean;
+    stale_days: number | null;
+};
 type Dashboard = {
     collected: { state: 'fresh' | 'stale' | 'unknown'; at: string | null; age_hours: number | null; max_age_hours: number };
     parity: ParityView;
@@ -78,6 +117,8 @@ type Dashboard = {
     drift: DriftView;
     mcp: McpView;
     acp: AcpView;
+    upstream: UpstreamView;
+    upstream_prs: UpstreamPullsView;
 };
 
 type Language = 'php' | 'ts' | 'py';
@@ -150,7 +191,25 @@ function ScoreLine({ score, label, green }: { score: Score; label: string; green
     );
 }
 
-function Section({ title, description, feed, score, scoreLabel, wide = false, children }: { title: string; description: string; feed: Feed; score: Score; scoreLabel: string; wide?: boolean; children: ReactNode }) {
+function Section({
+    title,
+    description,
+    feed,
+    score,
+    scoreLabel,
+    headline,
+    wide = false,
+    children,
+}: {
+    title: string;
+    description: string;
+    feed: Feed;
+    score: Score;
+    scoreLabel: string;
+    headline?: ReactNode;
+    wide?: boolean;
+    children: ReactNode;
+}) {
     return (
         <Card variant="outlined" padding="md" style={wide ? { gridColumn: '1 / -1' } : undefined}>
             <div className="flex flex-col gap-4">
@@ -165,9 +224,7 @@ function Section({ title, description, feed, score, scoreLabel, wide = false, ch
                     </div>
                     <FeedBadge feed={feed} />
                 </div>
-                <div className="max-w-md">
-                    <ScoreLine score={score} label={scoreLabel} green={feed.state === 'ok'} />
-                </div>
+                <div className="max-w-md">{headline ?? <ScoreLine score={score} label={scoreLabel} green={feed.state === 'ok'} />}</div>
                 {children}
             </div>
         </Card>
@@ -579,6 +636,164 @@ function ProtocolsCard({ mcp, acp }: { mcp: McpView; acp: AcpView }) {
     );
 }
 
+/* -------------------------------------------------------------- upstream */
+
+/** A number that may be unknown. Never rendered as zero when it is not known. */
+function num(n: number | null | undefined, suffix = ''): string {
+    return n === null || n === undefined ? 'unknown' : `${n}${suffix}`;
+}
+
+function Stat({ label, value, color, detail }: { label: string; value: string; color: Color; detail: string }) {
+    return (
+        <div className="flex flex-col gap-1">
+            <Text size="xs" className="uppercase opacity-60">
+                {label}
+            </Text>
+            <Cell color={color} label={value} detail={detail} solid />
+        </div>
+    );
+}
+
+function UpstreamCard({ view }: { view: UpstreamView }) {
+    const cap = (c: Color): Color => (c === 'green' && !view.green ? 'amber' : c);
+    const behindColor: Color = view.behind === null ? 'zinc' : cap(view.behind === 0 ? 'green' : view.behind <= 10 ? 'amber' : 'red');
+    const since = view.releases_since;
+    const base = view.merge_base?.date ? view.merge_base.date.slice(0, 10) : null;
+    const watched = (w: UpstreamView['watched_open']['issues']) => (w === null ? 'unknown' : `${w.count}${w.lower_bound ? '+' : ''}`);
+
+    return (
+        <Section
+            title="Upstream drift"
+            description={`Our fork ${view.fork} against ${view.repo}, where Prism began. Behind is upstream work not yet in the fork; ahead is ours not upstream. "Since catch-up" counts from the merge base, the last upstream commit the fork contains.`}
+            feed={view.feed}
+            score={null}
+            scoreLabel=""
+            headline={
+                <div className="flex flex-wrap gap-6">
+                    <Stat label="Behind upstream" value={num(view.behind, ' commits')} color={behindColor} detail={view.behind === null ? 'The comparison could not be read.' : `${view.behind} upstream commits are not in the fork.`} />
+                    <Stat label="Ahead" value={num(view.ahead, ' commits')} color="sky" detail={view.ahead === null ? 'The comparison could not be read.' : `${view.ahead} fork commits are not upstream.`} />
+                </div>
+            }
+        >
+            <Grid cols={2} gap="sm" responsive={false}>
+                <Text size="sm" color="muted">
+                    Last catch-up (merge base)
+                </Text>
+                <Text size="sm">{view.merge_base ? `${view.merge_base.sha} · ${base ?? 'unknown'}` : 'unknown'}</Text>
+                <Text size="sm" color="muted">
+                    Upstream latest release
+                </Text>
+                <Text size="sm">{view.upstream_release ? `${view.upstream_release.tag} · ${utc(view.upstream_release.published_at).slice(0, 10)}` : 'unknown'}</Text>
+                <Text size="sm" color="muted">
+                    Our latest release
+                </Text>
+                <Text size="sm">{view.fork_release ? `${view.fork_release.tag} · ${utc(view.fork_release.published_at).slice(0, 10)}` : 'unknown'}</Text>
+            </Grid>
+
+            <div className="flex flex-wrap items-center gap-2">
+                <Text size="sm" color="muted">
+                    Since catch-up:
+                </Text>
+                <Cell
+                    color={since === null ? 'zinc' : since.length === 0 ? cap('green') : 'amber'}
+                    label={since === null ? 'releases unknown' : `${since.length} new ${since.length === 1 ? 'release' : 'releases'}`}
+                    detail={since === null ? 'Upstream releases or the merge base could not be read.' : since.length === 0 ? 'No upstream release since the merge base.' : `Released upstream after the merge base: ${since.map((r) => r.tag).join(', ')}`}
+                />
+                <Cell color="zinc" label={`${num(view.opened_since.issues)} issues`} detail="Issues opened upstream since the merge base (public search)." />
+                <Cell color="zinc" label={`${num(view.opened_since.pulls)} pulls`} detail="Pull requests opened upstream since the merge base (public search)." />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+                <Text size="sm" color="muted">
+                    Open upstream, as the provider watcher last saw it:
+                </Text>
+                <Cell
+                    color="zinc"
+                    label={`${watched(view.watched_open.issues)} issues · ${watched(view.watched_open.pulls)} pulls`}
+                    detail={`From prism-provider-watch's committed baseline${view.watched_as_of ? `, last committed ${utc(view.watched_as_of)}` : ''}. It reads one page of the newest items, so "+" is a lower bound.`}
+                />
+            </div>
+        </Section>
+    );
+}
+
+const REVIEW: Record<NonNullable<UpstreamPull['review']> | 'unknown', { color: Color; label: string }> = {
+    approved: { color: 'green', label: 'approved' },
+    'changes-requested': { color: 'red', label: 'changes requested' },
+    commented: { color: 'sky', label: 'commented' },
+    none: { color: 'zinc', label: 'no review' },
+    unknown: { color: 'zinc', label: 'review ?' },
+};
+const CI: Record<NonNullable<UpstreamPull['ci']>, { color: Color; label: string; text: string }> = {
+    passing: { color: 'green', label: 'CI passing', text: 'Every workflow run on the head commit passed.' },
+    failing: { color: 'red', label: 'CI failing', text: 'A workflow run on the head commit failed.' },
+    'awaiting-approval': { color: 'amber', label: 'CI awaiting approval', text: 'Upstream has to approve workflow runs from a fork before they start.' },
+    running: { color: 'sky', label: 'CI running', text: 'A workflow run on the head commit has not finished.' },
+    none: { color: 'zinc', label: 'no CI runs', text: 'No workflow run on the head commit.' },
+    unknown: { color: 'zinc', label: 'CI ?', text: 'The CI state could not be read.' },
+};
+
+function UpstreamPullsCard({ view }: { view: UpstreamPullsView }) {
+    const cap = (c: Color): Color => (c === 'green' && !view.green ? 'amber' : c);
+    const counts = view.counts;
+
+    return (
+        <Section
+            title="Our upstream pull requests"
+            description={`Pull requests we opened on prism-php/prism, from public data only: state, age, review, CI on the head commit and last activity. An open PR older than ${view.stale_days ?? 30} days is marked stale.`}
+            feed={view.feed}
+            score={view.score}
+            scoreLabel="of the PRs upstream has decided, merged"
+        >
+            {counts === null ? (
+                <Text color="muted">Unknown: our pull requests could not be read.</Text>
+            ) : (
+                <>
+                    <div className="flex flex-wrap gap-2">
+                        <Cell color="sky" label={`${counts.open} open`} detail="Open pull requests." />
+                        <Cell color={cap('green')} label={`${counts.merged} merged`} detail="Merged upstream." />
+                        <Cell color="zinc" label={`${counts.closed} closed`} detail="Closed without merging." />
+                        {view.lower_bound && <Cell color="amber" label="lower bound" detail="The search returned more than one page, so these counts are a lower bound." />}
+                    </div>
+                    {view.pulls.length === 0 ? (
+                        <Text color="muted">No pull requests found.</Text>
+                    ) : (
+                        <ul className="space-y-3">
+                            {view.pulls.map((pr) => {
+                                const review = REVIEW[pr.review ?? 'unknown'];
+                                const ci = CI[pr.ci ?? 'unknown'];
+
+                                return (
+                                    <li key={pr.number} className="space-y-1">
+                                        <div className="flex items-baseline gap-2">
+                                            <a href={pr.url} className="shrink-0 text-sm underline opacity-70 hover:opacity-100" rel="noreferrer" target="_blank">
+                                                #{pr.number}
+                                            </a>
+                                            <Text size="sm" className="min-w-0 truncate" title={pr.title}>
+                                                {pr.title}
+                                            </Text>
+                                        </div>
+                                        <div className="flex flex-wrap items-center gap-1.5">
+                                            <Cell
+                                                color={pr.state === 'merged' ? cap('green') : pr.state === 'closed' ? 'zinc' : 'sky'}
+                                                label={pr.draft ? 'draft' : pr.state}
+                                                detail={pr.state === 'merged' ? `Merged ${utc(pr.merged_at)}.` : pr.state === 'closed' ? 'Closed without merging.' : 'Open.'}
+                                            />
+                                            <Cell color={pr.stale ? 'amber' : 'zinc'} label={`${num(pr.age_days, 'd')} old`} detail={pr.stale ? `Open for more than ${view.stale_days} days without a merge.` : 'Days since the pull request was opened.'} />
+                                            {pr.state === 'open' && <Cell color={cap(review.color)} label={review.label} detail="Each reviewer's latest decision; a comment does not override one." />}
+                                            {pr.state === 'open' && <Cell color={cap(ci.color)} label={ci.label} detail={ci.text} />}
+                                            <Cell color="zinc" label={`active ${num(pr.idle_days, 'd')} ago`} detail={`Last activity: ${utc(pr.last_activity)}.`} />
+                                        </div>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    )}
+                </>
+            )}
+        </Section>
+    );
+}
+
 const ORDER: Feed['state'][] = ['ok', 'partial', 'stale', 'unknown', 'failed'];
 function worst(a: Feed, b: Feed): Feed {
     return ORDER.indexOf(a.state) >= ORDER.indexOf(b.state) ? a : b;
@@ -669,6 +884,8 @@ export default function Parity({ version, dashboard }: { version: string; dashbo
                     <ProvidersCard view={dashboard.providers} />
                     <DriftCard view={dashboard.drift} />
                     <ProtocolsCard mcp={dashboard.mcp} acp={dashboard.acp} />
+                    <UpstreamCard view={dashboard.upstream} />
+                    <UpstreamPullsCard view={dashboard.upstream_prs} />
                     <SourcesCard
                         feeds={[
                             ['Language parity', dashboard.parity.feed],
@@ -676,6 +893,8 @@ export default function Parity({ version, dashboard }: { version: string; dashbo
                             ['Provider API drift', dashboard.drift.feed],
                             ['MCP', dashboard.mcp.feed],
                             ['ACP', dashboard.acp.feed],
+                            ['Upstream drift', dashboard.upstream.feed],
+                            ['Our upstream pull requests', dashboard.upstream_prs.feed],
                         ]}
                     />
                 </Grid>
