@@ -762,7 +762,7 @@ values in constructors: stores and drivers on `PrismHarness`, modes on
 | `pricing` | `[]` | — | Trusted prices per provider and model, required by hard cost caps ([Subagents and budgets](/docs/harness/subagents#hard-cost-caps)) |
 | `cost_observer` | `null` | — | Container-resolved `CallCostObserver` class for capped runs |
 | `agent.provider` | `anthropic` | `HARNESS_PROVIDER` | Provider when the session has none |
-| `agent.model` | `claude-sonnet-4-5` | `HARNESS_MODEL` | Model when the session has none |
+| `agent.model` | `claude-sonnet-5-5` | `HARNESS_MODEL` | Model when the session has none |
 | `agent.lock_ttl` | `300` | `HARNESS_RUN_LOCK_TTL` | Seconds a run's session lock lasts |
 | `agent.lock_wait` | `0` | `HARNESS_RUN_LOCK_WAIT` | Seconds a run waits for a busy session before `SessionLocked` |
 | `agent.authorize_tools` | `false` | `HARNESS_AUTHORIZE_TOOLS` | Turns on the `harness.tool` and `harness.tool.call` Gate checks |
