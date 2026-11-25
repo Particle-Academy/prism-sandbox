@@ -249,7 +249,7 @@ keyword arguments `finish_reason`, `usage`, `output` and `rate_limits` on
 use Prism\Prism\Facades\Prism;
 
 $response = Prism::text()
-    ->using('anthropic', 'claude-sonnet-4-5')
+    ->using('anthropic', 'claude-sonnet-5-5')
     ->withPrompt('Summarise the incident.')
     ->asText(); // the bridge records Prism's emitted telemetry events
 ```
@@ -277,7 +277,7 @@ const tools: AdvertisedTool[] = [
 ];
 
 telemetry.onGenerationStarted(
-  { traceId: 'run-42', operation: 'text', provider: 'anthropic', model: 'claude-sonnet-4-5', sessionId: 'conv-7' },
+  { traceId: 'run-42', operation: 'text', provider: 'anthropic', model: 'claude-sonnet-5-5', sessionId: 'conv-7' },
   prompt,
   tools,
 );
@@ -292,7 +292,7 @@ telemetry.onToolInvoked('run-42', {
   error: null,
 });
 
-telemetry.onStepCompleted('run-42', 0, 'claude-sonnet-4-5', 'anthropic', {
+telemetry.onStepCompleted('run-42', 0, 'claude-sonnet-5-5', 'anthropic', {
   promptTokens: 812,
   completionTokens: 64,
   cacheReadInputTokens: 2048,
@@ -343,7 +343,7 @@ telemetry.on_generation_started(
         trace_id="run-42",
         operation="text",
         provider="anthropic",
-        model="claude-sonnet-4-5",
+        model="claude-sonnet-5-5",
         session_id="conv-7",
     ),
     prompt,
@@ -362,7 +362,7 @@ telemetry.on_tool_invoked(
 )
 
 telemetry.on_step_completed(
-    "run-42", 0, "claude-sonnet-4-5", "anthropic",
+    "run-42", 0, "claude-sonnet-5-5", "anthropic",
     Usage(prompt_tokens=812, completion_tokens=64, cache_read_input_tokens=2048),
 )
 

@@ -66,7 +66,7 @@ const handbook = Document.fromChunks(
 );
 
 const response = await Prism.text()
-  .using('anthropic', 'claude-sonnet-4-20250514')
+  .using('anthropic', 'claude-sonnet-5-5')
   .withMaxTokens(512)
   .withPrompt('When are refunds issued, and when is lunch?', [policy, handbook])
   .asText();
@@ -86,7 +86,7 @@ handbook = Document.from_chunks(
 
 response = (
     Prism.text()
-    .using("anthropic", "claude-sonnet-4-20250514")
+    .using("anthropic", "claude-sonnet-5-5")
     .with_max_tokens(512)
     .with_prompt("When are refunds issued, and when is lunch?", [policy, handbook])
     .as_text()

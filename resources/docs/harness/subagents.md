@@ -328,7 +328,7 @@ A capped PHP run needs trusted prices and an output ceiling:
 // config/prism-harness.php
 'pricing' => [
     'anthropic' => [
-        'claude-sonnet-4-5' => [
+        'claude-sonnet-5-5' => [
             'inputPerMTok' => 3.0,        // USD per million input tokens
             'outputPerMTok' => 15.0,
             'cacheWritePerMTok' => 3.75,  // optional; defaults to the input price

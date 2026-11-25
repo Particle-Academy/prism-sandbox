@@ -75,7 +75,7 @@ The two ports handle network deadlines differently.
 import { Prism } from '@particle-academy/prism';
 
 const response = await Prism.text()
-  .using('anthropic', 'claude-sonnet-4-5')
+  .using('anthropic', 'claude-sonnet-5-5')
   .withClientOptions({ signal: AbortSignal.timeout(30_000) })
   .withPrompt('Hello!')
   .asText();
@@ -86,7 +86,7 @@ from prism import Prism
 
 response = (
     Prism.text()
-    .using("anthropic", "claude-sonnet-4-5", {"timeout": 60.0})
+    .using("anthropic", "claude-sonnet-5-5", {"timeout": 60.0})
     .with_prompt("Hello!")
     .as_text()
 )
