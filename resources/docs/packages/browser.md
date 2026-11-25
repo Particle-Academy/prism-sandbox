@@ -296,7 +296,7 @@ $attachment = app(BrowserManager::class)->open($session);
 $tools = app(BrowserToolset::class)->forAttachment($session, $attachment->id);
 
 $response = Prism::text()
-    ->using('anthropic', 'claude-sonnet-4-5')
+    ->using('anthropic', 'claude-sonnet-5-5')
     ->withTools($tools)
     ->withMaxSteps(8)
     ->withPrompt('Find the rate limits section in the docs.example.com API reference.')

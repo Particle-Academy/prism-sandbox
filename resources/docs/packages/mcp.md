@@ -11,7 +11,7 @@ use Prism\Prism\Facades\Prism;
 $tools = PrismMcp::server('github')->tools();
 
 Prism::text()
-    ->using('anthropic', 'claude-sonnet-4-5')
+    ->using('anthropic', 'claude-sonnet-5-5')
     ->withTools($tools)
     ->withPrompt('Which of our open PRs touch the billing module?')
     ->asText();

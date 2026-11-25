@@ -9,7 +9,7 @@ Set `ANTHROPIC_API_KEY` in your server environment. The Anthropic adapter uses t
 import { Prism } from '@particle-academy/prism';
 
 const response = await Prism.text()
-  .using('anthropic', 'claude-sonnet-4-20250514')
+  .using('anthropic', 'claude-sonnet-5-5')
   .withMaxTokens(512)
   .withSystemPrompt('Answer concisely.')
   .withPrompt('How does a heat pump work?')
@@ -22,7 +22,7 @@ from prism import Prism
 
 response = (
     Prism.text()
-    .using("anthropic", "claude-sonnet-4-20250514")
+    .using("anthropic", "claude-sonnet-5-5")
     .with_max_tokens(512)
     .with_system_prompt("Answer concisely.")
     .with_prompt("How does a heat pump work?")
@@ -55,7 +55,7 @@ The beta variable is `ANTHROPIC_BETA_FEATURES`, not the PHP package's `ANTHROPIC
 import { Prism } from '@particle-academy/prism';
 
 const response = await Prism.text()
-  .using('anthropic', 'claude-sonnet-4-20250514', {
+  .using('anthropic', 'claude-sonnet-5-5', {
     apiKey: process.env.ANTHROPIC_API_KEY,
     betaFeatures: 'files-api-2025-04-14',
   })
@@ -71,7 +71,7 @@ from prism import Prism
 
 response = (
     Prism.text()
-    .using("anthropic", "claude-sonnet-4-20250514", {
+    .using("anthropic", "claude-sonnet-5-5", {
         "api_key": os.environ["ANTHROPIC_API_KEY"],
         "beta_features": "files-api-2025-04-14",
         "timeout": 120,
@@ -112,7 +112,7 @@ Text, structured and streaming requests read these keys from `withProviderOption
 import { Prism } from '@particle-academy/prism';
 
 const response = await Prism.text()
-  .using('anthropic', 'claude-sonnet-4-20250514')
+  .using('anthropic', 'claude-sonnet-5-5')
   .withMaxTokens(8000)
   .withPrompt('Plan a three-day trip to Lisbon.')
   .withProviderOptions({
@@ -131,7 +131,7 @@ from prism import Prism
 
 response = (
     Prism.text()
-    .using("anthropic", "claude-sonnet-4-20250514")
+    .using("anthropic", "claude-sonnet-5-5")
     .with_max_tokens(8000)
     .with_prompt("Plan a three-day trip to Lisbon.")
     .with_provider_options({

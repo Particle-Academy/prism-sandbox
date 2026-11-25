@@ -116,7 +116,7 @@ $ids = $memory->remember($response->messages);
 $recollection = $memory->recall('billing address', budget: 1500);
 
 Prism::text()
-    ->using('anthropic', 'claude-sonnet-4-5')
+    ->using('anthropic', 'claude-sonnet-5-5')
     ->withSystemPrompt($instructions)
     ->withSystemPrompt($recollection->asContext())
     ->withPrompt($question)

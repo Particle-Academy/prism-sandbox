@@ -62,7 +62,7 @@ the next run falls back to the defaults.
 
 ::: language-group
 ```php
-$session->usingMode('plan')->usingProvider('anthropic')->usingModel('claude-sonnet-4-5');
+$session->usingMode('plan')->usingProvider('anthropic')->usingModel('claude-sonnet-5-5');
 
 $session->mode();       // 'plan', or null before one is chosen
 $session->provider();
@@ -74,7 +74,7 @@ $session->forget();     // drop the ephemeral half; the thread is untouched
 ```ts
 await session.usingMode('plan');
 await session.usingProvider('anthropic');
-await session.usingModel('claude-sonnet-4-5');
+await session.usingModel('claude-sonnet-5-5');
 
 await session.mode(); // 'plan', or null before one is chosen
 await session.provider();
@@ -84,7 +84,7 @@ await session.forget(); // drop the ephemeral half; the thread is untouched
 ```
 
 ```python
-session.using_mode("plan").using_provider("anthropic").using_model("claude-sonnet-4-5")
+session.using_mode("plan").using_provider("anthropic").using_model("claude-sonnet-5-5")
 
 session.mode()      # "plan", or None before one is chosen
 session.provider()

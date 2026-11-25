@@ -10,7 +10,7 @@ import { Prism } from '@particle-academy/prism';
 
 const requests = [
   Prism.text().using('openai', 'gpt-4o').withPrompt('Hello!').toRequest(),
-  Prism.text().using('anthropic', 'claude-sonnet-4-20250514').withPrompt('Hello!').toRequest(),
+  Prism.text().using('anthropic', 'claude-sonnet-5-5').withPrompt('Hello!').toRequest(),
   Prism.text().using('mistral', 'mistral-small-latest').withPrompt('Hello!').toRequest(),
 ];
 console.log(requests);
@@ -21,7 +21,7 @@ from prism import Prism
 
 requests = [
     Prism.text().using("openai", "gpt-4o").with_prompt("Hello!").to_request(),
-    Prism.text().using("anthropic", "claude-sonnet-4-20250514").with_prompt("Hello!").to_request(),
+    Prism.text().using("anthropic", "claude-sonnet-5-5").with_prompt("Hello!").to_request(),
     Prism.text().using("mistral", "mistral-small-latest").with_prompt("Hello!").to_request(),
 ]
 print(requests)

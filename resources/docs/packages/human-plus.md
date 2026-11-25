@@ -509,7 +509,7 @@ $tools = (new HumanPlusToolset($humanPlus))->forAttachment(
 );
 
 Prism::text()
-    ->using('anthropic', 'claude-sonnet-4-5')
+    ->using('anthropic', 'claude-sonnet-5-5')
     ->withTools($tools)
     ->withPrompt('Tidy the totals column.')
     ->asText();

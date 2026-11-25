@@ -154,13 +154,13 @@ import { Prism, Tool, ToolChoice } from '@particle-academy/prism';
 const weather = new Tool().as('weather').for('Look up the weather').withStringParameter('city', 'City');
 
 const forced = Prism.text()
-  .using('anthropic', 'claude-sonnet-4-5')
+  .using('anthropic', 'claude-sonnet-5-5')
   .withTools([weather])
   .withToolChoice(weather)
   .withPrompt('Chicago?');
 
 const anyTool = Prism.text()
-  .using('anthropic', 'claude-sonnet-4-5')
+  .using('anthropic', 'claude-sonnet-5-5')
   .withTools([weather])
   .withToolChoice(ToolChoice.Any)
   .withPrompt('Chicago?');
@@ -173,7 +173,7 @@ weather = Tool("weather", "Look up the weather").with_string_parameter("city", "
 
 forced = (
     Prism.text()
-    .using("anthropic", "claude-sonnet-4-5")
+    .using("anthropic", "claude-sonnet-5-5")
     .with_tools([weather])
     .with_tool_choice(weather)
     .with_prompt("Chicago?")
@@ -181,7 +181,7 @@ forced = (
 
 any_tool = (
     Prism.text()
-    .using("anthropic", "claude-sonnet-4-5")
+    .using("anthropic", "claude-sonnet-5-5")
     .with_tools([weather])
     .with_tool_choice(ToolChoice.ANY)
     .with_prompt("Chicago?")

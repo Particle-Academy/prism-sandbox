@@ -47,7 +47,7 @@ print(response.usage.prompt_tokens, response.usage.completion_tokens)
 import { Prism, SystemMessage } from '@particle-academy/prism';
 
 const pending = Prism.text()
-  .using('anthropic', 'claude-sonnet-4-5')
+  .using('anthropic', 'claude-sonnet-5-5')
   .withSystemPrompt('You are a support agent for Acme.')
   .withSystemPrompt('Answer in one paragraph.');
 
@@ -60,7 +60,7 @@ from prism import Prism, SystemMessage
 
 pending = (
     Prism.text()
-    .using("anthropic", "claude-sonnet-4-5")
+    .using("anthropic", "claude-sonnet-5-5")
     .with_system_prompt("You are a support agent for Acme.")
     .with_system_prompt("Answer in one paragraph.")
 )
@@ -250,7 +250,7 @@ import { FinishReason, Prism, PrismError } from '@particle-academy/prism';
 
 try {
   const response = await Prism.text()
-    .using('anthropic', 'claude-sonnet-4-5')
+    .using('anthropic', 'claude-sonnet-5-5')
     .withMaxTokens(200)
     .withPrompt('Write a long essay about rivers.')
     .asText();
@@ -273,7 +273,7 @@ from prism import FinishReason, Prism, PrismError
 try:
     response = (
         Prism.text()
-        .using("anthropic", "claude-sonnet-4-5")
+        .using("anthropic", "claude-sonnet-5-5")
         .with_max_tokens(200)
         .with_prompt("Write a long essay about rivers.")
         .as_text()

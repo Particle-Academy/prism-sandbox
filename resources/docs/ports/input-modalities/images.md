@@ -74,7 +74,7 @@ const fromBytes = Image.fromRawContent(
 const fromBase64 = Image.fromBase64(process.env.THUMBNAIL_BASE64 ?? '', 'image/png');
 
 const response = await Prism.text()
-  .using('anthropic', 'claude-sonnet-4-20250514')
+  .using('anthropic', 'claude-sonnet-5-5')
   .withPrompt('Compare these three images.', [fromDisk, fromBytes, fromBase64])
   .asText();
 
@@ -98,7 +98,7 @@ from_base64 = Image.from_base64(os.environ.get("THUMBNAIL_BASE64", ""), "image/p
 
 response = (
     Prism.text()
-    .using("anthropic", "claude-sonnet-4-20250514")
+    .using("anthropic", "claude-sonnet-5-5")
     .with_prompt("Compare these three images.", [from_disk, from_bytes, from_base64])
     .as_text()
 )

@@ -81,7 +81,7 @@ let text = '';
 let completed = false;
 
 try {
-  for await (const event of Prism.text().using('anthropic', 'claude-sonnet-4-5').withPrompt('Hi!').asStream()) {
+  for await (const event of Prism.text().using('anthropic', 'claude-sonnet-5-5').withPrompt('Hi!').asStream()) {
     if (event instanceof TextDeltaEvent) {
       text += event.delta;
     } else if (event instanceof ErrorEvent) {
@@ -109,7 +109,7 @@ text = ""
 completed = False
 
 try:
-    for event in Prism.text().using("anthropic", "claude-sonnet-4-5").with_prompt("Hi!").as_stream():
+    for event in Prism.text().using("anthropic", "claude-sonnet-5-5").with_prompt("Hi!").as_stream():
         if isinstance(event, TextDeltaEvent):
             text += event.delta
         elif isinstance(event, ErrorEvent):

@@ -200,7 +200,7 @@ use Prism\Prism\Facades\Prism;
 $thread = Thread::forParticipant($user, 'support');
 
 $response = Prism::text()
-    ->using('anthropic', 'claude-sonnet-4-5')
+    ->using('anthropic', 'claude-sonnet-5-5')
     ->withThread($thread)               // everything said so far
     ->withPrompt('And after that?')     // the turn being taken now
     ->asText();
@@ -255,17 +255,17 @@ store, so any worker can continue it.
 ```php
 $session = PrismHarness::for($user)->session('support');
 
-$session->usingProvider('anthropic')->usingModel('claude-sonnet-4-5')->usingMode('support');
+$session->usingProvider('anthropic')->usingModel('claude-sonnet-5-5')->usingMode('support');
 ```
 
 ```ts
 await session.usingProvider('anthropic');
-await session.usingModel('claude-sonnet-4-5');
+await session.usingModel('claude-sonnet-5-5');
 await session.usingMode('support');
 ```
 
 ```python
-session.using_provider("anthropic").using_model("claude-sonnet-4-5").using_mode("support")
+session.using_provider("anthropic").using_model("claude-sonnet-5-5").using_mode("support")
 ```
 :::
 
@@ -640,7 +640,7 @@ In PHP, compaction is off by default:
 // config/prism-harness.php
 'context' => [
     'keep_recent' => 20,          // a bounded window: free, deterministic
-    // 'summarise_with' => 'claude-haiku-4-5-20251001',
+    // 'summarise_with' => 'claude-haiku-5-5',
     // 'summary_words'  => 200,
 ],
 ```
@@ -762,7 +762,7 @@ values in constructors: stores and drivers on `PrismHarness`, modes on
 | `pricing` | `[]` | — | Trusted prices per provider and model, required by hard cost caps ([Subagents and budgets](/docs/harness/subagents#hard-cost-caps)) |
 | `cost_observer` | `null` | — | Container-resolved `CallCostObserver` class for capped runs |
 | `agent.provider` | `anthropic` | `HARNESS_PROVIDER` | Provider when the session has none |
-| `agent.model` | `claude-sonnet-4-5` | `HARNESS_MODEL` | Model when the session has none |
+| `agent.model` | `claude-sonnet-5-5` | `HARNESS_MODEL` | Model when the session has none |
 | `agent.lock_ttl` | `300` | `HARNESS_RUN_LOCK_TTL` | Seconds a run's session lock lasts |
 | `agent.lock_wait` | `0` | `HARNESS_RUN_LOCK_WAIT` | Seconds a run waits for a busy session before `SessionLocked` |
 | `agent.authorize_tools` | `false` | `HARNESS_AUTHORIZE_TOOLS` | Turns on the `harness.tool` and `harness.tool.call` Gate checks |
