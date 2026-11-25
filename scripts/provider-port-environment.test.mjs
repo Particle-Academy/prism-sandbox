@@ -56,3 +56,37 @@ test('Python refuses dynamic names, malformed source and oversized source',()=>{
  assert.throws(()=>python('x'.repeat(1000000),''));
  assert.deepEqual(python('# no configuration calls',''),[]);
 });
+test('TypeScript infers names passed through wrapper helpers that forward to a name position',()=>{
+ const source=`import {configuredUrl, inheritsEnvironmentCredentials, scopedString as scoped} from '../../internal/provider-config.js';
+ const url=configuredUrl(config.url,'MISTRAL_URL',DEFAULT_URL); const inherit=inheritsEnvironmentCredentials(url,'MISTRAL_URL',DEFAULT_URL); scoped(config.apiKey,'MISTRAL_API_KEY',inherit,'');`;
+ const helper=`function configuredUrl(value: unknown, name: string, fallback: string){readEnvironment(name);return configuredString(value,name,fallback);}
+ function inheritsEnvironmentCredentials(url: string, urlName: string, fallback: string){return url===configuredString(undefined,urlName,fallback);}
+ function scopedString(value: unknown, name: string, inherit: boolean, fallback: string){return inherit?configuredString(value,name,fallback):fallback;}
+ function twice(name: string){return scopedString(undefined,name,true,'');}
+ function notAName(fallback: string){return configuredString(undefined,'MISTRAL_TIMEOUT',fallback);}`;
+ assert.deepEqual(typescript(source,helper,ts),['MISTRAL_API_KEY','MISTRAL_URL']);
+ assert.deepEqual(typescript(`twice('MISTRAL_NESTED'); notAName('NOT_A_NAME');`,helper,ts),['MISTRAL_NESTED','MISTRAL_TIMEOUT']);
+ assert.throws(()=>typescript(`scopedString(config.apiKey, chooseName(), true, '');`,helper,ts));
+});
+test('Python infers names passed through wrapper helpers that forward to a name position',()=>{
+ const source=`from prism.providers.config import configured_url, inherits_environment_credentials, scoped_string as scoped
+url = configured_url(url, "MISTRAL_URL", DEFAULT_URL)
+inherit = inherits_environment_credentials(url, "MISTRAL_URL", DEFAULT_URL)
+scoped(api_key, "MISTRAL_API_KEY", inherit, "")`;
+ const helper=`import os
+def configured_url(value, name, fallback):
+    os.environ.get(name)
+    return configured_string(value, name, fallback)
+def inherits_environment_credentials(url, url_name, fallback):
+    return url == configured_string(UNSET, url_name, fallback)
+def scoped_string(value, name, inherit, fallback):
+    return configured_string(value, name, fallback) if inherit else fallback
+def twice(name):
+    return scoped_string(UNSET, name, True, "")
+def not_a_name(fallback):
+    return configured_string(UNSET, "MISTRAL_TIMEOUT", fallback)`;
+ assert.deepEqual(python(source,helper),['MISTRAL_API_KEY','MISTRAL_URL']);
+ assert.deepEqual(python(`twice("MISTRAL_NESTED")
+not_a_name("NOT_A_NAME")`,helper),['MISTRAL_NESTED','MISTRAL_TIMEOUT']);
+ assert.throws(()=>python(`scoped_string(api_key, choose_name(), True, "")`,helper));
+});
