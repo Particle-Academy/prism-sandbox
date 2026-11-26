@@ -1573,16 +1573,16 @@
         },
         {
             "name": "league/commonmark",
-            "version": "2.10.8",
+            "version": "2.10.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thephpleague/commonmark.git",
-                "reference": "681e662a40c805c567f52d603b64d55282ea356c"
+                "reference": "3e956235b26ea34ea721a302e27eae9a32cb9ef0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thephpleague/commonmark/zipball/681e662a40c805c567f52d603b64d55282ea356c",
-                "reference": "681e662a40c805c567f52d603b64d55282ea356c",
+                "url": "https://api.github.com/repos/thephpleague/commonmark/zipball/3e956235b26ea34ea721a302e27eae9a32cb9ef0",
+                "reference": "3e956235b26ea34ea721a302e27eae9a32cb9ef0",
                 "shasum": ""
             },
             "require": {
@@ -1676,8 +1676,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-11-24T15:44:47+00:00",
-            "published-time": "2026-11-24T15:45:01+00:00"
+            "time": "2026-11-26T14:08:53+00:00",
+            "published-time": "2026-11-26T14:12:37+00:00"
         },
         {
             "name": "league/config",
@@ -2807,16 +2807,16 @@
         },
         {
             "name": "particle-academy/prism",
-            "version": "v0.154.0",
+            "version": "v0.155.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Particle-Academy/prism.git",
-                "reference": "1f4e7194403204782c86da75785dae5086aacd3f"
+                "reference": "757145fd184fa8d63252b11f9de54887667c35ef"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Particle-Academy/prism/zipball/1f4e7194403204782c86da75785dae5086aacd3f",
-                "reference": "1f4e7194403204782c86da75785dae5086aacd3f",
+                "url": "https://api.github.com/repos/Particle-Academy/prism/zipball/757145fd184fa8d63252b11f9de54887667c35ef",
+                "reference": "757145fd184fa8d63252b11f9de54887667c35ef",
                 "shasum": ""
             },
             "require": {
@@ -2882,7 +2882,7 @@
             "description": "A powerful Laravel package for integrating Large Language Models (LLMs) into your applications. Actively maintained fork of prism-php/prism.",
             "support": {
                 "issues": "https://github.com/Particle-Academy/prism/issues",
-                "source": "https://github.com/Particle-Academy/prism/tree/v0.154.0"
+                "source": "https://github.com/Particle-Academy/prism/tree/v0.155.0"
             },
             "funding": [
                 {
@@ -2890,8 +2890,8 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-11-24T05:27:33+00:00",
-            "published-time": "2026-11-24T06:20:12+00:00"
+            "time": "2026-11-26T01:04:08+00:00",
+            "published-time": "2026-11-26T01:39:35+00:00"
         },
         {
             "name": "phpoption/phpoption",
